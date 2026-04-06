@@ -260,14 +260,14 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
 
 אורך: בינוני - לא קצר מדי ולא ארוך מדי.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${lovableApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}` },
@@ -362,11 +362,11 @@ serve(async (req) => {
     
     console.log("✅ CRON_SECRET validated");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!GEMINI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing required environment variables");
     }
 
@@ -478,14 +478,14 @@ serve(async (req) => {
       processedCount++;
 
       // Try to generate and send summary with retries
-      let result = await generateAndSendSummary(supabase, userId, LOVABLE_API_KEY, 1);
+      let result = await generateAndSendSummary(supabase, userId, GEMINI_API_KEY, 1);
       
       if (!result.success) {
         // Retry up to 2 more times (total 3 attempts)
         for (let attempt = 2; attempt <= 3; attempt++) {
           console.log(`🔄 Retrying for user ${userId} (attempt ${attempt}/3)...`);
           await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-          result = await generateAndSendSummary(supabase, userId, LOVABLE_API_KEY, attempt);
+          result = await generateAndSendSummary(supabase, userId, GEMINI_API_KEY, attempt);
           if (result.success) break;
         }
       }
@@ -544,7 +544,7 @@ serve(async (req) => {
         retriedUsers.add(log.user_id);
         console.log(`🔁 Retrying credit-failed summary for user ${log.user_id} (failed at ${log.created_at})`);
         
-        const retryResult = await generateAndSendSummary(supabase, log.user_id, LOVABLE_API_KEY, 1);
+        const retryResult = await generateAndSendSummary(supabase, log.user_id, GEMINI_API_KEY, 1);
         if (retryResult.success) {
           sentCount++;
           processedCount++;

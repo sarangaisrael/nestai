@@ -282,16 +282,16 @@ ${p3Msgs.length > 0 ? p3Msgs.join('\n\n') : 'אין כתיבה'}
 
 צור דו"ח חודשי. זכור: תובנות קצרות ובגובה העיניים, וצעדים מעשיים קדימה.`;
 
-        const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-        if (!LOVABLE_API_KEY) {
-          console.error('monthly-summary-scheduler: LOVABLE_API_KEY not configured');
+        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+        if (!GEMINI_API_KEY) {
+          console.error('monthly-summary-scheduler: GEMINI_API_KEY not configured');
           continue;
         }
 
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${GEMINI_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

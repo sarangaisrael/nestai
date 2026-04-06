@@ -56,7 +56,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const lovableApiKey = Deno.env.get('GEMINI_API_KEY')!;
     const encryptionKey = Deno.env.get('MESSAGE_ENCRYPTION_KEY');
 
     // Get user from auth header
@@ -206,7 +206,7 @@ serve(async (req) => {
       ? `${adminPromptOverride}\n\nהתמקדות מיוחדת: ${focusAreas}${therapyInstruction}\n\nזהו סיכום ביניים חלקי (לא סיכום שבועי מלא). אורך: קצר-בינוני.`
       : defaultPrompt;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,
