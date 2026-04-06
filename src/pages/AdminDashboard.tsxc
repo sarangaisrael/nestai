@@ -959,7 +959,7 @@ const AdminDashboard = () => {
                         <TableRow key={row.user_id}>
                           <TableCell>
                             <div className="space-y-1">
-                              <p className="text-sm font-medium text-foreground">{users.find(u => u.user_id === row.user_id)?.email || row.user_id}</p>
+                              <p className="text-sm font-medium text-foreground">{row.user_id}</p>
                               <p className="text-[11px] text-muted-foreground">נרשם ב-{formatDate(row.registration_date)}</p>
                             </div>
                           </TableCell>
