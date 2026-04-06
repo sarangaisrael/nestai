@@ -305,7 +305,7 @@ export const he = {
 
   // Welcome page
   welcome: {
-    title: "ברוכים הבאים ל-NestAI.care",
+    title: "הדרך החדשה לטיפול נפשי",
     description: "האפליקציה שתעזור לך לשמור על רצף טיפולי,\nלשחרר מתח ולשפר את איכות החיים שלך",
     getStarted: "להתחיל",
     alreadyRegistered: "כבר נרשמתם?",
