@@ -1,0 +1,183 @@
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
+interface PdfData {
+  patientName: string;
+  dateRange: string;
+  executiveSummary: string;
+  moodData: { week: string; score: number }[];
+  topThemes: string[];
+  therapeuticPoints: string[];
+  isRTL: boolean;
+}
+
+/**
+ * Generates a professional therapist PDF by rendering styled HTML to canvas,
+ * then embedding it in a jsPDF document. This approach ensures full Hebrew/RTL support.
+ */
+export async function generateTherapistPdf(data: PdfData): Promise<void> {
+  const {
+    patientName,
+    dateRange,
+    executiveSummary,
+    moodData,
+    topThemes,
+    therapeuticPoints,
+    isRTL,
+  } = data;
+
+  // Build hidden HTML for rendering
+  const container = document.createElement("div");
+  container.style.cssText = `
+    position: fixed; top: -9999px; left: -9999px;
+    width: 595px; padding: 40px;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #ffffff; color: #1a1a1a;
+    direction: ${isRTL ? "rtl" : "ltr"};
+    text-align: ${isRTL ? "right" : "left"};
+    line-height: 1.6;
+  `;
+  document.body.appendChild(container);
+
+  // Mood chart as inline SVG
+  const chartSvg = buildMoodChartSvg(moodData);
+
+  container.innerHTML = `
+    <div style="border-bottom: 3px solid #6366f1; padding-bottom: 16px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 22px; font-weight: 700; color: #6366f1; letter-spacing: -0.5px;">NestAI</div>
+        <div style="font-size: 11px; color: #888; margin-top: 2px;">${isRTL ? "דוח סיכום תקופתי עבור המטפל/ת" : "Periodic Summary Report for Therapist"}</div>
+      </div>
+      <div style="font-size: 10px; color: #999; text-align: ${isRTL ? "left" : "right"};">
+        ${new Date().toLocaleDateString(isRTL ? "he-IL" : "en-US")}
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 24px; margin-bottom: 24px; font-size: 12px;">
+      <div style="flex: 1; background: #f8f9fa; border-radius: 8px; padding: 12px;">
+        <div style="font-size: 10px; color: #888; margin-bottom: 4px;">${isRTL ? "שם המטופל/ת" : "Patient Name"}</div>
+        <div style="font-weight: 600;">${patientName || (isRTL ? "לא צוין" : "Not specified")}</div>
+      </div>
+      <div style="flex: 1; background: #f8f9fa; border-radius: 8px; padding: 12px;">
+        <div style="font-size: 10px; color: #888; margin-bottom: 4px;">${isRTL ? "תקופה" : "Period"}</div>
+        <div style="font-weight: 600;">${dateRange}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 14px; font-weight: 700; color: #6366f1; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">
+        ${isRTL ? "📋 תקציר התקופה" : "📋 Executive Summary"}
+      </div>
+      <div style="font-size: 12px; color: #374151; white-space: pre-wrap; line-height: 1.8;">
+        ${executiveSummary}
+      </div>
+    </div>
+
+    ${moodData.length > 0 ? `
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 14px; font-weight: 700; color: #6366f1; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">
+        ${isRTL ? "📈 מגמת מצב רוח" : "📈 Mood Trend"}
+      </div>
+      <div style="background: #fafafa; border-radius: 8px; padding: 16px;">${chartSvg}</div>
+    </div>
+    ` : ""}
+
+    ${topThemes.length > 0 ? `
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 14px; font-weight: 700; color: #6366f1; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">
+        ${isRTL ? "🔑 נושאים חוזרים מרכזיים" : "🔑 Top Recurring Themes"}
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        ${topThemes.map(t => `
+          <span style="display: inline-block; background: #ede9fe; color: #5b21b6; padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 500;">${t}</span>
+        `).join("")}
+      </div>
+    </div>
+    ` : ""}
+
+    ${therapeuticPoints.length > 0 ? `
+    <div style="margin-bottom: 24px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px;">
+      <div style="font-size: 14px; font-weight: 700; color: #15803d; margin-bottom: 10px;">
+        ${isRTL ? "💬 נקודות מומלצות לדיון במפגש הקרוב" : "💬 Recommended Discussion Points for Next Session"}
+      </div>
+      ${therapeuticPoints.map((p, i) => `
+        <div style="font-size: 12px; color: #166534; margin-bottom: 8px; padding-${isRTL ? "right" : "left"}: 12px;">
+          <span style="color: #22c55e; margin-${isRTL ? "left" : "right"}: 6px;">●</span>
+          ${p}
+        </div>
+      `).join("")}
+    </div>
+    ` : ""}
+
+    <div style="margin-top: 32px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 9px; color: #aaa; text-align: center;">
+      ${isRTL
+        ? "דוח זה נוצר באמצעות NestAI ומהווה כלי רפלקטיבי בלבד. אינו מחליף אבחון או טיפול מקצועי."
+        : "This report was generated by NestAI and is a reflective tool only. It does not replace professional diagnosis or treatment."}
+    </div>
+  `;
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      width: 595,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // Handle multi-page if content is tall
+    let yOffset = 0;
+    while (yOffset < imgHeight) {
+      if (yOffset > 0) pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, -yOffset, imgWidth, imgHeight);
+      yOffset += pageHeight;
+    }
+
+    pdf.save(`NestAI_Report_${dateRange.replace(/\s/g, "_")}.pdf`);
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
+function buildMoodChartSvg(data: { week: string; score: number }[]): string {
+  if (data.length === 0) return "";
+  const w = 460;
+  const h = 100;
+  const pad = 20;
+  const maxScore = 5;
+  const stepX = data.length > 1 ? (w - pad * 2) / (data.length - 1) : 0;
+
+  const points = data.map((d, i) => {
+    const x = pad + i * stepX;
+    const y = h - pad - ((d.score / maxScore) * (h - pad * 2));
+    return { x, y };
+  });
+
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${h - pad} L ${points[0].x} ${h - pad} Z`;
+
+  const dots = points.map((p, i) =>
+    `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#6366f1"/>
+     <text x="${p.x}" y="${h - 4}" text-anchor="middle" font-size="9" fill="#888">${data[i].week}</text>`
+  ).join("");
+
+  return `
+    <svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+      <defs>
+        <linearGradient id="moodGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#6366f1" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#6366f1" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaD}" fill="url(#moodGrad)"/>
+      <path d="${pathD}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+      ${dots}
+    </svg>
+  `;
+}

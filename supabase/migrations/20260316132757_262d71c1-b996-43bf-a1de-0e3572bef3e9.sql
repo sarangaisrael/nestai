@@ -1,0 +1,1 @@
+CREATE POLICY "Anyone can view system messages" ON public.system_messages FOR SELECT TO anon USING (true);

@@ -1,0 +1,85 @@
+project_id = "primcrenfgmaauwasbyk"
+
+[functions.chat]
+verify_jwt = true
+
+[functions.generate-partial-summary]
+verify_jwt = true
+
+[functions.generate-summary]
+verify_jwt = false
+
+[functions.hourly-summary-check]
+verify_jwt = false
+
+[functions.daily-reminder]
+verify_jwt = false
+
+[functions.analyze-content]
+verify_jwt = false
+
+[functions.analyze-dashboard]
+verify_jwt = true
+
+[functions.monthly-summary-scheduler]
+verify_jwt = false
+
+[functions.encrypt-message]
+verify_jwt = true
+
+[functions.decrypt-messages]
+verify_jwt = true
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.get-vapid-public-key]
+verify_jwt = false
+
+[functions.send-push-to-all]
+verify_jwt = true
+
+[functions.trend-alerts]
+verify_jwt = true
+
+[functions.stripe-create-checkout]
+verify_jwt = true
+
+[functions.stripe-customer-portal]
+verify_jwt = true
+
+[functions.stripe-check-subscription]
+verify_jwt = true
+
+[functions.notify-therapist-registration]
+verify_jwt = false
+
+[functions.approve-therapist]
+verify_jwt = false
+
+[functions.daily-push-reminder]
+verify_jwt = false
+
+[functions.verify-admin-password]
+verify_jwt = false
+
+[functions.regenerate-summary]
+verify_jwt = true
+
+[functions.paypal-get-client-id]
+verify_jwt = false
+
+[functions.paypal-verify-payment]
+verify_jwt = false
+
+[functions.paypal-cancel-subscription]
+verify_jwt = false
+
+[functions.generate-session-prep]
+verify_jwt = true
+
+[functions.analyze-patterns]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

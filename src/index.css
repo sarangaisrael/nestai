@@ -1,0 +1,312 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Direction is controlled dynamically by LanguageContext */
+/* Do not set direction statically here */
+
+/* Design System - NestCare.me Brand */
+@layer base {
+  :root {
+    /* Clean white/light backgrounds */
+    --background: 0 0% 100%;
+    --foreground: 210 50% 20%;
+
+    /* Cards with subtle elevation */
+    --card: 200 30% 98%;
+    --card-foreground: 210 50% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 20%;
+
+    /* Main brand - Navy blue (from "Nest" text) */
+    --primary: 210 60% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 210 50% 90%;
+    --primary-glow: 210 60% 45%;
+
+    /* Secondary - Turquoise/Teal (from "AI" text and logo gradient) */
+    --secondary: 175 60% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted tones - soft blues */
+    --muted: 200 25% 96%;
+    --muted-foreground: 210 20% 50%;
+
+    /* Accent - Purple/Violet (from logo gradient) */
+    --accent: 260 55% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 25% 88%;
+    --input: 200 20% 95%;
+    --ring: 210 60% 35%;
+
+    --radius: 0.75rem;
+    
+    /* NestCare.me brand shadows - teal/blue tones */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 12px -2px rgba(45, 140, 160, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 12px 24px -4px rgba(45, 140, 160, 0.15), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+    --shadow-glow: 0 0 0 1px rgba(45, 140, 160, 0.08), 0 0 20px -4px rgba(45, 140, 160, 0.2);
+    
+    /* Tech accent line */
+    --border-accent: 175 60% 50%;
+
+    /* Emotion colors */
+    --emotion-anxious: 260 45% 65%;
+    --emotion-happy: 45 90% 55%;
+    --emotion-sad: 210 40% 55%;
+    --emotion-tired: 215 25% 60%;
+    --emotion-angry: 0 65% 55%;
+    --emotion-calm: 160 45% 50%;
+    --emotion-love: 340 60% 60%;
+    --emotion-fear: 280 35% 55%;
+
+    /* Sidebar */
+    --sidebar-background: 200 25% 98%;
+    --sidebar-foreground: 210 50% 20%;
+    --sidebar-primary: 210 60% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 25% 94%;
+    --sidebar-accent-foreground: 210 50% 25%;
+    --sidebar-border: 200 25% 88%;
+    --sidebar-ring: 210 60% 35%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 210 25% 90%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 210 25% 90%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 25% 90%;
+
+    --primary: 175 55% 45%;
+    --primary-foreground: 220 25% 8%;
+    --primary-light: 175 40% 20%;
+    --primary-glow: 175 55% 55%;
+
+    --secondary: 220 45% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 20% 15%;
+    --muted-foreground: 210 15% 55%;
+
+    --accent: 260 45% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 18%;
+    --input: 220 20% 15%;
+    --ring: 175 55% 45%;
+
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px -2px rgba(0, 180, 180, 0.15), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 28px -4px rgba(0, 180, 180, 0.2), 0 4px 10px -4px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 0 1px rgba(0, 200, 200, 0.15), 0 0 24px -4px rgba(0, 200, 200, 0.25);
+
+    --border-accent: 175 55% 45%;
+
+    --sidebar-background: 220 22% 10%;
+    --sidebar-foreground: 210 25% 90%;
+    --sidebar-primary: 175 55% 45%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 210 25% 90%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 175 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* iOS Safe Area */
+  html {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* RTL (Hebrew) font */
+  [dir="rtl"] body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* Professional Typography System */
+  h1, .text-h1 {
+    font-size: clamp(22px, 4.5vw, 26px);
+    font-weight: 600;
+    line-height: 1.3;
+    color: hsl(var(--foreground));
+  }
+
+  h2, .text-h2 {
+    font-size: clamp(16px, 3.5vw, 18px);
+    font-weight: 500;
+    line-height: 1.45;
+    color: hsl(var(--foreground));
+  }
+
+  .text-body {
+    font-size: clamp(14px, 3vw, 16px);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .text-button {
+    font-size: clamp(15px, 3.8vw, 17px);
+    font-weight: 600;
+  }
+
+  .text-label {
+    font-size: clamp(12px, 2.8vw, 14px);
+    font-weight: 400;
+  }
+}
+
+/* Smooth animations & utilities */
+@layer utilities {
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .glass-card {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .glass-card {
+    background: hsl(var(--card) / 0.5);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .tech-border {
+    border: 1px solid hsl(var(--border-accent) / 0.15);
+  }
+
+  .tech-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* iOS Safe Area Support - use only where needed */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 16px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* iOS keyboard-aware fixed positioning */
+  @supports (-webkit-touch-callout: none) {
+    .fixed.inset-0 {
+      height: -webkit-fill-available;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/* Accessibility overrides */
+.a11y-font-large {
+  font-size: 112%;
+}
+.a11y-font-xlarge {
+  font-size: 125%;
+}
+.a11y-high-contrast {
+  --foreground: 0 0% 0%;
+  --muted-foreground: 0 0% 20%;
+  --border: 0 0% 40%;
+}
+.a11y-high-contrast.dark {
+  --foreground: 0 0% 100%;
+  --muted-foreground: 0 0% 85%;
+  --border: 0 0% 60%;
+}
+.a11y-highlight-links a,
+.a11y-highlight-links button {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.a11y-readable-font body,
+.a11y-readable-font [dir="rtl"] body {
+  font-family: 'Arial', 'Helvetica', sans-serif !important;
+}

@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN trial_end_date timestamp with time zone DEFAULT (now() + interval '14 days');

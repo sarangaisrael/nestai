@@ -1,0 +1,1 @@
+ALTER TABLE public.messages ADD COLUMN source text NOT NULL DEFAULT 'chat';
