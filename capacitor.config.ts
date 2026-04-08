@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'care.nestai.app',
-  appName: 'NestAI',
+  appId: 'com.israel.logme',
+  appName: 'NestAI.care',
   webDir: 'dist',
   server: {
     url: 'https://www.nestai.care',
