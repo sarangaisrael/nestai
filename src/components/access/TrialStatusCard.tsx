@@ -26,6 +26,10 @@ const TrialStatusCard = ({ accessState, className }: TrialStatusCardProps) => {
     return null;
   }
 
+  if (accessState.effective_payment_status === "active") {
+    return null;
+  }
+
   const totalDays = Math.max(1, Math.ceil((trialEndsAt.getTime() - registrationDate.getTime()) / DAY_IN_MS));
   const elapsedDays = clamp(Math.ceil((now - registrationDate.getTime()) / DAY_IN_MS), 0, totalDays);
   const remainingDays = Math.max(0, Math.ceil((trialEndsAt.getTime() - now) / DAY_IN_MS));
