@@ -295,7 +295,7 @@ ${p3Msgs.length > 0 ? p3Msgs.join('\n\n') : 'אין כתיבה'}
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'gemini-2.5-flash',
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
