@@ -4,15 +4,13 @@ import * as webpush from "jsr:@negrel/webpush@0.3.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  // Must include all headers that the web client (supabase-js) may send.
-  // Otherwise the browser will block the request at the CORS preflight stage
-  // and the function will never run.
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Base64 URL encoding helper
+// ─── Base64 URL helpers ───────────────────────────────────────────────────────
+
 function base64UrlEncode(buffer: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < buffer.length; i++) {
@@ -21,7 +19,6 @@ function base64UrlEncode(buffer: Uint8Array): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
-// Base64 URL decoding helper
 function base64UrlDecode(str: string): Uint8Array {
   const s = str.trim().replace(/^"|"$/g, "");
   const padding = "=".repeat((4 - (s.length % 4)) % 4);
@@ -34,6 +31,8 @@ function base64UrlDecode(str: string): Uint8Array {
   return outputArray;
 }
 
+// ─── Web Push VAPID helpers ───────────────────────────────────────────────────
+
 function toExportedVapidKeys(
   vapidPublicKey: string,
   vapidPrivateKey: string,
@@ -41,7 +40,6 @@ function toExportedVapidKeys(
   const publicKeyBytes = base64UrlDecode(vapidPublicKey);
   const privateKeyBytes = base64UrlDecode(vapidPrivateKey);
 
-  // Public key is 65 bytes in uncompressed format: 0x04 + 32 bytes X + 32 bytes Y
   let x: Uint8Array;
   let y: Uint8Array;
 
@@ -49,16 +47,14 @@ function toExportedVapidKeys(
     x = publicKeyBytes.slice(1, 33);
     y = publicKeyBytes.slice(33, 65);
   } else if (publicKeyBytes.length === 64) {
-    // Some generators omit the 0x04 prefix
     x = publicKeyBytes.slice(0, 32);
     y = publicKeyBytes.slice(32, 64);
   } else {
     throw new Error(
-      `Invalid VAPID_PUBLIC_KEY format (decoded length ${publicKeyBytes.length}). Expected 65 bytes (uncompressed) or 64 bytes.`,
+      `Invalid VAPID_PUBLIC_KEY format (decoded length ${publicKeyBytes.length}). Expected 65 or 64 bytes.`,
     );
   }
 
-  // Private key is 32 bytes (the "d" parameter)
   if (privateKeyBytes.length !== 32) {
     throw new Error(
       `Invalid VAPID_PRIVATE_KEY format (decoded length ${privateKeyBytes.length}). Expected 32 bytes.`,
@@ -77,34 +73,127 @@ function toExportedVapidKeys(
     d: base64UrlEncode(privateKeyBytes),
   };
 
+  return { publicKey: publicKeyJwk, privateKey: privateKeyJwk };
+}
+
+// ─── APNs JWT helpers ─────────────────────────────────────────────────────────
+
+async function importApnsPrivateKey(pem: string): Promise<CryptoKey> {
+  const pemContents = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/g, "")
+    .replace(/-----END PRIVATE KEY-----/g, "")
+    .replace(/-----BEGIN EC PRIVATE KEY-----/g, "")
+    .replace(/-----END EC PRIVATE KEY-----/g, "")
+    .replace(/\s/g, "");
+
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+
+  return await crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer,
+    { name: "ECDSA", namedCurve: "P-256" },
+    false,
+    ["sign"],
+  );
+}
+
+async function buildApnsJwt(
+  keyId: string,
+  teamId: string,
+  privateKey: CryptoKey,
+): Promise<string> {
+  const header = { alg: "ES256", kid: keyId };
+  const payload = { iss: teamId, iat: Math.floor(Date.now() / 1000) };
+
+  const encodedHeader = base64UrlEncode(
+    new TextEncoder().encode(JSON.stringify(header)),
+  );
+  const encodedPayload = base64UrlEncode(
+    new TextEncoder().encode(JSON.stringify(payload)),
+  );
+
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+  const signature = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    privateKey,
+    new TextEncoder().encode(signingInput),
+  );
+
+  return `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+}
+
+async function sendApnsNotification(opts: {
+  deviceToken: string;
+  title: string;
+  body: string;
+  url: string;
+  bundleId: string;
+  keyId: string;
+  teamId: string;
+  privateKeyPem: string;
+}): Promise<{ success: boolean; gone?: boolean; error?: string }> {
+  const { deviceToken, title, body, url, bundleId, keyId, teamId, privateKeyPem } = opts;
+
+  const privateKey = await importApnsPrivateKey(privateKeyPem);
+  const jwt = await buildApnsJwt(keyId, teamId, privateKey);
+
+  const apnsPayload = JSON.stringify({
+    aps: {
+      alert: { title, body },
+      sound: "default",
+    },
+    url,
+  });
+
+  const response = await fetch(
+    `https://api.push.apple.com/3/device/${deviceToken}`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `bearer ${jwt}`,
+        "apns-topic": bundleId,
+        "apns-push-type": "alert",
+        "apns-priority": "10",
+        "content-type": "application/json",
+      },
+      body: apnsPayload,
+    },
+  );
+
+  if (response.status === 200) {
+    return { success: true };
+  }
+
+  if (response.status === 410) {
+    return { success: false, gone: true, error: "Device token expired (410 Gone)" };
+  }
+
+  const errorBody = await response.json().catch(() => ({}));
   return {
-    publicKey: publicKeyJwk,
-    privateKey: privateKeyJwk,
+    success: false,
+    error: (errorBody as any).reason ?? `APNs error ${response.status}`,
   };
 }
 
+// ─── Main handler ─────────────────────────────────────────────────────────────
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // ---- AuthZ
-    // This endpoint is called by:
-    // - schedulers/admin broadcast (service role)
-    // - signed-in users for sending a *self* test notification
     const authHeader = req.headers.get("Authorization") ?? "";
 
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+    const apnsKeyId = Deno.env.get("APNS_KEY_ID");
+    const apnsTeamId = Deno.env.get("APNS_TEAM_ID");
+    const apnsBundleId = Deno.env.get("APNS_BUNDLE_ID");
+    const apnsPrivateKey = Deno.env.get("APNS_PRIVATE_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      throw new Error("VAPID keys not configured");
-    }
 
     if (!authHeader.startsWith("Bearer ")) {
       return new Response(
@@ -118,7 +207,6 @@ serve(async (req) => {
 
     let requesterUserId: string | null = null;
     if (!isServiceRoleCaller) {
-      // Validate caller and extract user id
       const userClient = createClient(supabaseUrl, supabaseAnonKey, {
         global: { headers: { Authorization: authHeader } },
       });
@@ -141,35 +229,34 @@ serve(async (req) => {
     const { userId, title, body, url } = reqBody;
 
     // Input validation
-    if (!userId || typeof userId !== 'string') {
+    if (!userId || typeof userId !== "string") {
       return new Response(
         JSON.stringify({ error: "Missing or invalid userId" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    if (title && (typeof title !== 'string' || title.length > 200)) {
+    if (title && (typeof title !== "string" || title.length > 200)) {
       return new Response(
         JSON.stringify({ error: "Title must be a string under 200 characters" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    if (body && (typeof body !== 'string' || body.length > 1000)) {
+    if (body && (typeof body !== "string" || body.length > 1000)) {
       return new Response(
         JSON.stringify({ error: "Body must be a string under 1000 characters" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    if (url && typeof url === 'string') {
-      // Only allow relative URLs starting with /
-      if (!url.startsWith('/') || url.startsWith('//')) {
+    if (url && typeof url === "string") {
+      if (!url.startsWith("/") || url.startsWith("//")) {
         return new Response(
           JSON.stringify({ error: "Invalid URL: must be a relative path" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
 
-    // If not service role, allow sending only to self (or admin)
+    // Authorization: non-service-role callers may only send to themselves (or admin)
     if (!isServiceRoleCaller) {
       if (!requesterUserId) {
         return new Response(
@@ -195,12 +282,12 @@ serve(async (req) => {
       }
     }
 
-    console.log("send-push-notification: Sending push notification to user:", userId);
+    console.log("send-push-notification: Sending to user:", userId);
 
-    // Get user's push subscription
+    // Fetch subscription — include platform to route APNs vs Web Push
     const { data: subscription, error: subError } = await supabase
       .from("push_subscriptions")
-      .select("endpoint,p256dh,auth")
+      .select("endpoint, p256dh, auth, platform")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -210,29 +297,84 @@ serve(async (req) => {
     }
 
     if (!subscription) {
-      console.log("send-push-notification: No push subscription found for user:", userId);
+      console.log("send-push-notification: No subscription found for user:", userId);
       return new Response(
         JSON.stringify({ success: false, message: "No subscription found" }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
+    const notifTitle = title || "NestAI";
+    const notifBody = body || "";
+    const notifUrl = url || "/";
+
+    // ── iOS → APNs ────────────────────────────────────────────────────────────
+    const isIos = subscription.platform === "ios";
+
+    if (isIos) {
+      if (!apnsKeyId || !apnsTeamId || !apnsBundleId || !apnsPrivateKey) {
+        throw new Error(
+          "APNs environment variables not configured (APNS_KEY_ID, APNS_TEAM_ID, APNS_BUNDLE_ID, APNS_PRIVATE_KEY)",
+        );
+      }
+
+      console.log(`send-push-notification: Using APNs for user ${userId}`);
+
+      const result = await sendApnsNotification({
+        deviceToken: subscription.endpoint, // device token stored as endpoint
+        title: notifTitle,
+        body: notifBody,
+        url: notifUrl,
+        bundleId: apnsBundleId,
+        keyId: apnsKeyId,
+        teamId: apnsTeamId,
+        privateKeyPem: apnsPrivateKey,
+      });
+
+      if (!result.success && result.gone) {
+        console.log(`send-push-notification: APNs token expired for user ${userId}, removing`);
+        await supabase.from("push_subscriptions").delete().eq("user_id", userId);
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Device token expired. Please re-enable notifications.",
+            gone: true,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      if (!result.success) {
+        console.error(`send-push-notification: APNs error for user ${userId}:`, result.error);
+        return new Response(
+          JSON.stringify({ success: false, error: result.error }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      console.log("send-push-notification: APNs notification delivered for user", userId);
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // ── Web Push (VAPID) ──────────────────────────────────────────────────────
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      throw new Error("VAPID keys not configured");
+    }
+
     const payload = JSON.stringify({
-      title: title || "NestAI",
-      body: body || "",
-      url: url || "/",
+      title: notifTitle,
+      body: notifBody,
+      url: notifUrl,
       dir: "rtl",
       lang: "he",
     });
 
-    // Build a compliant Web Push request (RFC 8291/8292), including payload encryption.
     const exportedVapidKeys = toExportedVapidKeys(vapidPublicKey, vapidPrivateKey);
-    const vapidKeys = await webpush.importVapidKeys(exportedVapidKeys, {
-      extractable: false,
-    });
+    const vapidKeys = await webpush.importVapidKeys(exportedVapidKeys, { extractable: false });
 
     const appServer = await webpush.ApplicationServer.new({
       contactInformation: "mailto:support@nest-ai.app",
@@ -249,22 +391,20 @@ serve(async (req) => {
 
     try {
       console.log(
-        `send-push-notification: About to call pushTextMessage for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 60)}...`
+        `send-push-notification: Web Push for user ${userId}, endpoint: ${subscription.endpoint.substring(0, 60)}...`,
       );
       await subscriber.pushTextMessage(payload, {
-        ttl: 60 * 60 * 24, // 1 day
+        ttl: 60 * 60 * 24,
         urgency: webpush.Urgency.High,
       });
 
-      console.log("send-push-notification: Push notification accepted by push service");
-
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.log("send-push-notification: Web Push accepted by push service");
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     } catch (err: unknown) {
       if (err instanceof webpush.PushMessageError) {
-        // Log full details so we can debug if needed
         console.error(
           `send-push-notification: PushMessageError for user ${userId}:`,
           JSON.stringify({
@@ -272,34 +412,26 @@ serve(async (req) => {
             name: err.name,
             isGone: err.isGone(),
             endpoint: subscription.endpoint.substring(0, 60),
-          })
+          }),
         );
 
-        // If subscription is invalid/expired, remove it and tell caller
         if (err.isGone()) {
-          console.log(`send-push-notification: Subscription expired (410 Gone) for user ${userId}, removing from database`);
+          console.log(`send-push-notification: Subscription expired (410) for user ${userId}, removing`);
           await supabase.from("push_subscriptions").delete().eq("user_id", userId);
 
           return new Response(
             JSON.stringify({
               success: false,
               message: "Subscription expired. Please re-enable notifications.",
-              error: err.toString(),
               gone: true,
             }),
-            {
-              status: 200, // 200 so the client handles it gracefully
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         }
 
         return new Response(
           JSON.stringify({ success: false, error: err.toString() }),
-          {
-            status: 502,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -308,7 +440,6 @@ serve(async (req) => {
     }
   } catch (error: any) {
     console.error("Error sending push notification:", error);
-
     return new Response(
       JSON.stringify({ error: error?.message ?? String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
