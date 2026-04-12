@@ -8,6 +8,11 @@ const config: CapacitorConfig = {
     url: 'https://www.nestai.care',
     cleartext: false,
   },
+  plugins: {
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+  },
 };
 
 export default config;

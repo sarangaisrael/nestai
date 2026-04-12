@@ -1,5 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { supabase } from "@/integrations/supabase/client";
 
 // ──── Platform detection ────
 export const isNativeApp = (): boolean => Capacitor.isNativePlatform();
@@ -251,6 +253,72 @@ export const sendLocalNotification = async (
       },
     ],
   });
+};
+
+// ──── APNs / Remote Push Registration (iOS native) ────
+
+/**
+ * Register for remote push notifications via APNs (iOS only).
+ * Requests permission, gets the device token, and saves it to
+ * the push_subscriptions table with platform: 'ios'.
+ * Safe to call on non-iOS platforms — exits immediately.
+ */
+export const registerForApnsPush = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  if (Capacitor.getPlatform() !== "ios") return;
+
+  try {
+    // 1. Check / request permission
+    let permStatus = await PushNotifications.checkPermissions();
+    if (permStatus.receive === "prompt") {
+      permStatus = await PushNotifications.requestPermissions();
+    }
+    if (permStatus.receive !== "granted") {
+      console.log("registerForApnsPush: permission not granted, skipping");
+      return;
+    }
+
+    // 2. Register with APNs — the token arrives via the 'registration' event
+    await PushNotifications.register();
+
+    // 3. Listen for the device token once
+    PushNotifications.addListener("registration", async (token) => {
+      console.log("registerForApnsPush: received device token", token.value.substring(0, 12) + "...");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn("registerForApnsPush: no authenticated user, skipping token save");
+        return;
+      }
+
+      // Upsert so re-installs or token rotations are handled cleanly
+      const { error } = await supabase
+        .from("push_subscriptions")
+        .upsert(
+          {
+            user_id: user.id,
+            endpoint: token.value,   // device token stored as endpoint
+            platform: "ios",
+            p256dh: null,
+            auth: null,
+          },
+          { onConflict: "user_id" },
+        );
+
+      if (error) {
+        console.error("registerForApnsPush: failed to save token", error);
+      } else {
+        console.log("registerForApnsPush: device token saved for user", user.id);
+      }
+    });
+
+    // 4. Log registration errors
+    PushNotifications.addListener("registrationError", (err) => {
+      console.error("registerForApnsPush: registration error", err.error);
+    });
+  } catch (err) {
+    console.error("registerForApnsPush: unexpected error", err);
+  }
 };
 
 /** Register a listener to handle notification taps (deep-link) */

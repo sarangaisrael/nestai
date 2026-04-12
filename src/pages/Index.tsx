@@ -10,7 +10,6 @@ import logo from "@/assets/nestai-logo-full.png";
 import { useUnviewedSummary } from "@/hooks/useUnviewedSummary";
 import { PreferencesOnboarding } from "@/components/PreferencesOnboarding";
 import AddToHomeBanner from "@/components/AddToHomeBanner";
-import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import { useAppDirectives } from "@/hooks/useAppDirectives";
@@ -222,7 +221,6 @@ const Index = () => {
     <div className="w-full flex flex-col bg-background fixed inset-0" dir={dir}>
       <PreferencesOnboarding />
       <AddToHomeBanner />
-      <PushNotificationPrompt />
       
       <AppHeader />
 

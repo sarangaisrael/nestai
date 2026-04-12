@@ -13,7 +13,6 @@ import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import InsightsSection from "@/components/dashboard/InsightsSection";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
-import PushNotificationPrompt from "@/components/PushNotificationPrompt";
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import TrialStatusCard from "@/components/access/TrialStatusCard";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -156,7 +155,6 @@ const Dashboard = () => {
         />
       )}
       {isIOS && !isInstalled && <IOSInstallOverlay />}
-      <PushNotificationPrompt />
       <AppHeader />
 
       {/* Mood prompt */}

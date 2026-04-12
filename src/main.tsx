@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { registerServiceWorker, isNativeApp, registerNotificationListeners } from "./lib/pushNotifications";
+import { registerServiceWorker, isNativeApp, registerNotificationListeners, registerForApnsPush } from "./lib/pushNotifications";
 
 // Register service worker for PWA (not needed in native app)
 if (!isNativeApp() && "serviceWorker" in navigator) {
@@ -13,6 +13,8 @@ if (!isNativeApp() && "serviceWorker" in navigator) {
 // Register notification tap listeners for native app
 if (isNativeApp()) {
   registerNotificationListeners();
+  // Register for APNs remote push (iOS) — saves device token to Supabase
+  registerForApnsPush();
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -149,6 +149,9 @@ const PushNotificationSettings = ({ userId }: PushNotificationSettingsProps) => 
     }
   };
 
+  // Only show on native iOS — web push is not used
+  if (!isNativeApp()) return null;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-between py-3 px-4 bg-muted/20 rounded-[14px] border border-border/50">
@@ -166,9 +169,7 @@ const PushNotificationSettings = ({ userId }: PushNotificationSettingsProps) => 
         <AlertCircle className="h-5 w-5 text-muted-foreground" />
         <div className="space-y-1">
           <p className="text-[15px] font-medium text-foreground">התראות לא נתמכות</p>
-          <p className="text-[13px] text-muted-foreground">
-            הדפדפן או המכשיר שלך לא תומכים בהתראות
-          </p>
+          <p className="text-[13px] text-muted-foreground">המכשיר לא תומך בהתראות</p>
         </div>
       </div>
     );
@@ -181,9 +182,7 @@ const PushNotificationSettings = ({ userId }: PushNotificationSettingsProps) => 
         <div className="space-y-1">
           <p className="text-[15px] font-medium text-foreground">התראות חסומות</p>
           <p className="text-[13px] text-muted-foreground">
-            {isNativeApp()
-              ? "יש לאפשר התראות בהגדרות המכשיר עבור NestAI"
-              : "יש לאפשר התראות בהגדרות הדפדפן"}
+            יש לאפשר התראות בהגדרות המכשיר עבור NestAI
           </p>
         </div>
       </div>
