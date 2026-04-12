@@ -21,6 +21,7 @@ import logo from "@/assets/nestai-logo-full.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [registrationDone, setRegistrationDone] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -371,19 +372,7 @@ const Auth = () => {
           }, { onConflict: 'user_id' });
         }
         setLoading(false);
-        toast({
-          title: t.auth.signupSuccess,
-          description: isRTL
-            ? (isTherapistAuth ? "החשבון נפתח עם 30 ימי ניסיון. קוד המטפל שלך מוכן בדאשבורד." : "החשבון נפתח עם 30 ימי ניסיון.")
-            : (isTherapistAuth ? "Your account starts with a 30-day trial. Your therapist code is ready in the dashboard." : "Your account starts with a 30-day trial."),
-        });
-        const accessState = await ensureUserAccessProfile(data.user, isTherapistAuth ? "therapist" : "patient");
-        const target = requestedNextPath.startsWith("/")
-          ? requestedNextPath
-          : hasExplicitAuthMode
-            ? getRouteForAccessState(accessState)
-            : await getPostAuthDestination(data.user.id);
-        navigate(target);
+        setRegistrationDone(true);
       }
     } catch (err: any) {
       setLoginError(err?.message || t.errors.somethingWentWrong);
@@ -404,6 +393,36 @@ const Auth = () => {
   };
 
           
+
+  if (registrationDone) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4" dir="rtl">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-foreground">כמעט סיימנו!</h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              שלחנו לך אימייל לאישור ההרשמה.<br />
+              אנא לחץ על הקישור באימייל כדי להפעיל את החשבון שלך.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              לא קיבלת? בדוק את תיקיית הספאם.
+            </p>
+          </div>
+          <button
+            onClick={() => setRegistrationDone(false)}
+            className="text-sm text-primary hover:underline"
+          >
+            חזרה להתחברות
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex" dir={dir}>
