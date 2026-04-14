@@ -193,12 +193,18 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    const reply = aiData.choices[0].message.content;
+    const rawReply: string = aiData.choices[0].message.content;
+
+    // Strip any internal THOUGHT: ... lines the model may emit before the real response
+    const reply = rawReply
+      .replace(/^THOUGHT:.*$/gim, "")  // remove every line that starts with THOUGHT:
+      .replace(/\n{3,}/g, "\n\n")      // collapse excessive blank lines left behind
+      .trim();
 
     return new Response(
-      JSON.stringify({ 
-        reply, 
-        shouldRespond: true 
+      JSON.stringify({
+        reply,
+        shouldRespond: true
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
