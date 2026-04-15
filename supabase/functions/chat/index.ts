@@ -195,11 +195,9 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const rawReply: string = aiData.choices[0].message.content;
 
-    // Strip any internal THOUGHT: ... lines the model may emit before the real response
-    const reply = rawReply
-      .replace(/^THOUGHT:.*$/gim, "")  // remove every line that starts with THOUGHT:
-      .replace(/\n{3,}/g, "\n\n")      // collapse excessive blank lines left behind
-      .trim();
+    // Extract only text from the first Hebrew character onwards — drops any English thinking preamble
+    const hebrewMatch = rawReply.match(/[\u0590-\u05FF][\s\S]*/);
+    const reply = (hebrewMatch ? hebrewMatch[0] : rawReply).trim();
 
     return new Response(
       JSON.stringify({
