@@ -195,9 +195,11 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const rawReply: string = aiData.choices[0].message.content;
 
-    // Extract only text from the first Hebrew character onwards — drops any English thinking preamble
-    const hebrewMatch = rawReply.match(/[\u0590-\u05FF][\s\S]*/);
-    const reply = (hebrewMatch ? hebrewMatch[0] : rawReply).trim();
+    // Split into blocks separated by blank lines, keep only blocks that contain Hebrew,
+    // then take the last contiguous Hebrew block — the actual response always appears last.
+    const blocks = rawReply.split(/\n\s*\n/);
+    const hebrewBlocks = blocks.filter((b) => /[\u0590-\u05FF]/.test(b));
+    const reply = (hebrewBlocks.length > 0 ? hebrewBlocks[hebrewBlocks.length - 1] : rawReply).trim();
 
     return new Response(
       JSON.stringify({
