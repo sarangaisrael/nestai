@@ -184,6 +184,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gemini-2.5-flash",
         messages,
+        thinking_config: { thinking_budget: 0 },
       }),
     });
 
