@@ -82,6 +82,14 @@ export const cancelDailyReminder = async (): Promise<void> => {
 export const scheduleDailyReminder = async (): Promise<void> => {
   if (!isNativeApp()) return;
 
+  // Only schedule if not already pending
+  const pending = await LocalNotifications.getPending();
+  const alreadyScheduled = pending.notifications.some(n => n.id === DAILY_REMINDER_ID);
+  if (alreadyScheduled) {
+    console.log("Local notification: Daily reminder already scheduled, skipping");
+    return;
+  }
+
   await cancelDailyReminder();
 
   const now = new Date();
