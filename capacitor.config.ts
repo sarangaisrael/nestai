@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'NestAI.care',
   webDir: 'dist',
   server: {
-    url: 'https://www.nestai.care',
+    url: 'https://www.nestai.care/app',
     cleartext: false,
   },
   plugins: {
