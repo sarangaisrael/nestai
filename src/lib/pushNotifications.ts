@@ -228,13 +228,11 @@ export const scheduleMonthlySummaryNotification = async (
  * @param summaryTime - user's preferred summary time (e.g. "20:00")
  */
 export const scheduleAllNotifications = async (
-  summaryDay: string = "saturday",
-  summaryTime: string = "20:00"
+  _summaryDay: string = "saturday",
+  _summaryTime: string = "20:00"
 ): Promise<void> => {
-  await cancelAllScheduledNotifications();
-  await scheduleDailyReminder();
-  await scheduleWeeklySummaryNotification(summaryDay, summaryTime);
-  await scheduleMonthlySummaryNotification(summaryTime);
+  // Notifications are disabled — return immediately
+  return;
 };
 
 /** Fire an immediate local notification */

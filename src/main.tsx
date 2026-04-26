@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { registerServiceWorker, isNativeApp, registerNotificationListeners, registerForApnsPush, scheduleAllNotifications } from "./lib/pushNotifications";
+import { registerServiceWorker, isNativeApp, registerNotificationListeners, registerForApnsPush, cancelAllScheduledNotifications } from "./lib/pushNotifications";
 
 // Register service worker for PWA (not needed in native app)
 if (!isNativeApp() && "serviceWorker" in navigator) {
@@ -12,11 +12,11 @@ if (!isNativeApp() && "serviceWorker" in navigator) {
 
 // Register notification tap listeners for native app
 if (isNativeApp()) {
+  // Cancel any previously scheduled local notifications on startup
+  cancelAllScheduledNotifications();
   registerNotificationListeners();
   // Register for APNs remote push (iOS) — saves device token to Supabase
   registerForApnsPush();
-  // Schedule local notifications (daily reminder + weekly/monthly summaries)
-  scheduleAllNotifications();
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
