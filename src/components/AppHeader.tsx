@@ -19,7 +19,6 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppDirectives } from "@/hooks/useAppDirectives";
-import NotificationBell from "@/components/NotificationBell";
 import FeedbackForm from "@/components/FeedbackForm";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import nestLogo from "@/assets/nestai-logo-full.png";
@@ -103,7 +102,6 @@ const AppHeader = () => {
             >
               <MessageCircle className="h-5 w-5 text-foreground" />
             </Button>
-            <NotificationBell />
           </div>
 
           {/* Center: Logo */}

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import nestLogo from "@/assets/nestai-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteContent } from "@/contexts/SiteContentContext";
+import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { PenLine, FileText, TrendingUp, Lock, ArrowRight, ArrowLeft, Download, Heart } from "lucide-react";
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -44,10 +45,29 @@ const LandingPage = () => {
       || (window.navigator as any).standalone === true;
 
     const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Always redirect out of the landing page when running as an installed app
       if (isStandalone) {
-        const { data: { session } } = await supabase.auth.getSession();
         navigate(session ? "/app/dashboard" : "/app", { replace: true });
         return;
+      }
+
+      // In the browser, redirect authenticated users straight to their default route
+      if (session) {
+        const target = await getDefaultRouteForUser(session.user.id);
+        navigate(target, { replace: true });
+        return;
+      }
+
+      // Unauthenticated browser visitor — check for password-reset hash
+      const hash = window.location.hash;
+      if (hash) {
+        const hashParams = new URLSearchParams(hash.substring(1));
+        if (hashParams.get("type") === "recovery") {
+          navigate(`/app/auth${hash}`, { replace: true });
+          return;
+        }
       }
 
       // Load blocks

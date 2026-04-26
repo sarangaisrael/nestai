@@ -64,7 +64,7 @@ const TherapistLandingPage = () => {
       <header className="fixed top-4 left-4 right-4 z-50 bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center">
-            <Link to="/landing">
+            <Link to="/">
               <img src={nestLogo} alt="NestAI.care" className="h-10 sm:h-14 object-contain" />
             </Link>
           </div>
@@ -251,7 +251,7 @@ const TherapistLandingPage = () => {
             <span className="text-sm text-foreground/40">{t.footer.copyright}</span>
           </div>
           <div className="flex gap-6">
-            <Link to="/landing" className="text-sm text-foreground/60 hover:text-foreground transition-colors">
+            <Link to="/" className="text-sm text-foreground/60 hover:text-foreground transition-colors">
               {isRTL ? "למטופלים" : "For Patients"}
             </Link>
             <Link to="/app/privacy" className="text-sm text-foreground/60 hover:text-foreground transition-colors">

@@ -3,14 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SiteContentProvider } from "@/contexts/SiteContentContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { AppDirectivesProvider } from "@/components/AppDirectivesProvider";
-
-// Eagerly load root redirect for fast first paint
-import RootRedirect from "./pages/RootRedirect";
 
 // Lazy load all other pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -28,7 +25,6 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const InstallScreen = lazy(() => import("./pages/InstallScreen"));
 const MailMessages = lazy(() => import("./pages/MailMessages"));
 const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
-const PushDiagnostics = lazy(() => import("./pages/PushDiagnostics"));
 const PressDemo = lazy(() => import("./pages/PressDemo"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -65,11 +61,11 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              {/* Root redirect */}
-              <Route path="/" element={<RootRedirect />} />
-              
-              {/* Public landing page */}
-              <Route path="/landing" element={<LandingPage />} />
+              {/* Landing page is the root */}
+              <Route path="/" element={<LandingPage />} />
+
+              {/* Backward-compat redirect for old /landing URLs */}
+              <Route path="/landing" element={<Navigate to="/" replace />} />
               <Route path="/for-therapists" element={<TherapistLandingPage />} />
               <Route path="/join/:ref" element={<JoinReferral />} />
               
@@ -95,7 +91,6 @@ const App = () => (
               <Route path="/app/mail" element={<MailMessages />} />
               <Route path="/app/admin/login" element={<AdminLogin />} />
               <Route path="/app/admin/notifications" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminNotifications /></AdminGate></Suspense>} />
-              <Route path="/app/admin/push-diagnostics" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><PushDiagnostics /></AdminGate></Suspense>} />
               <Route path="/app/press-demo" element={<PressDemo />} />
               <Route path="/app/paywall" element={<Paywall />} />
 

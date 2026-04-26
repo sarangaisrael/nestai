@@ -15,7 +15,6 @@ import { Switch } from "@/components/ui/switch";
 
 
 import AddToHomeBanner from "@/components/AddToHomeBanner";
-import PushNotificationSettings from "@/components/PushNotificationSettings";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import BackButton from "@/components/BackButton";
@@ -151,17 +150,6 @@ const Settings = () => {
           <p className="text-[16px] text-muted-foreground">
             {isRTL ? "אפשר לבחור מתי יגיע הסיכום השבועי" : "Choose when to receive your weekly summary"}
           </p>
-        </div>
-
-        {/* Push Notifications Card */}
-        <div className="bg-card rounded-[20px] p-6 border border-border animate-slide-up">
-          <div className="space-y-2 mb-4">
-            <h2 className="text-[18px] font-semibold text-foreground">{t.settings.pushNotifications}</h2>
-            <p className="text-[14px] text-muted-foreground">
-              {isRTL ? "קבל/י עדכונים ישירות למכשיר" : "Receive updates directly to your device"}
-            </p>
-          </div>
-          {user && <PushNotificationSettings userId={user.id} />}
         </div>
 
         {/* Settings Card */}
