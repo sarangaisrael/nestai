@@ -6,6 +6,7 @@ import nestLogo from "@/assets/nestai-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteContent } from "@/contexts/SiteContentContext";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
+import { Capacitor } from "@capacitor/core";
 import { PenLine, FileText, TrendingUp, Lock, ArrowRight, ArrowLeft, Download, Heart } from "lucide-react";
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -47,7 +48,18 @@ const LandingPage = () => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
-      // Always redirect out of the landing page when running as an installed app
+      // Native Capacitor app — never show the landing page
+      if (Capacitor.isNativePlatform()) {
+        if (session) {
+          const target = await getDefaultRouteForUser(session.user.id);
+          navigate(target, { replace: true });
+        } else {
+          navigate("/app/chat", { replace: true });
+        }
+        return;
+      }
+
+      // PWA installed to home screen — redirect out of landing page
       if (isStandalone) {
         navigate(session ? "/app/dashboard" : "/app", { replace: true });
         return;
