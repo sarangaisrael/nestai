@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff } from "lucide-react";
 import logo from "@/assets/nestai-logo-full.png";
-import nestIcon from "@/assets/nest-logo.png";
+import chatAvatar from "@/assets/chat-avatar.png";
 import { useUnviewedSummary } from "@/hooks/useUnviewedSummary";
 import { PreferencesOnboarding } from "@/components/PreferencesOnboarding";
 import AddToHomeBanner from "@/components/AddToHomeBanner";
@@ -245,8 +245,8 @@ const Index = () => {
               {message.role === "assistant" ? (
                 /* AI message — avatar + bubble */
                 <div className="flex items-end gap-2 mr-auto max-w-[82%]">
-                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
-                    <img src={nestIcon} alt="NestAI" className="w-4 h-4 object-contain opacity-80" />
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden shadow-sm">
+                    <img src={chatAvatar} alt="NestAI" className="w-full h-full object-cover rounded-full" />
                   </div>
                   <div className="rounded-lg px-4 py-2.5 shadow-sm bg-primary/10 text-foreground">
                     <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
@@ -270,8 +270,8 @@ const Index = () => {
           {loading && (
             <div className="flex justify-end mb-4 px-4 animate-slide-up">
               <div className="flex items-end gap-2 mr-auto">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
-                  <img src={nestIcon} alt="NestAI" className="w-4 h-4 object-contain opacity-80" />
+                <div className="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden shadow-sm">
+                  <img src={chatAvatar} alt="NestAI" className="w-full h-full object-cover rounded-full" />
                 </div>
                 <div className="rounded-lg px-4 py-3 bg-primary/10 shadow-sm">
                   <div className="flex gap-1.5">
