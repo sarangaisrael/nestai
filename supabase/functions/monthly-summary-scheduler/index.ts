@@ -6,37 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
-  const decoder = new TextDecoder();
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(keyString);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
-  const keyBytes = new Uint8Array(hashBuffer);
-  const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
-  const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
-  const iv = combined.slice(0, 12);
-  const ciphertext = combined.slice(12);
-  const plaintextBytes = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, ciphertext);
-  return decoder.decode(plaintextBytes);
-}
-
-function looksEncrypted(text: string): boolean {
-  if (!text || text.length < 20) return false;
-  try { const decoded = atob(text); return decoded.length >= 12; } catch { return false; }
-}
-
-async function decryptMessages(messages: any[], encryptionKey: string | undefined): Promise<string[]> {
-  const decrypted: string[] = [];
-  for (const msg of messages) {
-    let text = msg.text;
-    if (encryptionKey && looksEncrypted(text)) {
-      try { text = await decryptText(text, encryptionKey); } catch { /* keep original */ }
-    }
-    decrypted.push(text);
-  }
-  return decrypted;
-}
-
 function getMonthRange(year: number, month: number): { start: Date; end: Date } {
   const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
   const end = new Date(Date.UTC(year, month, 1, 0, 0, 0));
@@ -71,7 +40,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const encryptionKey = Deno.env.get('MESSAGE_ENCRYPTION_KEY');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const now = new Date();
@@ -134,67 +102,42 @@ serve(async (req) => {
           continue;
         }
 
-        const fetchPeriodData = async (start: Date, end: Date) => {
-          const { data: msgs } = await supabase
-            .from('messages').select('text, created_at')
-            .eq('user_id', user.user_id).eq('role', 'user')
-            .gte('created_at', start.toISOString()).lt('created_at', end.toISOString())
-            .order('created_at', { ascending: true });
-          const { data: ratings } = await supabase
-            .from('weekly_emotion_ratings').select('rating, created_at')
-            .eq('user_id', user.user_id)
-            .gte('created_at', start.toISOString()).lt('created_at', end.toISOString())
-            .order('created_at', { ascending: true });
-          return { messages: msgs || [], ratings: ratings || [] };
-        };
+        // Fetch the last 3 months of weekly summaries for this user
+        const threeMonthsAgo = period3.start;
+        const { data: weeklySummaries } = await supabase
+          .from('weekly_summaries')
+          .select('summary_text, week_start, week_end')
+          .eq('user_id', user.user_id)
+          .gte('week_start', threeMonthsAgo.toISOString())
+          .lt('week_start', period1.end.toISOString())
+          .order('week_start', { ascending: true });
 
-        const fetchMoodData = async (start: Date, end: Date) => {
-          const { data: moods } = await supabase
-            .from('mood_entries').select('mood, created_at')
-            .eq('user_id', user.user_id)
-            .gte('created_at', start.toISOString()).lt('created_at', end.toISOString())
-            .order('created_at', { ascending: true });
-          return moods || [];
-        };
-
-        const [p1Data, p2Data, p3Data, p1Moods, p2Moods, p3Moods] = await Promise.all([
-          fetchPeriodData(period1.start, period1.end),
-          fetchPeriodData(period2.start, period2.end),
-          fetchPeriodData(period3.start, period3.end),
-          fetchMoodData(period1.start, period1.end),
-          fetchMoodData(period2.start, period2.end),
-          fetchMoodData(period3.start, period3.end),
-        ]);
-
-        const hasData = p1Data.messages.length > 0 || p1Data.ratings.length > 0;
-        if (!hasData) {
-          console.log(`monthly-summary-scheduler: No data for user ${user.user_id}`);
+        if (!weeklySummaries || weeklySummaries.length === 0) {
+          console.log(`monthly-summary-scheduler: No weekly summaries for user ${user.user_id}`);
           continue;
         }
 
         processedCount++;
 
-        const [p1Msgs, p2Msgs, p3Msgs] = await Promise.all([
-          decryptMessages(p1Data.messages, encryptionKey),
-          decryptMessages(p2Data.messages, encryptionKey),
-          decryptMessages(p3Data.messages, encryptionKey),
-        ]);
+        // Group summaries by period
+        const summariesInPeriod = (start: Date, end: Date) =>
+          (weeklySummaries || []).filter(s =>
+            s.week_start >= start.toISOString() && s.week_start < end.toISOString()
+          );
 
-        const formatRatings = (ratings: any[]) => {
-          if (ratings.length === 0) return 'אין דירוגים';
-          const avg = ratings.reduce((s, r) => s + r.rating, 0) / ratings.length;
-          return `${ratings.length} דירוגים, ממוצע: ${avg.toFixed(1)}/5`;
-        };
+        const p1Summaries = summariesInPeriod(period1.start, period1.end);
+        const p2Summaries = summariesInPeriod(period2.start, period2.end);
+        const p3Summaries = summariesInPeriod(period3.start, period3.end);
 
-        const moodMap: Record<string, string> = { happy: '😊 שמח/ה', anxious: '😰 חרד/ה', exhausted: '😩 מותש/ת', sad: '😢 עצוב/ה', calm: '😌 רגוע/ה' };
-        const formatMoods = (moods: any[]) => {
-          if (moods.length === 0) return 'אין דיווחי מצב רוח';
-          const counts: Record<string, number> = {};
-          for (const m of moods) { counts[m.mood] = (counts[m.mood] || 0) + 1; }
-          const breakdown = Object.entries(counts)
-            .map(([mood, count]) => `${moodMap[mood] || mood}: ${count}`)
-            .join(', ');
-          return `${moods.length} דיווחים - ${breakdown}`;
+        const formatPeriodSummaries = (summaries: any[], periodName: string) => {
+          if (summaries.length === 0) return `${periodName}: אין סיכומים שבועיים`;
+          return summaries
+            .map((s, i) => {
+              const weekStart = new Date(s.week_start).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+              const weekEnd = new Date(s.week_end).toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+              return `שבוע ${i + 1} (${weekStart}–${weekEnd}):\n${s.summary_text}`;
+            })
+            .join('\n\n');
         };
 
         // Get user preferences for therapy type and focus areas
@@ -260,25 +203,16 @@ CRITICAL LANGUAGE RULE: ALL output MUST be in Hebrew (עברית). Do NOT write 
           ? `${adminMonthlyPrompt}\n\nהתמקדות מיוחדת: ${focusAreas}\nסוג הטיפול: ${therapyLabel}`
           : defaultSystemPrompt;
 
-        const userPrompt = `נתח את 3 התקופות הבאות וצור דו"ח חודשי חם ותומך:
+        const userPrompt = `נתח את הסיכומים השבועיים מ-3 החודשים האחרונים וצור דו"ח חודשי חם ותומך:
 
-=== ${p1Name} (החודש האחרון) ===
-דירוגי רגשות: ${formatRatings(p1Data.ratings)}
-מצבי רוח: ${formatMoods(p1Moods)}
-כתיבה (${p1Msgs.length} רשומות):
-${p1Msgs.length > 0 ? p1Msgs.join('\n\n') : 'אין כתיבה'}
+=== ${p1Name} (החודש האחרון) — ${p1Summaries.length} סיכומים שבועיים ===
+${formatPeriodSummaries(p1Summaries, p1Name)}
 
-=== ${p2Name} (לפני חודשיים) ===
-דירוגי רגשות: ${formatRatings(p2Data.ratings)}
-מצבי רוח: ${formatMoods(p2Moods)}
-כתיבה (${p2Msgs.length} רשומות):
-${p2Msgs.length > 0 ? p2Msgs.join('\n\n') : 'אין כתיבה'}
+=== ${p2Name} (לפני חודשיים) — ${p2Summaries.length} סיכומים שבועיים ===
+${formatPeriodSummaries(p2Summaries, p2Name)}
 
-=== ${p3Name} (לפני 3 חודשים) ===
-דירוגי רגשות: ${formatRatings(p3Data.ratings)}
-מצבי רוח: ${formatMoods(p3Moods)}
-כתיבה (${p3Msgs.length} רשומות):
-${p3Msgs.length > 0 ? p3Msgs.join('\n\n') : 'אין כתיבה'}
+=== ${p3Name} (לפני 3 חודשים) — ${p3Summaries.length} סיכומים שבועיים ===
+${formatPeriodSummaries(p3Summaries, p3Name)}
 
 צור דו"ח חודשי. זכור: תובנות קצרות ובגובה העיניים, וצעדים מעשיים קדימה.`;
 
