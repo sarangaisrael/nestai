@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff } from "lucide-react";
 import logo from "@/assets/nestai-logo-full.png";
+import nestIcon from "@/assets/nest-logo.png";
 import { useUnviewedSummary } from "@/hooks/useUnviewedSummary";
 import { PreferencesOnboarding } from "@/components/PreferencesOnboarding";
 import AddToHomeBanner from "@/components/AddToHomeBanner";
@@ -241,22 +242,43 @@ const Index = () => {
           
           {messages.map(message => (
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-start" : "justify-end"} animate-in`}>
-              <div className={`max-w-[80%] rounded-lg px-4 py-2.5 shadow-sm ${message.role === "user" ? "bg-card ml-auto text-foreground border border-border" : "bg-primary/10 mr-auto text-foreground"}`}>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  {new Date(message.created_at).toLocaleTimeString(language === 'he' ? "he-IL" : "en-US", { hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
+              {message.role === "assistant" ? (
+                /* AI message — avatar + bubble */
+                <div className="flex items-end gap-2 mr-auto max-w-[82%]">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+                    <img src={nestIcon} alt="NestAI" className="w-4 h-4 object-contain opacity-80" />
+                  </div>
+                  <div className="rounded-lg px-4 py-2.5 shadow-sm bg-primary/10 text-foreground">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      {new Date(message.created_at).toLocaleTimeString(language === 'he' ? "he-IL" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* User message */
+                <div className="max-w-[80%] rounded-lg px-4 py-2.5 shadow-sm bg-card ml-auto text-foreground border border-border">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    {new Date(message.created_at).toLocaleTimeString(language === 'he' ? "he-IL" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              )}
             </div>
           ))}
           
           {loading && (
-            <div className="flex justify-start mb-4 px-4 animate-slide-up">
-              <div className="max-w-[80%] rounded-lg px-4 py-3 bg-primary/10 shadow-sm">
-                <div className="flex gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex justify-end mb-4 px-4 animate-slide-up">
+              <div className="flex items-end gap-2 mr-auto">
+                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+                  <img src={nestIcon} alt="NestAI" className="w-4 h-4 object-contain opacity-80" />
+                </div>
+                <div className="rounded-lg px-4 py-3 bg-primary/10 shadow-sm">
+                  <div className="flex gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
                 </div>
               </div>
             </div>
