@@ -50,9 +50,6 @@ const LandingPage = () => {
     }
   };
 
-  const scrollToTherapists = () => {
-    document.getElementById("therapist-section")?.scrollIntoView({ behavior: "smooth" });
-  };
 
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
@@ -296,9 +293,9 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <LanguageSwitcher variant="icon" />
-            <Button variant="ghost" size="sm" onClick={scrollToTherapists}>
-              {isRTL ? "למטפלים" : "For Therapists"}
-            </Button>
+            <Link to="/therapists">
+              <Button variant="ghost" size="sm">{isRTL ? "למטפלים" : "For Therapists"}</Button>
+            </Link>
             <Link to="/app/auth">
               <Button variant="ghost" size="sm">{t.common.login}</Button>
             </Link>
