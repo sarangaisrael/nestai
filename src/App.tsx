@@ -11,7 +11,7 @@ import { AppDirectivesProvider } from "@/components/AppDirectivesProvider";
 
 // Lazy load all other pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
-const TherapistPage = lazy(() => import("./pages/TherapistPage"));
+const TherapistLandingPage = lazy(() => import("./pages/TherapistLandingPage"));
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -66,12 +66,7 @@ const App = () => (
 
               {/* Backward-compat redirect for old /landing URLs */}
               <Route path="/landing" element={<Navigate to="/" replace />} />
-
-              {/* Therapist marketing page */}
-              <Route path="/therapists" element={<Suspense fallback={<LoadingSpinner />}><TherapistPage /></Suspense>} />
-              {/* Backward-compat redirect for old /for-therapists URL */}
-              <Route path="/for-therapists" element={<Navigate to="/therapists" replace />} />
-
+              <Route path="/for-therapists" element={<TherapistLandingPage />} />
               <Route path="/join/:ref" element={<JoinReferral />} />
               
               {/* App routes - lazy loaded */}
