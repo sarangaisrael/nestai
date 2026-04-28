@@ -309,8 +309,8 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* ── Patient section (dynamic blocks from DB) ── */}
-      {blocks.map(renderBlock)}
+      {/* ── Patient hero section only ── */}
+      {blocks.filter(b => b.block_type === "hero").map(renderBlock)}
 
       {/* ── Therapist section ── */}
       <div id="therapist-section">
