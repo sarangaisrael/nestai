@@ -22,6 +22,11 @@ const DEFAULTS = {
   slide3_bullet1: 'מחזקת את הקשר בין מטפל למטופל', slide3_bullet2: 'הנתונים שייכים למטופל', slide3_bullet3: 'בנויה על אמון',
   card1_title: 'למטפלים', card1_body: 'קבל סיכום מוכן לפני כל פגישה. המטופל מתעד ואתה מתמקד בטיפול.', card1_cta: 'הצטרף כמטפל ←',
   card2_title: 'למטופלים', card2_body: 'תיעוד פשוט ויומיומי. לא תישאר לבד עם המחשבות.', card2_cta: 'התחל בחינם ←',
+  tools_title: 'הכלים שילוו אותך',
+  tools_subtitle: 'פשוט, יומיומי, ומדויק לתהליך הטיפולי',
+  tool1_icon: '📝', tool1_title: 'תיעוד יומי', tool1_text: 'רשום מה עבר עליך בין הפגישות — מחשבה, רגש, או רגע שרצית לשמור. בלי לחץ, בלי משימות.',
+  tool2_icon: '📊', tool2_title: 'דוח מגמות', tool2_text: 'זיהוי אוטומטי של דפוסים חוזרים לאורך זמן — נושאים, רגשות, ואירועים שחוזרים בין הפגישות.',
+  tool3_icon: '🗓️', tool3_title: 'סיכום לפני פגישה', tool3_text: 'לפני כל מפגש, המטפל מקבל סיכום מוכן — בלי לבקש, בלי להכין. המטופל מתעד, אתה מתמקד.',
   footer_text: '© 2025 NestAI.care — הפלטפורמה מספקת כלים לתיעוד בלבד.',
 };
 
@@ -113,7 +118,7 @@ const LandingPage = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#F5F5F7',
+          background: '#F8F8F6',
           fontFamily: "'Heebo', sans-serif",
         }}
       >
@@ -122,8 +127,8 @@ const LandingPage = () => {
             width: 40,
             height: 40,
             borderRadius: '50%',
-            border: '3px solid #EDE9FE',
-            borderTopColor: '#7C3AED',
+            border: '3px solid #D1FAE5',
+            borderTopColor: '#10B981',
             animation: 'spin 0.8s linear infinite',
           }}
         />
@@ -170,7 +175,7 @@ const LandingPage = () => {
       {/* Header */}
       <div
         style={{
-          background: '#7C3AED',
+          background: '#10B981',
           padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -186,7 +191,7 @@ const LandingPage = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#7C3AED',
+            color: '#10B981',
             fontSize: 13,
             fontWeight: 700,
             flexShrink: 0,
@@ -230,7 +235,7 @@ const LandingPage = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <div
             style={{
-              background: '#7C3AED',
+              background: '#10B981',
               color: '#FFFFFF',
               borderRadius: '12px 12px 12px 4px',
               padding: '8px 12px',
@@ -261,7 +266,7 @@ const LandingPage = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <div
             style={{
-              background: '#7C3AED',
+              background: '#10B981',
               color: '#FFFFFF',
               borderRadius: '12px 12px 12px 4px',
               padding: '8px 12px',
@@ -292,8 +297,8 @@ const LandingPage = () => {
       {/* Summary badge */}
       <div
         style={{
-          background: '#EDE9FE',
-          color: '#7C3AED',
+          background: '#D1FAE5',
+          color: '#10B981',
           padding: '6px 12px',
           fontSize: 11,
           fontWeight: 600,
@@ -318,8 +323,8 @@ const LandingPage = () => {
       }}
     >
       {/* Header */}
-      <div style={{ background: '#EDE9FE', padding: '12px 16px' }}>
-        <div style={{ color: '#7C3AED', fontWeight: 700, fontSize: 13 }}>📋 סיכום שבועי</div>
+      <div style={{ background: '#D1FAE5', padding: '12px 16px' }}>
+        <div style={{ color: '#10B981', fontWeight: 700, fontSize: 13 }}>📋 סיכום שבועי</div>
         <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>שבוע 28 אפריל–4 מאי</div>
       </div>
       {/* Body */}
@@ -329,7 +334,7 @@ const LandingPage = () => {
           <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, marginBottom: 6 }}>מצב רוח כללי</div>
           <div
             style={{
-              background: '#EDE9FE',
+              background: '#D1FAE5',
               width: '100%',
               height: 8,
               borderRadius: 4,
@@ -338,7 +343,7 @@ const LandingPage = () => {
           >
             <div
               style={{
-                background: '#7C3AED',
+                background: '#10B981',
                 width: '72%',
                 height: '100%',
               }}
@@ -409,10 +414,10 @@ const LandingPage = () => {
       {/* Body */}
       <div style={{ padding: '12px 16px' }}>
         {[
-          { date: "יום ב' 29/4", title: 'פגישה עם ד"ר כהן', tag: 'פגישה', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
-          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
-          { date: "יום ד' 1/5", title: 'ניהלתי שיחה קשה', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
-          { date: "יום ה' 2/5", title: 'הרגשתי טוב יותר', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
+          { date: "יום ב' 29/4", title: 'פגישה עם ד"ר כהן', tag: 'פגישה', tagBg: '#D1FAE5', tagColor: '#10B981' },
+          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', tagBg: '#D1FAE5', tagColor: '#10B981' },
+          { date: "יום ד' 1/5", title: 'ניהלתי שיחה קשה', tag: 'תיעוד', tagBg: '#D1FAE5', tagColor: '#10B981' },
+          { date: "יום ה' 2/5", title: 'הרגשתי טוב יותר', tag: 'תיעוד', tagBg: '#D1FAE5', tagColor: '#10B981' },
           { date: "יום ו' 3/5", title: 'פגישה עם ד"ר כהן', tag: 'פגישה', tagBg: '#ECFDF5', tagColor: '#059669' },
         ].map((item, i) => (
           <div
@@ -422,7 +427,7 @@ const LandingPage = () => {
               alignItems: 'flex-start',
               gap: 10,
               marginBottom: i < 4 ? 16 : 0,
-              borderRight: '2px solid #EDE9FE',
+              borderRight: '2px solid #D1FAE5',
               paddingRight: 16,
             }}
           >
@@ -453,7 +458,7 @@ const LandingPage = () => {
   );
 
   return (
-    <div dir="rtl" style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: '#F5F5F7' }}>
+    <div dir="rtl" style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: '#F8F8F6' }}>
 
       {/* ── Navbar ── */}
       <nav
@@ -481,7 +486,7 @@ const LandingPage = () => {
         >
           {/* Logo */}
           <span style={{ color: '#1A1A2E', fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
-            Nest<span style={{ color: '#7C3AED' }}>AI</span>
+            Nest<span style={{ color: '#10B981' }}>AI</span>
           </span>
 
           {/* Nav buttons */}
@@ -489,8 +494,8 @@ const LandingPage = () => {
             <button
               onClick={() => navigate('/for-therapists')}
               style={{
-                border: '1.5px solid #7C3AED',
-                color: '#7C3AED',
+                border: '1.5px solid #10B981',
+                color: '#10B981',
                 background: 'transparent',
                 borderRadius: 50,
                 padding: '8px 18px',
@@ -505,7 +510,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate('/app')}
               style={{
-                background: '#7C3AED',
+                background: '#10B981',
                 color: '#FFFFFF',
                 borderRadius: 50,
                 border: 'none',
@@ -530,7 +535,7 @@ const LandingPage = () => {
           paddingLeft: 24,
           paddingRight: 24,
           textAlign: 'center',
-          background: '#F5F5F7',
+          background: '#F8F8F6',
         }}
       >
         <h1 style={{ margin: 0 }}>
@@ -552,7 +557,7 @@ const LandingPage = () => {
               display: 'block',
               fontSize: 'clamp(2.8rem, 6vw, 4.5rem)',
               fontWeight: 800,
-              color: '#7C3AED',
+              color: '#10B981',
               lineHeight: 1.1,
               letterSpacing: '-0.03em',
               marginTop: 4,
@@ -587,7 +592,7 @@ const LandingPage = () => {
           <button
             onClick={() => navigate('/app')}
             style={{
-              background: '#7C3AED',
+              background: '#10B981',
               color: '#FFFFFF',
               borderRadius: 50,
               border: 'none',
@@ -604,8 +609,8 @@ const LandingPage = () => {
           <button
             onClick={() => navigate('/for-therapists')}
             style={{
-              border: '1.5px solid #7C3AED',
-              color: '#7C3AED',
+              border: '1.5px solid #10B981',
+              color: '#10B981',
               background: 'transparent',
               borderRadius: 50,
               padding: '13px 24px',
@@ -631,7 +636,7 @@ const LandingPage = () => {
         >
           {[content.hero_badge1, content.hero_badge2, content.hero_badge3].map((badge, i) => (
             <span key={i} style={{ fontSize: 13, color: '#6B7280', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Check size={14} style={{ color: '#7C3AED' }} />
+              <Check size={14} style={{ color: '#10B981' }} />
               {badge}
             </span>
           ))}
@@ -669,8 +674,8 @@ const LandingPage = () => {
                 <div>
                   <span
                     style={{
-                      background: '#EDE9FE',
-                      color: '#7C3AED',
+                      background: '#D1FAE5',
+                      color: '#10B981',
                       borderRadius: 50,
                       padding: '4px 12px',
                       fontSize: 12,
@@ -710,7 +715,7 @@ const LandingPage = () => {
                           style={{
                             width: 8,
                             height: 8,
-                            background: '#7C3AED',
+                            background: '#10B981',
                             borderRadius: '50%',
                             marginTop: 7,
                             flexShrink: 0,
@@ -772,7 +777,7 @@ const LandingPage = () => {
                     width: i === slide ? 24 : 8,
                     height: 8,
                     borderRadius: i === slide ? 4 : '50%',
-                    background: i === slide ? '#7C3AED' : '#E5E7EB',
+                    background: i === slide ? '#10B981' : '#E5E7EB',
                     border: 'none',
                     cursor: 'pointer',
                     padding: 0,
@@ -805,10 +810,108 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* ── Tools Section ── */}
+      <section
+        style={{
+          background: '#F8F8F6',
+          paddingTop: 80,
+          paddingBottom: 80,
+          paddingLeft: 24,
+          paddingRight: 24,
+        }}
+      >
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <h2
+              style={{
+                fontSize: 'clamp(1.6rem, 3vw, 2rem)',
+                fontWeight: 800,
+                color: '#1A1A2E',
+                marginBottom: 12,
+              }}
+            >
+              {content.tools_title}
+            </h2>
+            <p style={{ fontSize: '1rem', color: '#6B7280', lineHeight: 1.7 }}>
+              {content.tools_subtitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: content.tool1_icon, title: content.tool1_title, text: content.tool1_text },
+              { icon: content.tool2_icon, title: content.tool2_title, text: content.tool2_text },
+              { icon: content.tool3_icon, title: content.tool3_title, text: content.tool3_text },
+            ].map((tool, i) => (
+              <div
+                key={i}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: 16,
+                  padding: 28,
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)';
+                }}
+              >
+                {/* Icon circle */}
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: '50%',
+                    background: '#D1FAE5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.4rem',
+                    marginBottom: 20,
+                    flexShrink: 0,
+                  }}
+                >
+                  {tool.icon}
+                </div>
+                <h3
+                  style={{
+                    fontSize: '1.1rem',
+                    fontWeight: 700,
+                    color: '#1A1A2E',
+                    marginBottom: 10,
+                  }}
+                >
+                  {tool.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: '#6B7280',
+                    lineHeight: 1.75,
+                    margin: 0,
+                    flexGrow: 1,
+                  }}
+                >
+                  {tool.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Audience Cards ── */}
       <section
         style={{
-          background: '#F5F5F7',
+          background: '#F8F8F6',
           paddingTop: 80,
           paddingBottom: 80,
           paddingLeft: 24,
@@ -848,7 +951,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate('/for-therapists')}
               style={{
-                background: '#7C3AED',
+                background: '#10B981',
                 color: '#FFFFFF',
                 borderRadius: 50,
                 border: 'none',
@@ -871,7 +974,7 @@ const LandingPage = () => {
               borderRadius: 20,
               padding: 32,
               border: '1px solid #E5E7EB',
-              borderTop: '3px solid #7C3AED',
+              borderTop: '3px solid #10B981',
               boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
             }}
           >
@@ -885,7 +988,7 @@ const LandingPage = () => {
             <button
               onClick={() => navigate('/app')}
               style={{
-                background: '#7C3AED',
+                background: '#10B981',
                 color: '#FFFFFF',
                 borderRadius: 50,
                 border: 'none',

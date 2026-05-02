@@ -22,7 +22,7 @@ const FIELD_DEFS: FieldDef[] = [
 
   // Group: Hero
   { key: 'hero_line1',    label: 'שורה ראשית 1 (שחור)',               group: '🦸 Hero' },
-  { key: 'hero_line2',    label: 'שורה ראשית 2 (סגול)',               group: '🦸 Hero' },
+  { key: 'hero_line2',    label: 'שורה ראשית 2 (ירוק)',               group: '🦸 Hero' },
   { key: 'hero_subtitle', label: 'טקסט משנה',                         group: '🦸 Hero', multiline: true },
   { key: 'hero_cta1',     label: 'כפתור ראשי',                        group: '🦸 Hero' },
   { key: 'hero_cta2',     label: 'כפתור משני',                        group: '🦸 Hero' },
@@ -50,6 +50,19 @@ const FIELD_DEFS: FieldDef[] = [
   { key: 'slide3_bullet1',  label: 'נקודה 1',                         group: '🎞️ שקופית 3 — רציפות' },
   { key: 'slide3_bullet2',  label: 'נקודה 2',                         group: '🎞️ שקופית 3 — רציפות' },
   { key: 'slide3_bullet3',  label: 'נקודה 3',                         group: '🎞️ שקופית 3 — רציפות' },
+
+  // Group: Tools
+  { key: 'tools_title',    label: 'כותרת הסקשן',                      group: '🛠️ כלים' },
+  { key: 'tools_subtitle', label: 'תת-כותרת הסקשן',                   group: '🛠️ כלים', multiline: true },
+  { key: 'tool1_icon',  label: 'כלי 1 — אמוג׳י',                      group: '🛠️ כלים' },
+  { key: 'tool1_title', label: 'כלי 1 — כותרת',                       group: '🛠️ כלים' },
+  { key: 'tool1_text',  label: 'כלי 1 — טקסט',                        group: '🛠️ כלים', multiline: true },
+  { key: 'tool2_icon',  label: 'כלי 2 — אמוג׳י',                      group: '🛠️ כלים' },
+  { key: 'tool2_title', label: 'כלי 2 — כותרת',                       group: '🛠️ כלים' },
+  { key: 'tool2_text',  label: 'כלי 2 — טקסט',                        group: '🛠️ כלים', multiline: true },
+  { key: 'tool3_icon',  label: 'כלי 3 — אמוג׳י',                      group: '🛠️ כלים' },
+  { key: 'tool3_title', label: 'כלי 3 — כותרת',                       group: '🛠️ כלים' },
+  { key: 'tool3_text',  label: 'כלי 3 — טקסט',                        group: '🛠️ כלים', multiline: true },
 
   // Group: Audience Cards
   { key: 'card1_title', label: 'כרטיס מטפל — כותרת',                 group: '🃏 כרטיסי קהל' },
