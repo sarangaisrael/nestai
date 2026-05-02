@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import ContentInsights from "@/components/admin/ContentInsights";
 import AdminFeedbackTab from "@/components/admin/AdminFeedbackTab";
 import LandingBlockManager from "@/components/admin/LandingBlockManager";
+import LandingContentEditor from "@/components/admin/LandingContentEditor";
 
 /* ── Types ─────────────────────────────────── */
 interface AdminUser {
@@ -810,6 +811,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="insights" className="gap-1.5 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />Content Insights</TabsTrigger>
             <TabsTrigger value="feedback" className="gap-1.5 text-xs sm:text-sm"><MessageSquare className="h-4 w-4" />משוב משתמשים</TabsTrigger>
             <TabsTrigger value="leads" className="gap-1.5 text-xs sm:text-sm"><Phone className="h-4 w-4" />לידים מקצועיים</TabsTrigger>
+            <TabsTrigger value="landing-new" className="gap-1.5 text-xs sm:text-sm"><Globe className="h-4 w-4" />עמוד נחיתה</TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1 — Landing Page ═══════ */}
@@ -1711,6 +1713,11 @@ const AdminDashboard = () => {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          {/* ═══════ TAB — Landing Page Content Editor ═══════ */}
+          <TabsContent value="landing-new" className="space-y-6">
+            <LandingContentEditor />
           </TabsContent>
         </Tabs>
       </div>

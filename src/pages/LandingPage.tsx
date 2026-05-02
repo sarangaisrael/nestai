@@ -1,46 +1,48 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import nestLogo from "@/assets/nestai-logo-full.png";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useSiteContent } from "@/contexts/SiteContentContext";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { Capacitor } from "@capacitor/core";
-import { PenLine, FileText, TrendingUp, Lock, ArrowRight, ArrowLeft, Download, Heart } from "lucide-react";
-import IOSInstallOverlay from "@/components/IOSInstallOverlay";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import HeroSection from "@/components/landing/HeroSection";
-import MediaSection from "@/components/landing/MediaSection";
-import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
-interface LandingBlock {
-  id: string;
-  block_type: string;
-  sort_order: number;
-  visible: boolean;
-  config: Record<string, any>;
-}
+const DEFAULTS = {
+  nav_logo: 'NestAI', nav_cta1_text: 'למטפלים', nav_cta2_text: 'התחל בחינם',
+  hero_line1: 'הרצף הטיפולי', hero_line2: 'מתחיל כאן',
+  hero_subtitle: 'NestAI מאפשרת למטופלים לתעד את היומיום שלהם בין הפגישות — ולמטפל לקבל סיכום מוכן לפני כל מפגש.',
+  hero_cta1: 'התחל בחינם ←', hero_cta2: 'למטפלים',
+  hero_badge1: 'ללא הרשמה ארוכה', hero_badge2: 'פרטיות מלאה', hero_badge3: 'חינם לניסיון',
+  slide1_title: 'לא תישאר לבד עם המחשבות',
+  slide1_subtitle: 'האפליקציה מלווה אותך בין הפגישות — בשיחה טבעית, בלי לחץ.',
+  slide1_bullet1: 'תיעוד יומי טבעי', slide1_bullet2: 'אין משימות ואין לחץ', slide1_bullet3: 'הכל שמור ומוגן',
+  slide2_title: 'סיכום מוכן לפני כל פגישה',
+  slide2_subtitle: 'המטפל מקבל תמונה מלאה לפני כל סשן — בלי לבקש ובלי להכין.',
+  slide2_bullet1: 'סיכום אוטומטי לפני כל פגישה', slide2_bullet2: 'זיהוי דפוסים התנהגותיים', slide2_bullet3: 'מניעת נשירה',
+  slide3_title: 'הברית שמחזיקה את הטיפול',
+  slide3_subtitle: 'הרצף בין הפגישות הוא מה שמחזיק את התהליך הטיפולי.',
+  slide3_bullet1: 'מחזקת את הקשר בין מטפל למטופל', slide3_bullet2: 'הנתונים שייכים למטופל', slide3_bullet3: 'בנויה על אמון',
+  card1_title: 'למטפלים', card1_body: 'קבל סיכום מוכן לפני כל פגישה. המטופל מתעד ואתה מתמקד בטיפול.', card1_cta: 'הצטרף כמטפל ←',
+  card2_title: 'למטופלים', card2_body: 'תיעוד פשוט ויומיומי. לא תישאר לבד עם המחשבות.', card2_cta: 'התחל בחינם ←',
+  footer_text: '© 2025 NestAI.care — הפלטפורמה מספקת כלים לתיעוד בלבד.',
+};
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [content, setContent] = useState(DEFAULTS);
+  const [slide, setSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [showIOSOverlay, setShowIOSOverlay] = useState(false);
-  const [blocks, setBlocks] = useState<LandingBlock[]>([]);
-  const { t, dir, isRTL } = useLanguage();
-  const { get } = useSiteContent();
-  const { isIOS, isInstalled, promptInstall, canShowAndroidPrompt } = usePWAInstall();
 
-  const handlePWAInstall = async () => {
-    if (isIOS && !isInstalled) {
-      setShowIOSOverlay(true);
-    } else if (canShowAndroidPrompt) {
-      await promptInstall();
-    } else {
-      navigate('/app');
-    }
-  };
+  // Inject Heebo font
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap';
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
+  // Auth redirects + content fetch
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
       || (window.navigator as any).standalone === true;
@@ -82,220 +84,869 @@ const LandingPage = () => {
         }
       }
 
-      // Load blocks
-      const { data } = await supabase
-        .from("landing_blocks")
-        .select("*")
-        .eq("visible", true)
-        .order("sort_order", { ascending: true });
-      setBlocks((data || []).map((b: any) => ({ ...b, config: b.config || {} })));
+      // Fetch landing content from Supabase
+      try {
+        const { data, error } = await supabase
+          .from('landing_content')
+          .select('*')
+          .eq('id', 1)
+          .single();
+
+        if (!error && data) {
+          setContent({ ...DEFAULTS, ...data });
+        }
+      } catch {
+        // fall through to defaults
+      }
+
       setIsLoading(false);
     };
+
     init();
   }, [navigate]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#F5F5F7',
+          fontFamily: "'Heebo', sans-serif",
+        }}
+      >
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            border: '3px solid #EDE9FE',
+            borderTopColor: '#7C3AED',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
-
-  const features = [
-    { icon: PenLine, title: get("feature1_title", t.landing.feature1Title), description: get("feature1_desc", t.landing.feature1Desc) },
-    { icon: FileText, title: get("feature2_title", t.landing.feature2Title), description: get("feature2_desc", t.landing.feature2Desc) },
-    { icon: TrendingUp, title: get("feature3_title", t.landing.feature3Title), description: get("feature3_desc", t.landing.feature3Desc) },
-    { icon: Lock, title: get("feature4_title", t.landing.feature4Title), description: get("feature4_desc", t.landing.feature4Desc) },
+  const slides = [
+    {
+      title: content.slide1_title,
+      subtitle: content.slide1_subtitle,
+      bullets: [content.slide1_bullet1, content.slide1_bullet2, content.slide1_bullet3],
+      mockup: 'chat' as const,
+    },
+    {
+      title: content.slide2_title,
+      subtitle: content.slide2_subtitle,
+      bullets: [content.slide2_bullet1, content.slide2_bullet2, content.slide2_bullet3],
+      mockup: 'summary' as const,
+    },
+    {
+      title: content.slide3_title,
+      subtitle: content.slide3_subtitle,
+      bullets: [content.slide3_bullet1, content.slide3_bullet2, content.slide3_bullet3],
+      mockup: 'timeline' as const,
+    },
   ];
 
-  const renderBlock = (block: LandingBlock) => {
-    switch (block.block_type) {
-      case "hero":
-        return <HeroSection key={block.id} onShowIOSOverlay={() => setShowIOSOverlay(true)} />;
+  const currentSlide = slides[slide];
 
-      case "why":
-        return (
-          <section key={block.id} className="py-20 px-6 bg-background">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
-              <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                {get("why_badge", t.landing.whyNeedThis)}
+  const ChatMockup = () => (
+    <div
+      style={{
+        borderRadius: 20,
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        overflow: 'hidden',
+        maxWidth: 340,
+        margin: '0 auto',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          background: '#7C3AED',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#7C3AED',
+            fontSize: 13,
+            fontWeight: 700,
+            flexShrink: 0,
+          }}
+        >
+          N
+        </div>
+        <div>
+          <div style={{ color: '#FFFFFF', fontSize: 13, fontWeight: 600 }}>NestAI</div>
+          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>המרחב שלך</div>
+        </div>
+      </div>
+      {/* Chat body */}
+      <div
+        style={{
+          background: '#F9FAFB',
+          padding: '12px',
+          minHeight: 200,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        {/* AI bubble — right aligned in RTL (mr-auto = logical start) */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              borderRadius: '12px 12px 4px 12px',
+              padding: '8px 12px',
+              fontSize: 12,
+              color: '#374151',
+              maxWidth: '85%',
+            }}
+          >
+            איך היה היום? 🌿
+          </div>
+        </div>
+        {/* User bubble */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            style={{
+              background: '#7C3AED',
+              color: '#FFFFFF',
+              borderRadius: '12px 12px 12px 4px',
+              padding: '8px 12px',
+              fontSize: 12,
+              maxWidth: '85%',
+            }}
+          >
+            הרגשתי לחוץ בעבודה
+          </div>
+        </div>
+        {/* AI bubble */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              borderRadius: '12px 12px 4px 12px',
+              padding: '8px 12px',
+              fontSize: 12,
+              color: '#374151',
+              maxWidth: '85%',
+            }}
+          >
+            מובן. ספר לי יותר — מה גרם ללחץ?
+          </div>
+        </div>
+        {/* User bubble */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            style={{
+              background: '#7C3AED',
+              color: '#FFFFFF',
+              borderRadius: '12px 12px 12px 4px',
+              padding: '8px 12px',
+              fontSize: 12,
+              maxWidth: '85%',
+            }}
+          >
+            פגישה קשה עם המנהל
+          </div>
+        </div>
+        {/* AI bubble */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #E5E7EB',
+              borderRadius: '12px 12px 4px 12px',
+              padding: '8px 12px',
+              fontSize: 12,
+              color: '#374151',
+              maxWidth: '85%',
+            }}
+          >
+            ✓ שמרתי. נדבר על זה בפגישה הבאה 📝
+          </div>
+        </div>
+      </div>
+      {/* Summary badge */}
+      <div
+        style={{
+          background: '#EDE9FE',
+          color: '#7C3AED',
+          padding: '6px 12px',
+          fontSize: 11,
+          fontWeight: 600,
+          textAlign: 'center',
+        }}
+      >
+        ✓ סיכום נשלח למטפל
+      </div>
+    </div>
+  );
+
+  const SummaryMockup = () => (
+    <div
+      style={{
+        borderRadius: 20,
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        overflow: 'hidden',
+        maxWidth: 340,
+        margin: '0 auto',
+      }}
+    >
+      {/* Header */}
+      <div style={{ background: '#EDE9FE', padding: '12px 16px' }}>
+        <div style={{ color: '#7C3AED', fontWeight: 700, fontSize: 13 }}>📋 סיכום שבועי</div>
+        <div style={{ color: '#6B7280', fontSize: 11, marginTop: 2 }}>שבוע 28 אפריל–4 מאי</div>
+      </div>
+      {/* Body */}
+      <div style={{ background: '#FFFFFF', padding: '12px 16px' }}>
+        {/* Mood section */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 12, color: '#374151', fontWeight: 600, marginBottom: 6 }}>מצב רוח כללי</div>
+          <div
+            style={{
+              background: '#EDE9FE',
+              width: '100%',
+              height: 8,
+              borderRadius: 4,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                background: '#7C3AED',
+                width: '72%',
+                height: '100%',
+              }}
+            />
+          </div>
+        </div>
+        {/* Insight rows */}
+        {[
+          { label: 'ימים מתועדים', value: '5/7' },
+          { label: 'דירוג ממוצע', value: '4.1/5' },
+          { label: 'נושאים עיקריים', value: 'עבודה, קשרים' },
+        ].map((row, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 12,
+              color: '#374151',
+              padding: '4px 0',
+              borderBottom: '0.5px solid #F3F4F6',
+            }}
+          >
+            <span>{row.label}</span>
+            <span style={{ fontWeight: 600 }}>{row.value}</span>
+          </div>
+        ))}
+        {/* Therapist note */}
+        <div
+          style={{
+            background: '#F9FAFB',
+            borderRadius: 8,
+            padding: 8,
+            fontSize: 11,
+            color: '#6B7280',
+            border: '1px solid #E5E7EB',
+            marginTop: 10,
+          }}
+        >
+          🩺 טרום-פגישה: המטופל דיווח על לחץ בעבודה וקושי בשינה.
+        </div>
+      </div>
+    </div>
+  );
+
+  const TimelineMockup = () => (
+    <div
+      style={{
+        borderRadius: 20,
+        background: '#FFFFFF',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        overflow: 'hidden',
+        maxWidth: 340,
+        margin: '0 auto',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          background: '#F9FAFB',
+          padding: '12px 16px',
+          borderBottom: '1px solid #E5E7EB',
+        }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 13, color: '#1A1A2E' }}>📅 ציר הזמן</div>
+      </div>
+      {/* Body */}
+      <div style={{ padding: '12px 16px' }}>
+        {[
+          { date: "יום ב' 29/4", title: 'פגישה עם ד"ר כהן', tag: 'פגישה', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
+          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
+          { date: "יום ד' 1/5", title: 'ניהלתי שיחה קשה', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
+          { date: "יום ה' 2/5", title: 'הרגשתי טוב יותר', tag: 'תיעוד', tagBg: '#EDE9FE', tagColor: '#7C3AED' },
+          { date: "יום ו' 3/5", title: 'פגישה עם ד"ר כהן', tag: 'פגישה', tagBg: '#ECFDF5', tagColor: '#059669' },
+        ].map((item, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10,
+              marginBottom: i < 4 ? 16 : 0,
+              borderRight: '2px solid #EDE9FE',
+              paddingRight: 16,
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, whiteSpace: 'nowrap', marginBottom: 2 }}>
+                {item.date}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#1A1A2E', marginBottom: 4 }}>
+                {item.title}
+              </div>
+              <span
+                style={{
+                  background: item.tagBg,
+                  color: item.tagColor,
+                  fontSize: 10,
+                  padding: '1px 6px',
+                  borderRadius: 50,
+                  display: 'inline-block',
+                }}
+              >
+                {item.tag}
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
-                {get("why_title", t.landing.whyTitle)}
-              </h2>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                {get("why_description", t.landing.whyDescription)}
-              </p>
             </div>
-          </section>
-        );
-
-      case "features":
-        return (
-          <section key={block.id} className="py-24 px-6 bg-muted/30">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-16">
-                <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
-                  {get("features_badge", t.landing.whatsIncluded)}
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                  {get("features_title", t.landing.toolsTitle)}
-                </h2>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {features.map((feature, index) => (
-                  <div key={index} className="group bg-card rounded-3xl p-8 border border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-                      <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
-                    <p className="text-foreground/60 leading-relaxed">{feature.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        );
-
-      case "media":
-        return <MediaSection key={block.id} />;
-
-      case "cta":
-        return (
-          <section key={block.id} className="py-24 px-6">
-            <div className="max-w-4xl mx-auto text-center">
-              <p className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-                {get("cta_title", t.landing.readyToStart)}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link to="/app">
-                  <Button size="lg" className="rounded-full gap-2 px-10 text-lg h-14">
-                    {t.welcome.getStarted}
-                    <ArrowIcon className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button size="lg" variant="outline" className="rounded-full gap-2 px-8 text-lg h-14" onClick={handlePWAInstall}>
-                  <Download className="w-5 h-5" />
-                  {t.nav.installApp}
-                </Button>
-              </div>
-            </div>
-          </section>
-        );
-
-      case "problem_solution":
-        return (
-          <section key={block.id} className="py-20 px-6 bg-muted/20">
-            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-              {/* Problem / Left card */}
-              <div className="bg-card rounded-3xl p-8 md:p-10 border border-border shadow-sm space-y-4">
-                <span className="inline-block px-3 py-1.5 bg-destructive/10 text-destructive rounded-full text-sm font-semibold">
-                  {isRTL ? "האתגר" : "The Challenge"}
-                </span>
-                {block.config?.problem_title && (
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
-                    {block.config.problem_title}
-                  </h3>
-                )}
-                {block.config?.problem_body && (
-                  <p className="text-foreground/60 leading-relaxed text-base md:text-lg">
-                    {block.config.problem_body}
-                  </p>
-                )}
-              </div>
-              {/* Solution / Right card */}
-              <div className="bg-card rounded-3xl p-8 md:p-10 border border-primary/30 shadow-sm space-y-4">
-                <span className="inline-block px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold">
-                  {isRTL ? "הפתרון" : "The Solution"}
-                </span>
-                {block.config?.solution_title && (
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
-                    {block.config.solution_title}
-                  </h3>
-                )}
-                {block.config?.solution_body && (
-                  <p className="text-foreground/60 leading-relaxed text-base md:text-lg">
-                    {block.config.solution_body}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-        );
-
-      case "custom":
-        return (
-          <section key={block.id} className="py-20 px-6 bg-background">
-            <div className="max-w-4xl mx-auto text-center space-y-6">
-              {block.config?.badge && (
-                <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                  {block.config.badge}
-                </span>
-              )}
-              {block.config?.title && (
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
-                  {block.config.title}
-                </h2>
-              )}
-              {block.config?.body && (
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-                  {block.config.body}
-                </p>
-              )}
-            </div>
-          </section>
-        );
-
-      default:
-        return null;
-    }
-  };
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden" dir={dir}>
-      {/* Header */}
-      <header className="fixed top-4 left-4 right-4 z-50 bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <img src={nestLogo} alt="NestAI.care" className="h-10 sm:h-14 object-contain" />
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <LanguageSwitcher variant="icon" />
-            <Link to="/for-therapists">
-              <Button variant="ghost" size="sm">{isRTL ? "למטפלים" : "For Therapists"}</Button>
-            </Link>
-            <Link to="/app/auth">
-              <Button variant="ghost" size="sm">{t.common.login}</Button>
-            </Link>
-            <Link to="/app">
-              <Button size="sm" className="rounded-full px-6">{t.landing.freeSignup}</Button>
-            </Link>
+    <div dir="rtl" style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: '#F5F5F7' }}>
+
+      {/* ── Navbar ── */}
+      <nav
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: '#FFFFFF',
+          boxShadow: '0 1px 0 rgba(0,0,0,0.06)',
+          height: 64,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '64rem',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 24px',
+            height: '100%',
+          }}
+        >
+          {/* Logo */}
+          <span style={{ color: '#1A1A2E', fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
+            Nest<span style={{ color: '#7C3AED' }}>AI</span>
+          </span>
+
+          {/* Nav buttons */}
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button
+              onClick={() => navigate('/for-therapists')}
+              style={{
+                border: '1.5px solid #7C3AED',
+                color: '#7C3AED',
+                background: 'transparent',
+                borderRadius: 50,
+                padding: '8px 18px',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: "'Heebo', sans-serif",
+              }}
+            >
+              {content.nav_cta1_text}
+            </button>
+            <button
+              onClick={() => navigate('/app')}
+              style={{
+                background: '#7C3AED',
+                color: '#FFFFFF',
+                borderRadius: 50,
+                border: 'none',
+                padding: '9px 18px',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: "'Heebo', sans-serif",
+              }}
+            >
+              {content.nav_cta2_text}
+            </button>
           </div>
         </div>
-      </header>
+      </nav>
 
-      {/* Dynamic Blocks */}
-      {blocks.map(renderBlock)}
+      {/* ── Hero ── */}
+      <section
+        style={{
+          paddingTop: 120,
+          paddingBottom: 80,
+          paddingLeft: 24,
+          paddingRight: 24,
+          textAlign: 'center',
+          background: '#F5F5F7',
+        }}
+      >
+        <h1 style={{ margin: 0 }}>
+          <span
+            style={{
+              display: 'block',
+              fontSize: 'clamp(2.8rem, 6vw, 4.5rem)',
+              fontWeight: 800,
+              color: '#1A1A2E',
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              marginBottom: 0,
+            }}
+          >
+            {content.hero_line1}
+          </span>
+          <span
+            style={{
+              display: 'block',
+              fontSize: 'clamp(2.8rem, 6vw, 4.5rem)',
+              fontWeight: 800,
+              color: '#7C3AED',
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              marginTop: 4,
+            }}
+          >
+            {content.hero_line2}
+          </span>
+        </h1>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={nestLogo} alt="MyNest" className="h-8 object-contain" />
-            <span className="text-sm text-foreground/40">{t.footer.copyright}</span>
+        <p
+          style={{
+            maxWidth: 560,
+            margin: '24px auto 0',
+            fontSize: '1.1rem',
+            color: '#6B7280',
+            lineHeight: 1.7,
+          }}
+        >
+          {content.hero_subtitle}
+        </p>
+
+        {/* CTA Row */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 12,
+            marginTop: 36,
+            flexWrap: 'wrap',
+          }}
+        >
+          <button
+            onClick={() => navigate('/app')}
+            style={{
+              background: '#7C3AED',
+              color: '#FFFFFF',
+              borderRadius: 50,
+              border: 'none',
+              padding: '14px 28px',
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+              fontFamily: "'Heebo', sans-serif",
+            }}
+          >
+            {content.hero_cta1}
+          </button>
+          <button
+            onClick={() => navigate('/for-therapists')}
+            style={{
+              border: '1.5px solid #7C3AED',
+              color: '#7C3AED',
+              background: 'transparent',
+              borderRadius: 50,
+              padding: '13px 24px',
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: "'Heebo', sans-serif",
+            }}
+          >
+            {content.hero_cta2}
+          </button>
+        </div>
+
+        {/* Badge Row */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 24,
+            marginTop: 28,
+            flexWrap: 'wrap',
+          }}
+        >
+          {[content.hero_badge1, content.hero_badge2, content.hero_badge3].map((badge, i) => (
+            <span key={i} style={{ fontSize: 13, color: '#6B7280', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Check size={14} style={{ color: '#7C3AED' }} />
+              {badge}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Slider ── */}
+      <section
+        style={{
+          paddingTop: 80,
+          paddingBottom: 80,
+          paddingLeft: 24,
+          paddingRight: 24,
+          background: '#FFFFFF',
+        }}
+      >
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          <h2
+            style={{
+              textAlign: 'center',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#1A1A2E',
+              marginBottom: 48,
+            }}
+          >
+            איך זה עובד
+          </h2>
+
+          {/* Slider wrapper */}
+          <div style={{ position: 'relative', overflow: 'hidden' }}>
+            <div style={{ transition: 'opacity 0.3s ease', opacity: 1 }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                {/* Text column */}
+                <div>
+                  <span
+                    style={{
+                      background: '#EDE9FE',
+                      color: '#7C3AED',
+                      borderRadius: 50,
+                      padding: '4px 12px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      display: 'inline-block',
+                      marginBottom: 16,
+                    }}
+                  >
+                    שלב {slide + 1} / 3
+                  </span>
+                  <h3
+                    style={{
+                      fontSize: 'clamp(1.6rem, 3vw, 2rem)',
+                      fontWeight: 800,
+                      color: '#1A1A2E',
+                      marginBottom: 12,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {currentSlide.title}
+                  </h3>
+                  <p style={{ fontSize: '1rem', color: '#6B7280', lineHeight: 1.7, marginBottom: 24 }}>
+                    {currentSlide.subtitle}
+                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {currentSlide.bullets.map((bullet, i) => (
+                      <li
+                        key={i}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 8,
+                          marginBottom: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 8,
+                            height: 8,
+                            background: '#7C3AED',
+                            borderRadius: '50%',
+                            marginTop: 7,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span style={{ fontSize: 15, color: '#374151', fontWeight: 500 }}>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Mockup column */}
+                <div>
+                  {currentSlide.mockup === 'chat' && <ChatMockup />}
+                  {currentSlide.mockup === 'summary' && <SummaryMockup />}
+                  {currentSlide.mockup === 'timeline' && <TimelineMockup />}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-6">
-            <Link to="/app/privacy" className="text-sm text-foreground/60 hover:text-foreground transition-colors">
-              {t.nav.privacy}
+
+          {/* Navigation controls */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 16,
+              marginTop: 32,
+            }}
+          >
+            {/* Prev (RTL = ChevronRight) */}
+            <button
+              onClick={() => setSlide(s => Math.max(0, s - 1))}
+              disabled={slide === 0}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                border: '1.5px solid #E5E7EB',
+                background: '#FFFFFF',
+                cursor: slide === 0 ? 'default' : 'pointer',
+                opacity: slide === 0 ? 0.4 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ChevronRight size={18} color="#374151" />
+            </button>
+
+            {/* Dots */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {[0, 1, 2].map(i => (
+                <button
+                  key={i}
+                  onClick={() => setSlide(i)}
+                  style={{
+                    width: i === slide ? 24 : 8,
+                    height: 8,
+                    borderRadius: i === slide ? 4 : '50%',
+                    background: i === slide ? '#7C3AED' : '#E5E7EB',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.2s ease',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Next (RTL = ChevronLeft) */}
+            <button
+              onClick={() => setSlide(s => Math.min(2, s + 1))}
+              disabled={slide === 2}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                border: '1.5px solid #E5E7EB',
+                background: '#FFFFFF',
+                cursor: slide === 2 ? 'default' : 'pointer',
+                opacity: slide === 2 ? 0.4 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ChevronLeft size={18} color="#374151" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Audience Cards ── */}
+      <section
+        style={{
+          background: '#F5F5F7',
+          paddingTop: 80,
+          paddingBottom: 80,
+          paddingLeft: 24,
+          paddingRight: 24,
+        }}
+      >
+        <h2
+          style={{
+            textAlign: 'center',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#1A1A2E',
+            marginBottom: 40,
+          }}
+        >
+          בחר את הנתיב שלך
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {/* Card 1 — Therapist */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 20,
+              padding: 32,
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+            }}
+          >
+            <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>🧠</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A1A2E', marginBottom: 12 }}>
+              {content.card1_title}
+            </h3>
+            <p style={{ fontSize: 15, color: '#6B7280', lineHeight: 1.7, marginBottom: 24 }}>
+              {content.card1_body}
+            </p>
+            <button
+              onClick={() => navigate('/for-therapists')}
+              style={{
+                background: '#7C3AED',
+                color: '#FFFFFF',
+                borderRadius: 50,
+                border: 'none',
+                padding: '12px 24px',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                width: '100%',
+                fontFamily: "'Heebo', sans-serif",
+              }}
+            >
+              {content.card1_cta}
+            </button>
+          </div>
+
+          {/* Card 2 — Patient */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: 20,
+              padding: 32,
+              border: '1px solid #E5E7EB',
+              borderTop: '3px solid #7C3AED',
+              boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+            }}
+          >
+            <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>💬</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1A1A2E', marginBottom: 12 }}>
+              {content.card2_title}
+            </h3>
+            <p style={{ fontSize: 15, color: '#6B7280', lineHeight: 1.7, marginBottom: 24 }}>
+              {content.card2_body}
+            </p>
+            <button
+              onClick={() => navigate('/app')}
+              style={{
+                background: '#7C3AED',
+                color: '#FFFFFF',
+                borderRadius: 50,
+                border: 'none',
+                padding: '12px 24px',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                width: '100%',
+                fontFamily: "'Heebo', sans-serif",
+              }}
+            >
+              {content.card2_cta}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer
+        style={{
+          background: '#FFFFFF',
+          borderTop: '1px solid #E5E7EB',
+          paddingTop: 32,
+          paddingBottom: 32,
+          paddingLeft: 24,
+          paddingRight: 24,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '64rem',
+            margin: '0 auto',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
+          {/* Links (left side in RTL layout = logical end) */}
+          <div style={{ display: 'flex', gap: 20 }}>
+            <Link
+              to="/app/privacy"
+              style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}
+            >
+              מדיניות פרטיות
             </Link>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>
+              תנאי שימוש
+            </a>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>
+              צור קשר
+            </a>
           </div>
+
+          {/* Copyright (right side in RTL layout = logical start) */}
+          <span style={{ fontSize: 13, color: '#9CA3AF' }}>
+            {content.footer_text}
+          </span>
         </div>
       </footer>
-
-      <IOSInstallOverlay isOpen={showIOSOverlay} onClose={() => setShowIOSOverlay(false)} />
     </div>
   );
 };
