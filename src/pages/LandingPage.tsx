@@ -103,7 +103,7 @@ const LandingPage = () => {
 
   const slides = [
     { title: content.slide1_title, subtitle: content.slide1_subtitle, bullets: [content.slide1_bullet1, content.slide1_bullet2, content.slide1_bullet3], mockup: 'chat' as const },
-    { title: content.slide3_title, subtitle: content.slide3_subtitle, bullets: [content.slide3_bullet1, content.slide3_bullet2, content.slide3_bullet3], mockup: 'timeline' as const },
+    { title: content.slide3_title, subtitle: content.slide3_subtitle, bullets: [content.slide3_bullet1, content.slide3_bullet2, content.slide3_bullet3], mockup: 'trends' as const },
   ];
   const currentSlide = slides[slide];
 
@@ -138,30 +138,62 @@ const LandingPage = () => {
     </div>
   );
 
-  const TimelineMockup = () => (
-    <div style={{ borderRadius: 20, background: C.card, border: `1px solid ${C.cardBorder}`, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-      <div style={{ background: '#F8FAFC', padding: '12px 16px', borderBottom: `1px solid ${C.cardBorder}` }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>📅 ציר הזמן</div>
-      </div>
-      <div style={{ padding: '12px 16px' }}>
-        {[
-          { date: "יום ב' 29/4", title: 'פגישה עם ד"ר כהן',   tag: 'פגישה', accent: C.accent },
-          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', accent: C.accent },
-          { date: "יום ד' 1/5",  title: 'ניהלתי שיחה קשה',    tag: 'תיעוד', accent: C.accent },
-          { date: "יום ה' 2/5",  title: 'הרגשתי טוב יותר',    tag: 'תיעוד', accent: C.accent },
-          { date: "יום ו' 3/5",  title: 'פגישה עם ד"ר כהן',   tag: 'פגישה', accent: C.accent },
-        ].map((item, i, arr) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < arr.length - 1 ? 16 : 0, borderRight: `2px solid ${C.cardBorder}`, paddingRight: 16 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: C.textSec, fontWeight: 600, whiteSpace: 'nowrap', marginBottom: 2 }}>{item.date}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 4 }}>{item.title}</div>
-              <span style={{ background: '#EFF6FF', color: item.accent, fontSize: 10, padding: '1px 6px', borderRadius: 50, display: 'inline-block' }}>{item.tag}</span>
+  const TrendsMockup = () => {
+    const bars = [
+      { day: "א׳", h: 40,  color: '#BFDBFE' },
+      { day: "ב׳", h: 55,  color: '#93C5FD' },
+      { day: "ג׳", h: 45,  color: '#60A5FA' },
+      { day: "ד׳", h: 65,  color: '#3B82F6' },
+      { day: "ה׳", h: 75,  color: '#2563EB' },
+      { day: "ו׳", h: 85,  color: '#1D4ED8' },
+      { day: "ש׳", h: 95,  color: '#1E40AF' },
+    ];
+    return (
+      <div style={{ borderRadius: 16, background: '#ffffff', border: `1px solid ${C.cardBorder}`, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', padding: 20, maxWidth: 340, margin: '0 auto', direction: 'rtl' }}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>דוח מגמות שבועי</span>
+          <span style={{ fontSize: 12, color: C.textSec }}>מאי 2025</span>
+        </div>
+
+        {/* Metric cards */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+          {[
+            { label: 'חרדה',  value: '↓ 34%', sub: 'לעומת שבוע שעבר' },
+            { label: 'שינה',  value: '↑ 18%', sub: 'שיפור מתמשך' },
+          ].map((m, i) => (
+            <div key={i} style={{ flex: 1, background: '#F0FDF4', borderRadius: 10, padding: '10px 12px', border: '1px solid #D1FAE5' }}>
+              <div style={{ fontSize: 11, color: C.textSec, marginBottom: 4 }}>{m.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#16A34A', lineHeight: 1 }}>{m.value}</div>
+              <div style={{ fontSize: 10, color: C.textSec, marginTop: 4 }}>{m.sub}</div>
             </div>
+          ))}
+        </div>
+
+        {/* Bar chart */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: C.textSec, marginBottom: 10 }}>מצב רוח — 7 ימים אחרונים</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 72 }}>
+            {bars.map((b, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+                <div style={{ width: '100%', height: `${b.h}%`, background: b.color, borderRadius: '4px 4px 2px 2px', transition: 'height 0.3s ease' }} />
+                <span style={{ fontSize: 9, color: C.textSec, whiteSpace: 'nowrap' }}>{b.day}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Insight box */}
+        <div style={{ background: '#E6F1FB', borderRadius: 10, padding: '10px 12px' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', marginBottom: 4 }}>תובנה שבועית</div>
+          <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.6 }}>
+            מצב הרוח עולה בעקביות לקראת סוף השבוע — דפוס שחוזר על עצמו 3 שבועות ברצף.
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   /* ── Shared button styles ── */
   const btnPrimary: React.CSSProperties = { background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '14px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
@@ -255,7 +287,7 @@ const LandingPage = () => {
                 {/* Mockup column */}
                 <div>
                   {currentSlide.mockup === 'chat' && <ChatMockup />}
-                  {currentSlide.mockup === 'timeline' && <TimelineMockup />}
+                  {currentSlide.mockup === 'trends' && <TrendsMockup />}
                 </div>
               </div>
             </div>
