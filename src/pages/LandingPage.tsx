@@ -177,7 +177,7 @@ const LandingPage = () => {
         <div style={{ maxWidth: '64rem', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', height: '100%' }}>
 
           {/* Right: logo */}
-          <img src="/logo.png" height={36} alt="NestAI" style={{ display: 'block' }} />
+          <img src="/logo.png" alt="NestAI" style={{ display: 'block', height: 36, maxHeight: 36, width: 'auto' }} />
 
           {/* Middle: login + globe */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
