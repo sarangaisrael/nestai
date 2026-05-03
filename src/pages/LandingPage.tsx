@@ -14,9 +14,6 @@ const DEFAULTS = {
   slide1_title: 'לא תישאר לבד עם המחשבות',
   slide1_subtitle: 'האפליקציה מלווה אותך בין הפגישות — בשיחה טבעית, בלי לחץ.',
   slide1_bullet1: 'תיעוד יומי טבעי', slide1_bullet2: 'אין משימות ואין לחץ', slide1_bullet3: 'הכל שמור ומוגן',
-  slide2_title: 'סיכום מוכן לפני כל פגישה',
-  slide2_subtitle: 'המטפל מקבל תמונה מלאה לפני כל סשן — בלי לבקש ובלי להכין.',
-  slide2_bullet1: 'סיכום אוטומטי לפני כל פגישה', slide2_bullet2: 'זיהוי דפוסים התנהגותיים', slide2_bullet3: 'מניעת נשירה',
   slide3_title: 'הברית שמחזיקה את הטיפול',
   slide3_subtitle: 'הרצף בין הפגישות הוא מה שמחזיק את התהליך הטיפולי.',
   slide3_bullet1: 'מחזקת את הקשר בין מטפל למטופל', slide3_bullet2: 'הנתונים שייכים למטופל', slide3_bullet3: 'בנויה על אמון',
@@ -143,12 +140,6 @@ const LandingPage = () => {
       subtitle: content.slide1_subtitle,
       bullets: [content.slide1_bullet1, content.slide1_bullet2, content.slide1_bullet3],
       mockup: 'chat' as const,
-    },
-    {
-      title: content.slide2_title,
-      subtitle: content.slide2_subtitle,
-      bullets: [content.slide2_bullet1, content.slide2_bullet2, content.slide2_bullet3],
-      mockup: 'summary' as const,
     },
     {
       title: content.slide3_title,
@@ -684,7 +675,7 @@ const LandingPage = () => {
                       marginBottom: 16,
                     }}
                   >
-                    שלב {slide + 1} / 3
+                    שלב {slide + 1} / 2
                   </span>
                   <h3
                     style={{
@@ -769,7 +760,7 @@ const LandingPage = () => {
 
             {/* Dots */}
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {[0, 1, 2].map(i => (
+              {[0, 1].map(i => (
                 <button
                   key={i}
                   onClick={() => setSlide(i)}
@@ -789,16 +780,16 @@ const LandingPage = () => {
 
             {/* Next (RTL = ChevronLeft) */}
             <button
-              onClick={() => setSlide(s => Math.min(2, s + 1))}
-              disabled={slide === 2}
+              onClick={() => setSlide(s => Math.min(1, s + 1))}
+              disabled={slide === 1}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: '50%',
                 border: '1.5px solid #E5E7EB',
                 background: '#FFFFFF',
-                cursor: slide === 2 ? 'default' : 'pointer',
-                opacity: slide === 2 ? 0.4 : 1,
+                cursor: slide === 1 ? 'default' : 'pointer',
+                opacity: slide === 1 ? 0.4 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
