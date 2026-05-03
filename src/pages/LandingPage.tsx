@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { Capacitor } from "@capacitor/core";
-import { ChevronRight, ChevronLeft, Check, Globe } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 
 /* ── Brand tokens ──────────────────────────── */
 const C = {
@@ -179,18 +179,15 @@ const LandingPage = () => {
           {/* Right: logo */}
           <img src="/logo.png" alt="NestAI" style={{ display: 'block', height: 36, maxHeight: 36, width: 'auto' }} />
 
-          {/* Middle: login + globe */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <button onClick={() => navigate('/app/auth')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif", display: 'flex', alignItems: 'center', gap: 6 }}>
+          {/* Left: login + therapist */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => navigate('/app/auth')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
               התחברות
             </button>
-            <Globe size={18} color={C.textSec} style={{ cursor: 'pointer' }} />
+            <button onClick={() => navigate('/for-therapists')} style={btnOutlineSm}>
+              למטפלים
+            </button>
           </div>
-
-          {/* Left: therapist signup */}
-          <button onClick={() => navigate('/for-therapists')} style={btnOutlineSm}>
-            הרשמה למטפלים
-          </button>
         </div>
       </nav>
 
