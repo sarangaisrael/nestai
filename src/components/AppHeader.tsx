@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
   User, Settings, LogOut, Accessibility, Type, Contrast,
   Link, Eye, Moon, Sun, Menu, FileText, Sparkles,
@@ -21,7 +20,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppDirectives } from "@/hooks/useAppDirectives";
 import FeedbackForm from "@/components/FeedbackForm";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import nestLogo from "@/assets/nestai-logo-full.png";
 
 const AppHeader = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -89,35 +87,15 @@ const AppHeader = () => {
   return (
     <>
       {/* Fixed header wrapper */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#ffffff', paddingTop: 'env(safe-area-inset-top,0px)' }}>
         {/* Main Nav Bar */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-border/30">
-          {/* Left side: Chat + Notifications */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => navigate("/app/chat")}
-            >
-              <MessageCircle className="h-5 w-5 text-foreground" />
-            </Button>
-          </div>
-
-          {/* Center: Logo */}
-          <button
-            onClick={() => navigate("/app/dashboard")}
-            className="absolute left-1/2 -translate-x-1/2 flex items-center"
-          >
-            <img src={nestLogo} alt="NestAI" className="h-8 w-auto" />
-          </button>
-
-          {/* Right side: Hamburger Menu */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: 56, borderBottom: '0.5px solid #f1f5f9' }}>
+          {/* Right side (first child in DOM — visual right in RTL): Hamburger Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                <Menu className="h-5 w-5 text-foreground" />
-              </Button>
+              <button style={{ width: 34, height: 34, borderRadius: 8, background: '#f8fafc', border: '0.5px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Menu size={16} color="#0f172a" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => navigate("/app/dashboard")} className="cursor-pointer gap-2">
@@ -199,12 +177,25 @@ const AppHeader = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
 
+          {/* Center: Logo (absolute centered) */}
+          <button onClick={() => navigate("/app/dashboard")} style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1e3a5f', flexShrink: 0 }} />
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily: 'inherit' }}>NestAI.care</span>
+          </button>
+
+          {/* Left side (last child in DOM — visual left in RTL): Chat button */}
+          <button
+            onClick={() => navigate("/app/chat")}
+            style={{ width: 34, height: 34, borderRadius: 8, background: '#f8fafc', border: '0.5px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          >
+            <MessageCircle size={16} color="#0f172a" />
+          </button>
+        </div>
       </div>
 
       {/* Spacer to prevent content from hiding behind the fixed header */}
-      <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 56px)" }} />
+      <div style={{ height: 'calc(env(safe-area-inset-top,0px) + 56px)' }} />
 
       <FeedbackForm open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>

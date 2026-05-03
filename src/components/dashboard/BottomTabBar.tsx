@@ -1,6 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, PenLine, Settings } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const tabs = [
@@ -20,25 +19,25 @@ const BottomTabBar = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border/30"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50, background: '#ffffff', borderTop: '0.5px solid #f1f5f9', paddingBottom: 'env(safe-area-inset-bottom,0px)' }}
     >
-      <div className="flex items-center justify-around h-14 max-w-lg mx-auto">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', height: 56, maxWidth: 480, margin: '0 auto' }}>
         {tabs.map(({ key, path, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <button
               key={key}
               onClick={() => navigate(path)}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '6px 16px', background: 'none', border: 'none', cursor: 'pointer' }}
             >
-              <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{labels[key]}</span>
+              <Icon
+                size={20}
+                strokeWidth={active ? 2 : 1.5}
+                color={active ? '#1e3a5f' : '#cbd5e1'}
+              />
+              <span style={{ fontSize: 10, fontWeight: active ? 500 : 400, color: active ? '#1e3a5f' : '#cbd5e1' }}>
+                {labels[key]}
+              </span>
             </button>
           );
         })}

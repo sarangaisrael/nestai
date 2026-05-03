@@ -127,27 +127,18 @@ const ToolboxCarousel = () => {
       icon: Calendar,
       title: isRTL ? "המפגש הבא" : "Next Session",
       content: sessionDate ? `${formatSessionDisplay()} · ${sessionTime}` : (isRTL ? "הגדר את המפגש הבא" : "Set your next session"),
-      bg: "hsl(210 40% 95%)",
-      iconBg: "hsl(210 45% 88%)",
-      iconColor: "hsl(210 50% 45%)",
     },
     {
       id: "breathing",
       icon: Wind,
       title: isRTL ? "תרגיל נשימה" : "Take a Breath",
       content: isRTL ? "מדריך הרגעה של 2 דקות" : "A 2-minute calming guide",
-      bg: "hsl(170 35% 93%)",
-      iconBg: "hsl(170 35% 85%)",
-      iconColor: "hsl(170 40% 38%)",
     },
     {
       id: "insight",
       icon: Lightbulb,
       title: isRTL ? "מה עזר לי?" : "Last Week's Win",
       content: lastInsight || (isRTL ? "הצבת גבולות בעבודה" : "Setting boundaries at work"),
-      bg: "hsl(270 30% 94%)",
-      iconBg: "hsl(270 30% 87%)",
-      iconColor: "hsl(270 35% 50%)",
     },
   ];
 
@@ -303,26 +294,25 @@ const ToolboxCarousel = () => {
   return (
     <>
       <div>
-        <h3 className="text-base font-semibold text-foreground mb-3">
-          {isRTL ? "ארגז הכלים שלי" : "My Toolbox"}
-        </h3>
-
-        <div className="flex gap-3">
+        <p style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+          {isRTL ? "ארגז הכלים" : "TOOLBOX"}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
           {cards.map((card) => (
             <button
               key={card.id}
               onClick={() => setActiveCard(card.id)}
-              className="flex-shrink-0 flex-1 min-w-0 rounded-[18px] p-4 shadow-card flex flex-col items-center gap-2.5 text-center transition-transform active:scale-[0.96]"
-              style={{ backgroundColor: card.bg }}
+              style={{ background: '#f8fafc', border: '0.5px solid #e2e8f0', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', cursor: 'pointer', textAlign: 'start', transition: 'background 0.15s' }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f1f5f9'}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'}
             >
-              <div
-                className="h-11 w-11 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: card.iconBg }}
-              >
-                <card.icon className="h-5 w-5" style={{ color: card.iconColor }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <card.icon size={14} color="#1d4ed8" />
+                </div>
               </div>
-              <span className="text-xs font-semibold text-foreground leading-snug">{card.title}</span>
-              <span className="text-[11px] text-muted-foreground leading-snug line-clamp-2">{card.content}</span>
+              <p style={{ fontSize: 11, fontWeight: 500, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
+              <p style={{ fontSize: 10, color: '#94a3b8', margin: 0, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>{card.content}</p>
             </button>
           ))}
         </div>

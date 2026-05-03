@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { BookOpen, FileText, TrendingUp, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { motion } from "framer-motion";
 
 const ActionGrid = () => {
   const navigate = useNavigate();
@@ -10,50 +9,54 @@ const ActionGrid = () => {
   const tiles = [
     {
       label: isRTL ? "היומן שלי" : "My Journal",
+      subtitle: isRTL ? "רשומות יומיומיות" : "Daily entries",
       icon: BookOpen,
-      bg: "hsl(150 40% 92%)",
-      iconColor: "hsl(150 45% 40%)",
       path: "/app/journal",
     },
     {
       label: isRTL ? "סיכומים שבועיים" : "Weekly Summaries",
+      subtitle: isRTL ? "צפה בסיכום האחרון" : "View last summary",
       icon: FileText,
-      bg: "hsl(45 70% 90%)",
-      iconColor: "hsl(40 60% 40%)",
       path: "/app/summary",
     },
     {
       label: isRTL ? "מגמות חודשיות" : "Monthly Trends",
+      subtitle: isRTL ? "ניתוח לאורך זמן" : "Long-term analysis",
       icon: TrendingUp,
-      bg: "hsl(200 50% 92%)",
-      iconColor: "hsl(200 55% 40%)",
       path: "/app/monthly-summary",
     },
     {
       label: isRTL ? "כלים טיפוליים" : "Therapeutic Tools",
+      subtitle: isRTL ? "תרגילים ומדיטציה" : "Exercises & meditation",
       icon: Sparkles,
-      bg: "hsl(270 40% 92%)",
-      iconColor: "hsl(270 45% 45%)",
       path: "/app/meditation",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {tiles.map((tile, i) => (
-        <motion.button
-          key={tile.path}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15 + i * 0.05 }}
-          onClick={() => navigate(tile.path)}
-          className="flex flex-col items-center justify-center gap-2.5 p-5 rounded-2xl shadow-card transition-transform active:scale-[0.97]"
-          style={{ backgroundColor: tile.bg }}
-        >
-          <tile.icon className="h-7 w-7" style={{ color: tile.iconColor }} />
-          <span className="text-sm font-medium text-foreground">{tile.label}</span>
-        </motion.button>
-      ))}
+    <div>
+      <p style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+        {isRTL ? "סקירה מהירה" : "QUICK OVERVIEW"}
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {tiles.map((tile) => (
+          <button
+            key={tile.path}
+            onClick={() => navigate(tile.path)}
+            style={{ background: '#f8fafc', border: '0.5px solid #e2e8f0', borderRadius: 12, padding: '14px 12px', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12, cursor: 'pointer', textAlign: 'start', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f1f5f9'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'}
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <tile.icon size={16} color="#1d4ed8" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#0f172a', margin: 0, marginBottom: 2 }}>{tile.label}</p>
+              <p style={{ fontSize: 10, color: '#94a3b8', margin: 0 }}>{tile.subtitle}</p>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
