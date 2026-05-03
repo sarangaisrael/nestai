@@ -7,15 +7,15 @@ import { ChevronRight, ChevronLeft, Check, Globe } from "lucide-react";
 
 /* ── Brand tokens ──────────────────────────── */
 const C = {
-  bg:          '#1e3a5f',
-  card:        'rgba(255,255,255,0.08)',
-  cardBorder:  'rgba(255,255,255,0.15)',
-  text:        '#ffffff',
-  textSec:     '#a8c4e0',
-  accent:      '#4a9eff',
-  green:       '#10B981',   // kept for hero line 2 + bullets only
-  navBg:       'rgba(30,58,95,0.85)',
-  navBorder:   'rgba(255,255,255,0.12)',
+  bg:         '#F8F8F6',
+  bgAlt:      '#F0F4F8',
+  card:       '#ffffff',
+  cardBorder: '#E5E7EB',
+  text:       '#1A1A2E',
+  textSec:    '#6B7280',
+  accent:     '#4a9eff',
+  navBg:      'rgba(248,248,246,0.9)',
+  navBorder:  '#E5E7EB',
 };
 
 const DEFAULTS = {
@@ -95,7 +95,7 @@ const LandingPage = () => {
   if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg, fontFamily: "'Heebo', sans-serif" }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', border: `3px solid rgba(255,255,255,0.15)`, borderTopColor: C.accent, animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: `3px solid ${C.cardBorder}`, borderTopColor: C.accent, animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -109,15 +109,15 @@ const LandingPage = () => {
 
   /* ── Mockups ── */
   const ChatMockup = () => (
-    <div style={{ borderRadius: 20, background: 'rgba(255,255,255,0.08)', border: `1px solid rgba(255,255,255,0.15)`, boxShadow: '0 4px 24px rgba(0,0,0,0.3)', overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-      <div style={{ background: C.green, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.green, fontSize: 13, fontWeight: 700, flexShrink: 0 }}>N</div>
+    <div style={{ borderRadius: 20, background: C.card, border: `1px solid ${C.cardBorder}`, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+      <div style={{ background: C.accent, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.accent, fontSize: 13, fontWeight: 700, flexShrink: 0 }}>N</div>
         <div>
           <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>NestAI</div>
-          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>המרחב שלך</div>
+          <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 11 }}>המרחב שלך</div>
         </div>
       </div>
-      <div style={{ background: 'rgba(0,0,0,0.2)', padding: 12, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ background: '#F8FAFC', padding: 12, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {[
           { ai: true,  text: 'איך היה היום? 🌿' },
           { ai: false, text: 'הרגשתי לחוץ בעבודה' },
@@ -126,36 +126,36 @@ const LandingPage = () => {
           { ai: true,  text: '✓ שמרתי. נדבר על זה בפגישה הבאה 📝' },
         ].map((msg, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: msg.ai ? 'flex-start' : 'flex-end' }}>
-            <div style={{ background: msg.ai ? 'rgba(255,255,255,0.1)' : C.green, border: msg.ai ? `1px solid rgba(255,255,255,0.15)` : 'none', borderRadius: msg.ai ? '12px 12px 4px 12px' : '12px 12px 12px 4px', padding: '8px 12px', fontSize: 12, color: '#fff', maxWidth: '85%' }}>
+            <div style={{ background: msg.ai ? '#ffffff' : C.accent, border: msg.ai ? `1px solid ${C.cardBorder}` : 'none', borderRadius: msg.ai ? '12px 12px 4px 12px' : '12px 12px 12px 4px', padding: '8px 12px', fontSize: 12, color: msg.ai ? C.text : '#fff', maxWidth: '85%' }}>
               {msg.text}
             </div>
           </div>
         ))}
       </div>
-      <div style={{ background: 'rgba(0,0,0,0.25)', color: C.green, padding: '6px 12px', fontSize: 11, fontWeight: 600, textAlign: 'center', borderTop: `1px solid rgba(255,255,255,0.12)` }}>
+      <div style={{ background: '#EFF6FF', color: C.accent, padding: '6px 12px', fontSize: 11, fontWeight: 600, textAlign: 'center', borderTop: `1px solid ${C.cardBorder}` }}>
         ✓ סיכום נשלח למטפל
       </div>
     </div>
   );
 
   const TimelineMockup = () => (
-    <div style={{ borderRadius: 20, background: 'rgba(255,255,255,0.08)', border: `1px solid rgba(255,255,255,0.15)`, boxShadow: '0 4px 24px rgba(0,0,0,0.3)', overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
-      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px 16px', borderBottom: `1px solid rgba(255,255,255,0.12)` }}>
+    <div style={{ borderRadius: 20, background: C.card, border: `1px solid ${C.cardBorder}`, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', overflow: 'hidden', maxWidth: 340, margin: '0 auto' }}>
+      <div style={{ background: '#F8FAFC', padding: '12px 16px', borderBottom: `1px solid ${C.cardBorder}` }}>
         <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>📅 ציר הזמן</div>
       </div>
       <div style={{ padding: '12px 16px' }}>
         {[
           { date: "יום ב' 29/4", title: 'פגישה עם ד"ר כהן',   tag: 'פגישה', accent: C.accent },
-          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', accent: C.green },
-          { date: "יום ד' 1/5",  title: 'ניהלתי שיחה קשה',    tag: 'תיעוד', accent: C.green },
-          { date: "יום ה' 2/5",  title: 'הרגשתי טוב יותר',    tag: 'תיעוד', accent: C.green },
+          { date: "יום ג' 30/4", title: 'תיעדתי: לחץ בעבודה', tag: 'תיעוד', accent: C.accent },
+          { date: "יום ד' 1/5",  title: 'ניהלתי שיחה קשה',    tag: 'תיעוד', accent: C.accent },
+          { date: "יום ה' 2/5",  title: 'הרגשתי טוב יותר',    tag: 'תיעוד', accent: C.accent },
           { date: "יום ו' 3/5",  title: 'פגישה עם ד"ר כהן',   tag: 'פגישה', accent: C.accent },
         ].map((item, i, arr) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < arr.length - 1 ? 16 : 0, borderRight: `2px solid ${C.cardBorder}`, paddingRight: 16 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, color: C.textSec, fontWeight: 600, whiteSpace: 'nowrap', marginBottom: 2 }}>{item.date}</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 4 }}>{item.title}</div>
-              <span style={{ background: 'rgba(74,158,255,0.15)', color: item.accent, fontSize: 10, padding: '1px 6px', borderRadius: 50, display: 'inline-block' }}>{item.tag}</span>
+              <span style={{ background: '#EFF6FF', color: item.accent, fontSize: 10, padding: '1px 6px', borderRadius: 50, display: 'inline-block' }}>{item.tag}</span>
             </div>
           </div>
         ))}
@@ -165,8 +165,8 @@ const LandingPage = () => {
 
   /* ── Shared button styles ── */
   const btnPrimary: React.CSSProperties = { background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '14px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
-  const btnOutline: React.CSSProperties = { border: `1px solid ${C.accent}`, color: '#fff', background: 'transparent', borderRadius: 50, padding: '13px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
-  const btnOutlineSm: React.CSSProperties = { border: `1px solid ${C.accent}`, color: '#fff', background: 'transparent', borderRadius: 50, padding: '8px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
+  const btnOutline: React.CSSProperties = { border: `1px solid ${C.accent}`, color: C.accent, background: 'transparent', borderRadius: 50, padding: '13px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
+  const btnOutlineSm: React.CSSProperties = { border: `1px solid ${C.accent}`, color: C.accent, background: 'transparent', borderRadius: 50, padding: '8px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
   const sectionPad: React.CSSProperties = { paddingTop: 80, paddingBottom: 80, paddingLeft: 24, paddingRight: 24 };
 
   return (
@@ -200,7 +200,7 @@ const LandingPage = () => {
           <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', fontWeight: 800, color: C.text, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
             {content.hero_line1}
           </span>
-          <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', fontWeight: 800, color: C.green, lineHeight: 1.1, letterSpacing: '-0.03em', marginTop: 4 }}>
+          <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', fontWeight: 800, color: C.accent, lineHeight: 1.1, letterSpacing: '-0.03em', marginTop: 4 }}>
             {content.hero_line2}
           </span>
         </h1>
@@ -217,7 +217,7 @@ const LandingPage = () => {
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 28, flexWrap: 'wrap' }}>
           {[content.hero_badge1, content.hero_badge2, content.hero_badge3].map((badge, i) => (
             <span key={i} style={{ fontSize: 13, color: C.textSec, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Check size={14} style={{ color: C.green }} />
+              <Check size={14} style={{ color: C.accent }} />
               {badge}
             </span>
           ))}
@@ -225,7 +225,7 @@ const LandingPage = () => {
       </section>
 
       {/* ── Slider ── */}
-      <section style={{ ...sectionPad, background: '#1a3356' }}>
+      <section style={{ ...sectionPad, background: C.bgAlt }}>
         <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
           <h2 style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: 48 }}>
             איך זה עובד
@@ -236,7 +236,7 @@ const LandingPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                 {/* Text column */}
                 <div>
-                  <span style={{ background: 'rgba(74,158,255,0.15)', color: C.accent, borderRadius: 50, padding: '4px 12px', fontSize: 12, fontWeight: 600, display: 'inline-block', marginBottom: 16 }}>
+                  <span style={{ background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '4px 12px', fontSize: 12, fontWeight: 600, display: 'inline-block', marginBottom: 16 }}>
                     שלב {slide + 1} / 2
                   </span>
                   <h3 style={{ fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 800, color: C.text, marginBottom: 12, lineHeight: 1.2 }}>
@@ -248,7 +248,7 @@ const LandingPage = () => {
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                     {currentSlide.bullets.map((bullet, i) => (
                       <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
-                        <div style={{ width: 8, height: 8, background: C.green, borderRadius: '50%', marginTop: 7, flexShrink: 0 }} />
+                        <div style={{ width: 8, height: 8, background: C.accent, borderRadius: '50%', marginTop: 7, flexShrink: 0 }} />
                         <span style={{ fontSize: 15, color: C.textSec, fontWeight: 500 }}>{bullet}</span>
                       </li>
                     ))}
@@ -305,11 +305,11 @@ const LandingPage = () => {
               { icon: content.tool3_icon, title: content.tool3_title, text: content.tool3_text },
             ].map((tool, i) => (
               <div key={i}
-                style={{ background: C.card, borderRadius: 16, padding: 28, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 12px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.2)'; }}
+                style={{ background: C.card, borderRadius: 16, padding: 28, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
               >
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(74,158,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: 20, flexShrink: 0 }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: 20, flexShrink: 0 }}>
                   {tool.icon}
                 </div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: C.text, marginBottom: 10 }}>{tool.title}</h3>
@@ -321,14 +321,14 @@ const LandingPage = () => {
       </section>
 
       {/* ── Audience Cards ── */}
-      <section style={{ ...sectionPad, background: '#1a3356' }}>
+      <section style={{ ...sectionPad, background: C.bgAlt }}>
         <h2 style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: 40 }}>
           בחר את הנתיב שלך
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Card 1 — Therapist */}
-          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 20, padding: 32, border: `1px solid rgba(255,255,255,0.15)`, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: C.card, borderRadius: 20, padding: 32, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>🧠</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: C.text, marginBottom: 12 }}>{content.card1_title}</h3>
             <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 24 }}>{content.card1_body}</p>
@@ -339,7 +339,7 @@ const LandingPage = () => {
           </div>
 
           {/* Card 2 — Patient */}
-          <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 20, padding: 32, border: `1px solid rgba(255,255,255,0.15)`, borderTop: `3px solid ${C.accent}`, boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: C.card, borderRadius: 20, padding: 32, border: `1px solid ${C.cardBorder}`, borderTop: `3px solid ${C.accent}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>💬</div>
             <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: C.text, marginBottom: 12 }}>{content.card2_title}</h3>
             <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 24 }}>{content.card2_body}</p>
@@ -352,14 +352,14 @@ const LandingPage = () => {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: '#162d4e', borderTop: `1px solid rgba(255,255,255,0.12)`, paddingTop: 32, paddingBottom: 32, paddingLeft: 24, paddingRight: 24 }}>
+      <footer style={{ background: '#1A1A2E', borderTop: `1px solid #2a2a45`, paddingTop: 32, paddingBottom: 32, paddingLeft: 24, paddingRight: 24 }}>
         <div style={{ maxWidth: '64rem', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', gap: 20 }}>
-            <Link to="/app/privacy" style={{ fontSize: 13, color: C.textSec, textDecoration: 'none' }}>מדיניות פרטיות</Link>
-            <a href="#" style={{ fontSize: 13, color: C.textSec, textDecoration: 'none' }}>תנאי שימוש</a>
-            <a href="#" style={{ fontSize: 13, color: C.textSec, textDecoration: 'none' }}>צור קשר</a>
+            <Link to="/app/privacy" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>מדיניות פרטיות</Link>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>תנאי שימוש</a>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>צור קשר</a>
           </div>
-          <span style={{ fontSize: 13, color: C.textSec }}>{content.footer_text}</span>
+          <span style={{ fontSize: 13, color: '#9CA3AF' }}>{content.footer_text}</span>
         </div>
       </footer>
     </div>
