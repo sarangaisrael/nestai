@@ -1,17 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import nestLogo from "@/assets/nestai-logo-full.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useSiteContent } from "@/contexts/SiteContentContext";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   ArrowRight, ArrowLeft, PenLine, FileText, TrendingUp, Lock,
-  Download, Stethoscope, CheckCircle2,
+  Download, Stethoscope, CheckCircle2, Check,
 } from "lucide-react";
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import MediaSection from "@/components/landing/MediaSection";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+
+/* ── Brand tokens (matches LandingPage) ─────── */
+const C = {
+  bg:         '#F8F8F6',
+  bgAlt:      '#F0F4F8',
+  card:       '#ffffff',
+  cardBorder: '#E5E7EB',
+  text:       '#1A1A2E',
+  textSec:    '#6B7280',
+  accent:     '#4a9eff',
+  navBg:      'rgba(248,248,246,0.9)',
+  navBorder:  '#E5E7EB',
+};
 
 const TherapistLandingPage = () => {
   const navigate = useNavigate();
@@ -22,8 +32,15 @@ const TherapistLandingPage = () => {
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
-  /** Read therapist-specific CMS key, with static fallback */
   const tp = (key: string, fallback: string) => get(`tp_${key}`, fallback);
+
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800;900&display=swap';
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, []);
 
   const handlePWAInstall = async () => {
     if (isIOS && !isInstalled) {
@@ -58,89 +75,84 @@ const TherapistLandingPage = () => {
     },
   ];
 
-  return (
-    <div className="min-h-screen bg-background overflow-hidden" dir={dir}>
-      {/* Header */}
-      <header className="fixed top-4 left-4 right-4 z-50 bg-background/70 backdrop-blur-xl border border-border/40 rounded-2xl shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center">
-            <Link to="/">
-              <img src={nestLogo} alt="NestAI.care" className="h-10 sm:h-14 object-contain" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <LanguageSwitcher variant="icon" />
-            <Link to="/app/auth?mode=therapist">
-              <Button variant="ghost" size="sm">{t.common.login}</Button>
-            </Link>
-            <Link to="/app/professional/intro">
-              <Button size="sm" className="rounded-full px-6">
-                {isRTL ? "הרשמה למטפלים" : "Therapist Sign Up"}
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+  /* ── Shared button styles ── */
+  const btnPrimary: React.CSSProperties = { background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '14px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Heebo', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 8 };
+  const btnPrimaryLg: React.CSSProperties = { ...btnPrimary, padding: '16px 40px', fontSize: 17 };
+  const btnOutline: React.CSSProperties = { border: `1px solid ${C.accent}`, color: C.accent, background: 'transparent', borderRadius: 50, padding: '13px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 8 };
+  const btnOutlineSm: React.CSSProperties = { border: `1px solid ${C.accent}`, color: C.accent, background: 'transparent', borderRadius: 50, padding: '8px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
+  const sectionPad: React.CSSProperties = { paddingTop: 80, paddingBottom: 80, paddingLeft: 24, paddingRight: 24 };
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-primary/[0.02] to-background" />
-          <div className="absolute top-0 left-0 right-0 h-[60%] bg-gradient-to-b from-primary/[0.06] to-transparent" />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-16 w-full">
-          <div className="max-w-3xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
-              <Stethoscope className="w-4 h-4" />
-              {tp("hero_badge", isRTL ? "לקליניקות ומטפלים" : "For Clinics & Therapists")}
-            </div>
-            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-extrabold text-foreground leading-[1.12] tracking-tight">
-              {tp("hero_title", isRTL ? "הכלי שמחבר בין הפגישות" : "The tool that connects between sessions")}
-              <br />
-              <span className="text-primary">
-                {tp("hero_highlight", isRTL ? "ומעצים את התהליך הטיפולי" : "and empowers the therapeutic process")}
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-[1.9] max-w-2xl mx-auto">
-              {tp("hero_subtitle", isRTL
-                ? "NestAI מאפשרת למטופלים לתעד את החוויות שלהם בין הפגישות, ומספקת למטפלים תובנות מעמיקות לקראת כל סשן"
-                : "NestAI allows patients to document their experiences between sessions, providing therapists with deep insights before each session")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                size="lg"
-                className="rounded-full px-12 gap-2 text-lg h-16 shadow-lg hover:shadow-[0_0_24px_-4px_hsl(var(--primary)/0.4)] transition-all duration-300"
-                onClick={() => navigate("/app/professional/intro")}
-              >
-                {isRTL ? "הצטרפו כמטפלים" : "Join as Therapist"}
-                <ArrowIcon className="w-5 h-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full px-8 gap-2 text-lg h-14"
-                onClick={() => navigate("/app/professional/demo")}
-              >
-                {isRTL ? "צפו בדמו אינטראקטיבי" : "View Interactive Demo"}
-              </Button>
-            </div>
-            <p className="text-sm font-medium text-primary">
-              ✨ {isRTL ? "30 יום ניסיון חינם — ללא כרטיס אשראי" : "30-day free trial — no credit card required"}
-            </p>
+  return (
+    <div dir={dir} style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: C.bg, color: C.text }}>
+
+      {/* ── Navbar ── */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: C.navBg, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.navBorder}`, height: 64 }}>
+        <div style={{ maxWidth: '64rem', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', height: '100%' }}>
+
+          {/* Right: logo */}
+          <Link to="/">
+            <img src="/logo.png" alt="NestAI" style={{ display: 'block', height: 36, maxHeight: 36, width: 'auto' }} />
+          </Link>
+
+          {/* Left: login + signup */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => navigate('/app/auth?mode=therapist')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
+              {t.common.login}
+            </button>
+            <button onClick={() => navigate('/app/professional/intro')} style={btnOutlineSm}>
+              {isRTL ? "הרשמה למטפלים" : "Therapist Sign Up"}
+            </button>
           </div>
         </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section style={{ ...sectionPad, paddingTop: 144, textAlign: 'center', background: C.bg }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '6px 16px', fontSize: 13, fontWeight: 600, marginBottom: 28 }}>
+          <Stethoscope size={15} />
+          {tp("hero_badge", isRTL ? "לקליניקות ומטפלים" : "For Clinics & Therapists")}
+        </div>
+
+        <h1 style={{ margin: 0 }}>
+          <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', fontWeight: 800, color: C.text, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+            {tp("hero_title", isRTL ? "הכלי שמחבר בין הפגישות" : "The tool that connects between sessions")}
+          </span>
+          <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', fontWeight: 800, color: C.accent, lineHeight: 1.1, letterSpacing: '-0.03em', marginTop: 4 }}>
+            {tp("hero_highlight", isRTL ? "ומעצים את התהליך הטיפולי" : "and empowers the therapeutic process")}
+          </span>
+        </h1>
+
+        <p style={{ maxWidth: 600, margin: '24px auto 0', fontSize: '1.1rem', color: C.textSec, lineHeight: 1.8 }}>
+          {tp("hero_subtitle", isRTL
+            ? "NestAI מאפשרת למטופלים לתעד את החוויות שלהם בין הפגישות, ומספקת למטפלים תובנות מעמיקות לקראת כל סשן"
+            : "NestAI allows patients to document their experiences between sessions, providing therapists with deep insights before each session")}
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/app/professional/intro')} style={btnPrimaryLg}>
+            {isRTL ? "הצטרפו כמטפלים" : "Join as Therapist"}
+            <ArrowIcon size={18} />
+          </button>
+          <button onClick={() => navigate('/app/professional/demo')} style={btnOutline}>
+            {isRTL ? "צפו בדמו אינטראקטיבי" : "View Interactive Demo"}
+          </button>
+        </div>
+
+        <p style={{ marginTop: 20, fontSize: 14, fontWeight: 600, color: C.accent }}>
+          ✨ {isRTL ? "30 יום ניסיון חינם — ללא כרטיס אשראי" : "30-day free trial — no credit card required"}
+        </p>
       </section>
 
-      {/* Why Section */}
-      <section className="py-20 px-6 bg-background">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium">
+      {/* ── Why Section ── */}
+      <section style={{ ...sectionPad, background: C.bgAlt }}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto', textAlign: 'center' }}>
+          <span style={{ display: 'inline-block', background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '6px 16px', fontSize: 13, fontWeight: 600, marginBottom: 20 }}>
             {tp("why_badge", isRTL ? "למה צריך את זה?" : "Why do you need this?")}
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-tight">
+          <h2 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 800, color: C.text, marginBottom: 20, lineHeight: 1.2 }}>
             {tp("why_title", isRTL ? "מה קורה בין הפגישות?" : "What happens between sessions?")}
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+          <p style={{ fontSize: '1.1rem', color: C.textSec, lineHeight: 1.8, maxWidth: '42rem', margin: '0 auto' }}>
             {tp("why_description", isRTL
               ? "מחקרים מראים ש-80% מהתהליך הטיפולי קורה מחוץ לחדר הטיפול. NestAI עוזרת ללכוד את הרגעים האלה ולהפוך אותם לתובנות שמשפרות את הטיפול"
               : "Research shows that 80% of the therapeutic process happens outside the therapy room. NestAI helps capture those moments and turn them into insights that improve treatment")}
@@ -148,30 +160,34 @@ const TherapistLandingPage = () => {
         </div>
       </section>
 
-      {/* Problem / Solution */}
-      <section className="py-20 px-6 bg-muted/20">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-          <div className="bg-card rounded-3xl p-8 md:p-10 border border-border shadow-sm space-y-4">
-            <span className="inline-block px-3 py-1.5 bg-destructive/10 text-destructive rounded-full text-sm font-semibold">
+      {/* ── Problem / Solution ── */}
+      <section style={{ ...sectionPad, background: C.bg }}>
+        <div style={{ maxWidth: '56rem', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
+
+          {/* Problem */}
+          <div style={{ background: C.card, borderRadius: 20, padding: 36, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+            <span style={{ display: 'inline-block', background: '#FEF2F2', color: '#DC2626', borderRadius: 50, padding: '4px 14px', fontSize: 12, fontWeight: 700, marginBottom: 20 }}>
               {isRTL ? "האתגר" : "The Challenge"}
             </span>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: C.text, marginBottom: 14, lineHeight: 1.3 }}>
               {tp("problem_title", isRTL ? "מטופלים מגיעים לסשן בלי זיכרון מדויק" : "Patients arrive at sessions without accurate recall")}
             </h3>
-            <p className="text-foreground/60 leading-relaxed text-base md:text-lg">
+            <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.75 }}>
               {tp("problem_body", isRTL
                 ? "בין פגישה לפגישה, מטופלים שוכחים רגעים חשובים, תובנות נעלמות, ודפוסים רגשיים לא מזוהים. המטפל מתחיל כל סשן מאפס"
                 : "Between sessions, patients forget important moments, insights disappear, and emotional patterns go unrecognized. The therapist starts each session from scratch")}
             </p>
           </div>
-          <div className="bg-card rounded-3xl p-8 md:p-10 border border-primary/30 shadow-sm space-y-4">
-            <span className="inline-block px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+
+          {/* Solution */}
+          <div style={{ background: C.card, borderRadius: 20, padding: 36, border: `1px solid ${C.cardBorder}`, borderTop: `3px solid ${C.accent}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+            <span style={{ display: 'inline-block', background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '4px 14px', fontSize: 12, fontWeight: 700, marginBottom: 20 }}>
               {isRTL ? "הפתרון" : "The Solution"}
             </span>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: C.text, marginBottom: 14, lineHeight: 1.3 }}>
               {tp("solution_title", isRTL ? "יומן AI שמלווה את המטופל ומכין את המטפל" : "AI journal that accompanies the patient and prepares the therapist")}
             </h3>
-            <p className="text-foreground/60 leading-relaxed text-base md:text-lg">
+            <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.75 }}>
               {tp("solution_body", isRTL
                 ? "NestAI מלווה את המטופל בתיעוד יומיומי טבעי, מזהה דפוסים ומגמות, ומייצרת סיכומים מקצועיים שמכינים את המטפל לסשן הבא"
                 : "NestAI accompanies the patient in natural daily documentation, identifies patterns and trends, and generates professional summaries that prepare the therapist for the next session")}
@@ -180,84 +196,86 @@ const TherapistLandingPage = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-24 px-6 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+      {/* ── Features ── */}
+      <section style={{ ...sectionPad, background: C.bgAlt }}>
+        <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <span style={{ display: 'inline-block', background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '6px 16px', fontSize: 13, fontWeight: 600, marginBottom: 16 }}>
               {tp("features_badge", isRTL ? "מה כלול?" : "What's Included?")}
             </span>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+            <h2 style={{ fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', fontWeight: 800, color: C.text }}>
               {tp("features_title", isRTL ? "הכלים שלכם" : "Your Tools")}
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="group bg-card rounded-3xl p-8 border border-border hover:border-primary/50 hover:shadow-xl transition-all duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-                  <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 24 }}>
+            {features.map((feature, i) => (
+              <div key={i}
+                style={{ background: C.card, borderRadius: 16, padding: 28, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+              >
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, flexShrink: 0 }}>
+                  <feature.icon size={22} color={C.accent} />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
-                <p className="text-foreground/60 leading-relaxed">{feature.description}</p>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: C.text, marginBottom: 10 }}>{feature.title}</h3>
+                <p style={{ fontSize: 14, color: C.textSec, lineHeight: 1.75, margin: 0, flexGrow: 1 }}>{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Media */}
-      <MediaSection />
+      {/* ── Media ── */}
+      <div style={{ background: C.bg }}>
+        <MediaSection />
+      </div>
 
-      {/* CTA */}
-      <section className="py-24 px-6">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <p className="text-4xl md:text-5xl font-bold text-foreground">
+      {/* ── CTA ── */}
+      <section style={{ ...sectionPad, background: C.bgAlt, textAlign: 'center' }}>
+        <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: C.text, marginBottom: 32, lineHeight: 1.2 }}>
             {tp("cta_title", isRTL ? "מוכנים להתחיל?" : "Ready to get started?")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/app/professional/intro">
-              <Button size="lg" className="rounded-full gap-2 px-10 text-lg h-14">
-                {isRTL ? "הרשמה למטפלים" : "Therapist Sign Up"}
-                <ArrowIcon className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="rounded-full gap-2 px-8 text-lg h-14" onClick={handlePWAInstall}>
-              <Download className="w-5 h-5" />
+          </h2>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 28 }}>
+            <button onClick={() => navigate('/app/professional/intro')} style={btnPrimaryLg}>
+              {isRTL ? "הרשמה למטפלים" : "Therapist Sign Up"}
+              <ArrowIcon size={18} />
+            </button>
+            <button onClick={handlePWAInstall} style={btnOutline}>
+              <Download size={16} />
               {t.nav.installApp}
-            </Button>
+            </button>
           </div>
-          <div className="flex items-center justify-center gap-6 mt-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              {isRTL ? "30 יום ניסיון חינם" : "30-day free trial"}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              {isRTL ? "ללא כרטיס אשראי" : "No credit card"}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-              {isRTL ? "אפס התערבות קלינית" : "Zero clinical intervention"}
-            </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {[
+              isRTL ? "30 יום ניסיון חינם" : "30-day free trial",
+              isRTL ? "ללא כרטיס אשראי" : "No credit card",
+              isRTL ? "אפס התערבות קלינית" : "Zero clinical intervention",
+            ].map((label, i) => (
+              <span key={i} style={{ fontSize: 13, color: C.textSec, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Check size={14} style={{ color: C.accent }} />
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-border">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={nestLogo} alt="NestAI" className="h-8 object-contain" />
-            <span className="text-sm text-foreground/40">{t.footer.copyright}</span>
-          </div>
-          <div className="flex gap-6">
-            <Link to="/" className="text-sm text-foreground/60 hover:text-foreground transition-colors">
+      {/* ── Footer ── */}
+      <footer style={{ background: '#1A1A2E', borderTop: '1px solid #2a2a45', paddingTop: 32, paddingBottom: 32, paddingLeft: 24, paddingRight: 24 }}>
+        <div style={{ maxWidth: '64rem', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', gap: 20 }}>
+            <Link to="/" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>
               {isRTL ? "למטופלים" : "For Patients"}
             </Link>
-            <Link to="/app/privacy" className="text-sm text-foreground/60 hover:text-foreground transition-colors">
+            <Link to="/app/privacy" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>
               {t.nav.privacy}
             </Link>
           </div>
+          <span style={{ fontSize: 13, color: '#9CA3AF' }}>{t.footer.copyright}</span>
         </div>
       </footer>
 
