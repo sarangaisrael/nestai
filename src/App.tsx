@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SiteContentProvider } from "@/contexts/SiteContentContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { AppDirectivesProvider } from "@/components/AppDirectivesProvider";
+import AppLayout from "@/components/AppLayout";
 
 // Lazy load all other pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -61,42 +62,44 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              {/* Landing page is the root */}
+              {/* ── Public / marketing pages — no sidebar ── */}
               <Route path="/" element={<LandingPage />} />
-
-              {/* Backward-compat redirect for old /landing URLs */}
               <Route path="/landing" element={<Navigate to="/" replace />} />
               <Route path="/for-therapists" element={<TherapistLandingPage />} />
               <Route path="/join/:ref" element={<JoinReferral />} />
-              
-              {/* App routes - lazy loaded */}
+
+              {/* ── Auth / onboarding — no sidebar ── */}
+              <Route path="/app/auth" element={<Auth />} />
               <Route path="/app" element={<ChoosePathScreen />} />
               <Route path="/app/join" element={<JoinReferral />} />
+              <Route path="/app/install" element={<InstallScreen />} />
+              <Route path="/app/press-demo" element={<PressDemo />} />
+              <Route path="/app/mail" element={<MailMessages />} />
+              <Route path="/app/admin/login" element={<AdminLogin />} />
+
+              {/* ── Professional / therapist — no sidebar ── */}
               <Route path="/app/professional/intro" element={<ProfessionalIntro />} />
               <Route path="/app/professional/demo" element={<ProfessionalDemo />} />
               <Route path="/app/professional/dashboard" element={<TherapistDashboard />} />
-              <Route path="/app/chat" element={<Index />} />
-              <Route path="/app/auth" element={<Auth />} />
-              <Route path="/app/dashboard" element={<Dashboard />} />
-              <Route path="/app/summary" element={<Summary />} />
-              <Route path="/app/monthly-summary" element={<MonthlySummary />} />
-              <Route path="/app/settings" element={<Settings />} />
-              <Route path="/app/account-settings" element={<AccountSettings />} />
-              <Route path="/app/meditation" element={<Meditation />} />
-              <Route path="/app/journal" element={<JournalPage />} />
-              <Route path="/app/patterns" element={<PatternsInsights />} />
-              <Route path="/app/privacy" element={<Privacy />} />
-              <Route path="/app/install" element={<InstallScreen />} />
-              <Route path="/app/support" element={<Support />} />
-              <Route path="/app/mail" element={<MailMessages />} />
-              <Route path="/app/admin/login" element={<AdminLogin />} />
-              <Route path="/app/admin/notifications" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminNotifications /></AdminGate></Suspense>} />
-              <Route path="/app/press-demo" element={<PressDemo />} />
-              <Route path="/app/paywall" element={<Paywall />} />
 
-
+              {/* ── Admin — no sidebar ── */}
               <Route path="/app/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminDashboard /></AdminGate></Suspense>} />
-              
+              <Route path="/app/admin/notifications" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminNotifications /></AdminGate></Suspense>} />
+
+              {/* ── Authenticated patient pages — with sidebar on desktop ── */}
+              <Route path="/app/chat"            element={<AppLayout><Index /></AppLayout>} />
+              <Route path="/app/dashboard"       element={<AppLayout><Dashboard /></AppLayout>} />
+              <Route path="/app/summary"         element={<AppLayout><Summary /></AppLayout>} />
+              <Route path="/app/monthly-summary" element={<AppLayout><MonthlySummary /></AppLayout>} />
+              <Route path="/app/settings"        element={<AppLayout><Settings /></AppLayout>} />
+              <Route path="/app/account-settings" element={<AppLayout><AccountSettings /></AppLayout>} />
+              <Route path="/app/meditation"      element={<AppLayout><Meditation /></AppLayout>} />
+              <Route path="/app/journal"         element={<AppLayout><JournalPage /></AppLayout>} />
+              <Route path="/app/patterns"        element={<AppLayout><PatternsInsights /></AppLayout>} />
+              <Route path="/app/privacy"         element={<AppLayout><Privacy /></AppLayout>} />
+              <Route path="/app/support"         element={<AppLayout><Support /></AppLayout>} />
+              <Route path="/app/paywall"         element={<AppLayout><Paywall /></AppLayout>} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

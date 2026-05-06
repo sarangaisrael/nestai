@@ -11,7 +11,7 @@ import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import InsightsSection from "@/components/dashboard/InsightsSection";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
-import Sidebar from "@/components/dashboard/Sidebar";
+
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import TrialStatusCard from "@/components/access/TrialStatusCard";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -30,30 +30,12 @@ const getTimeOfDay = (): TimeOfDay => {
 
 const RESPONSIVE = `
   @keyframes spin { to { transform: rotate(360deg); } }
-  .dash-below { display: flex; flex-direction: column; }
-  .dash-sidebar-wrap { display: none; }
-  .dash-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
-  .dash-bottom-nav { display: block; }
   .dash-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dash-bottom-nav { display: block; }
   @media (min-width: 768px) {
-    .dash-below { flex-direction: row; min-height: calc(100vh - 56px); }
-    .dash-sidebar-wrap {
-      display: block;
-      width: 220px;
-      flex-shrink: 0;
-      position: sticky;
-      top: 56px;
-      height: calc(100vh - 56px);
-      overflow-y: auto;
-      background: #ffffff;
-      border-left: 0.5px solid #e2e8f0;
-      padding: 20px 16px;
-      box-sizing: border-box;
-    }
-    .dash-main { padding-bottom: 32px; flex: 1; min-width: 0; }
-    .dash-bottom-nav { display: none !important; }
     .dash-overview-grid { grid-template-columns: repeat(3, 1fr); }
     .dash-content-inner { max-width: 100%; padding: 0 28px; box-sizing: border-box; }
+    .dash-bottom-nav { display: none !important; }
   }
 `;
 
@@ -205,16 +187,8 @@ const Dashboard = () => {
 
       <AppHeader />
 
-      {/* Below-header: sidebar + main */}
-      <div className="dash-below">
-
-        {/* Sidebar — desktop only (in RTL, first child = visual right) */}
-        <div className="dash-sidebar-wrap">
-          <Sidebar />
-        </div>
-
-        {/* Main content */}
-        <div className="dash-main">
+      {/* Main content */}
+      <div style={{ paddingBottom: 80 }}>
 
           {/* Mood prompt */}
           {showMoodPrompt && (
@@ -295,7 +269,6 @@ const Dashboard = () => {
               <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>{t.footer.copyright}</p>
             </div>
           </div>
-        </div>
       </div>
 
       {/* Bottom nav — mobile only */}
