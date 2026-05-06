@@ -48,7 +48,7 @@ const ActionGrid = () => {
   return (
     <div>
       <p style={{
-        fontSize: 9, fontWeight: 500, color: '#cbd5e1',
+        fontSize: 9, fontWeight: 600, color: '#cbd5e1',
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14,
       }}>
         {isRTL ? "סקירה מהירה" : "QUICK OVERVIEW"}
@@ -79,10 +79,10 @@ const ActionGrid = () => {
             }}>
               <tile.icon size={15} color={tile.iconColor} strokeWidth={2} />
             </div>
-            <p style={{ fontSize: 12, fontWeight: 500, color: tile.titleColor, margin: '0 0 4px' }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: tile.titleColor, margin: '0 0 4px' }}>
               {tile.label}
             </p>
-            <p style={{ fontSize: 10, color: tile.subColor, margin: 0 }}>
+            <p style={{ fontSize: 10, fontWeight: 500, color: tile.subColor, margin: 0 }}>
               {tile.subtitle}
             </p>
           </button>

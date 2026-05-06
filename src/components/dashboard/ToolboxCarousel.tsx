@@ -294,7 +294,7 @@ const ToolboxCarousel = () => {
   return (
     <>
       <div>
-        <p style={{ fontSize: 9, fontWeight: 500, color: '#cbd5e1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+        <p style={{ fontSize: 9, fontWeight: 600, color: '#cbd5e1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
           {isRTL ? "ארגז הכלים" : "TOOLBOX"}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
@@ -316,8 +316,8 @@ const ToolboxCarousel = () => {
                   <card.icon size={13} color="#1d4ed8" strokeWidth={2} />
                 </div>
               </div>
-              <p style={{ fontSize: 12, fontWeight: 500, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
-              <p style={{ fontSize: 10, color: '#94a3b8', margin: 0, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>{card.content}</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
+              <p style={{ fontSize: 10, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>{card.content}</p>
             </button>
           ))}
         </div>

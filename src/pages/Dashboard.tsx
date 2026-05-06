@@ -50,10 +50,10 @@ const RESPONSIVE = `
       padding: 20px 16px;
       box-sizing: border-box;
     }
-    .dash-main { padding-bottom: 32px; }
+    .dash-main { padding-bottom: 32px; flex: 1; min-width: 0; }
     .dash-bottom-nav { display: none !important; }
     .dash-overview-grid { grid-template-columns: repeat(3, 1fr); }
-    .dash-content-inner { max-width: 640px; padding: 0 28px; }
+    .dash-content-inner { max-width: 100%; padding: 0 28px; box-sizing: border-box; }
   }
 `;
 
@@ -259,7 +259,7 @@ const Dashboard = () => {
           >
             <div>
               <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400, marginBottom: 3 }}>{greeting}</p>
-              <h1 style={{ fontSize: 26, fontWeight: 500, color: '#0f172a', margin: 0, lineHeight: 1.15 }}>
+              <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.15 }}>
                 {isRTL ? `שלום ${firstName}` : `Hello, ${firstName}`}
               </h1>
             </div>

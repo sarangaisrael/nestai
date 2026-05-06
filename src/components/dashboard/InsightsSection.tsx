@@ -15,7 +15,7 @@ const InsightsSection = ({ narrativeInsight }: InsightsSectionProps) => {
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
     >
       <p style={{
-        fontSize: 9, fontWeight: 500, color: '#cbd5e1',
+        fontSize: 9, fontWeight: 600, color: '#cbd5e1',
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14,
       }}>
         {isRTL ? "מגמות אחרונות" : "RECENT TRENDS"}

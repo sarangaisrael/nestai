@@ -103,7 +103,7 @@ const Sidebar = () => {
                   <item.icon size={13} color={item.iconColor} strokeWidth={2} />
                 </div>
                 <span style={{
-                  fontSize: 12, fontWeight: 500, flex: 1,
+                  fontSize: 12, fontWeight: 600, flex: 1,
                   color: active ? item.activeLabelColor : '#64748b',
                 }}>
                   {label}
