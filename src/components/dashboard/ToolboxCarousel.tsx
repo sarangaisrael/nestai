@@ -294,7 +294,7 @@ const ToolboxCarousel = () => {
   return (
     <>
       <div>
-        <p style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 12 }}>
+        <p style={{ fontSize: 9, fontWeight: 500, color: '#cbd5e1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
           {isRTL ? "ארגז הכלים" : "TOOLBOX"}
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
@@ -302,16 +302,21 @@ const ToolboxCarousel = () => {
             <button
               key={card.id}
               onClick={() => setActiveCard(card.id)}
-              style={{ background: '#f8fafc', border: '0.5px solid #e2e8f0', borderRadius: 12, padding: '14px 10px', display: 'flex', flexDirection: 'column', cursor: 'pointer', textAlign: 'start', transition: 'background 0.15s' }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f1f5f9'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'}
+              style={{
+                background: '#ffffff', border: '0.5px solid #e2e8f0',
+                borderRadius: 14, padding: '14px 12px',
+                display: 'flex', flexDirection: 'column',
+                cursor: 'pointer', textAlign: 'start', transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'}
+              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'}
             >
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
                 <div style={{ width: 30, height: 30, borderRadius: 8, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <card.icon size={14} color="#1d4ed8" />
+                  <card.icon size={13} color="#1d4ed8" strokeWidth={2} />
                 </div>
               </div>
-              <p style={{ fontSize: 11, fontWeight: 500, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
+              <p style={{ fontSize: 12, fontWeight: 500, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
               <p style={{ fontSize: 10, color: '#94a3b8', margin: 0, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>{card.content}</p>
             </button>
           ))}

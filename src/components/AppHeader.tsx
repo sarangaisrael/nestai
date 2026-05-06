@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  User, Settings, LogOut, Accessibility, Type, Contrast,
-  Link, Eye, Moon, Sun, Menu, FileText, Sparkles,
-  Download, Bell, LayoutDashboard, MessageSquareHeart, Search,
+  User, Settings, LogOut, Type,
+  Moon, Sun, Menu, FileText, Sparkles,
+  Bell, LayoutDashboard, MessageSquareHeart, Search,
   MessageCircle
 } from "lucide-react";
 import {
@@ -19,11 +19,16 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppDirectives } from "@/hooks/useAppDirectives";
 import FeedbackForm from "@/components/FeedbackForm";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+
+const iconBtn: React.CSSProperties = {
+  width: 32, height: 32, borderRadius: 9,
+  background: '#f1f5f9', border: 'none',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  cursor: 'pointer', flexShrink: 0,
+};
 
 const AppHeader = () => {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [firstName, setFirstName] = useState("");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -35,24 +40,9 @@ const AppHeader = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Fetch user first name for sub-header
-  useEffect(() => {
-    const fetchName = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("first_name")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (profile?.first_name) setFirstName(profile.first_name);
-    };
-    fetchName();
-  }, []);
-
   const { t, isRTL } = useLanguage();
   const { isDark, toggle: toggleDark } = useDarkMode();
-  const { settings: a11y, update: updateA11y, cycleFontSize } = useAccessibility();
+  const { settings: a11y, cycleFontSize } = useAccessibility();
   const { isAdmin } = useAdminStatus();
   const { isInstalled, promptInstall, canShowAndroidPrompt } = usePWAInstall();
   const { toast } = useToast();
@@ -86,15 +76,40 @@ const AppHeader = () => {
 
   return (
     <>
-      {/* Fixed header wrapper */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#ffffff', paddingTop: 'env(safe-area-inset-top,0px)' }}>
-        {/* Main Nav Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', height: 56, borderBottom: '0.5px solid #f1f5f9' }}>
-          {/* Right side (first child in DOM — visual right in RTL): Hamburger Menu */}
+      {/* Fixed header */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        background: '#ffffff',
+        paddingTop: 'env(safe-area-inset-top,0px)',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 28px', height: 56,
+          borderBottom: '0.5px solid #e2e8f0',
+        }}>
+          {/* Right: chat icon (first child = visual right in RTL) */}
+          <button onClick={() => navigate("/app/chat")} style={iconBtn} aria-label="chat">
+            <MessageCircle size={15} color="#0f172a" strokeWidth={1.8} />
+          </button>
+
+          {/* Center: logo */}
+          <button
+            onClick={() => navigate("/app/dashboard")}
+            style={{
+              position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+            }}
+          >
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
+            <span style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily: 'inherit' }}>NestAI.care</span>
+          </button>
+
+          {/* Left: profile icon with full dropdown (last child = visual left in RTL) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button style={{ width: 34, height: 34, borderRadius: 8, background: '#f8fafc', border: '0.5px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <Menu size={16} color="#0f172a" />
+              <button style={iconBtn} aria-label="profile menu">
+                <User size={15} color="#0f172a" strokeWidth={1.8} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -177,24 +192,10 @@ const AppHeader = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Center: Logo (absolute centered) */}
-          <button onClick={() => navigate("/app/dashboard")} style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1e3a5f', flexShrink: 0 }} />
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily: 'inherit' }}>NestAI.care</span>
-          </button>
-
-          {/* Left side (last child in DOM — visual left in RTL): Chat button */}
-          <button
-            onClick={() => navigate("/app/chat")}
-            style={{ width: 34, height: 34, borderRadius: 8, background: '#f8fafc', border: '0.5px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <MessageCircle size={16} color="#0f172a" />
-          </button>
         </div>
       </div>
 
-      {/* Spacer to prevent content from hiding behind the fixed header */}
+      {/* Spacer */}
       <div style={{ height: 'calc(env(safe-area-inset-top,0px) + 56px)' }} />
 
       <FeedbackForm open={feedbackOpen} onOpenChange={setFeedbackOpen} />

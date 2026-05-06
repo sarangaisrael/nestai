@@ -11,6 +11,7 @@ import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import InsightsSection from "@/components/dashboard/InsightsSection";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
+import Sidebar from "@/components/dashboard/Sidebar";
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import TrialStatusCard from "@/components/access/TrialStatusCard";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -26,6 +27,35 @@ const getTimeOfDay = (): TimeOfDay => {
   if (hour >= 17 && hour < 21) return "evening";
   return "night";
 };
+
+const RESPONSIVE = `
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .dash-below { display: flex; flex-direction: column; }
+  .dash-sidebar-wrap { display: none; }
+  .dash-main { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+  .dash-bottom-nav { display: block; }
+  .dash-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 768px) {
+    .dash-below { flex-direction: row; min-height: calc(100vh - 56px); }
+    .dash-sidebar-wrap {
+      display: block;
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      background: #ffffff;
+      border-left: 0.5px solid #e2e8f0;
+      padding: 20px 16px;
+      box-sizing: border-box;
+    }
+    .dash-main { padding-bottom: 32px; }
+    .dash-bottom-nav { display: none !important; }
+    .dash-overview-grid { grid-template-columns: repeat(3, 1fr); }
+    .dash-content-inner { max-width: 640px; padding: 0 28px; }
+  }
+`;
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -86,13 +116,8 @@ const Dashboard = () => {
   useEffect(() => {
     const init = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session) {
-          navigate("/app/auth");
-          return;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { navigate("/app/auth"); return; }
 
         const ensuredAccessState = await ensureUserAccessProfile(session.user, "patient");
         setAccessState(ensuredAccessState);
@@ -106,7 +131,7 @@ const Dashboard = () => {
 
         setLoading(false);
 
-        // Streak calculation (non-blocking)
+        // Streak (non-blocking)
         try {
           const { data: moodData } = await supabase
             .from('mood_entries')
@@ -121,8 +146,7 @@ const Dashboard = () => {
             for (let i = 0; i < 30; i++) {
               const d = new Date(today);
               d.setDate(d.getDate() - i);
-              const dateStr = d.toISOString().slice(0, 10);
-              if (days.has(dateStr)) { streak++; } else { break; }
+              if (days.has(d.toISOString().slice(0, 10))) { streak++; } else { break; }
             }
             if (streak > 0) setStreakDays(streak);
           }
@@ -157,15 +181,17 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
+        <style>{RESPONSIVE}</style>
         <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2.5px solid #dbeafe', borderTopColor: '#1e3a5f', animation: 'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#ffffff', display: 'flex', flexDirection: 'column' }} dir={dir}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc' }} dir={dir}>
+      <style>{RESPONSIVE}</style>
+
       {accessState?.is_locked && (
         <AccessLockOverlay
           accessState={accessState}
@@ -176,77 +202,106 @@ const Dashboard = () => {
         />
       )}
       {isIOS && !isInstalled && <IOSInstallOverlay />}
+
       <AppHeader />
 
-      {/* Mood prompt */}
-      {showMoodPrompt && (
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '12px 16px 0' }}>
-          <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20, border: '0.5px solid #e2e8f0', textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 500, color: '#0f172a', marginBottom: 12 }}>
-              {isRTL ? "איך היה לך היום?" : "How was your day?"}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 12 }}>
-              {[
-                { key: "happy",    emoji: "😊" },
-                { key: "anxious",  emoji: "😰" },
-                { key: "exhausted",emoji: "😩" },
-                { key: "sad",      emoji: "😢" },
-                { key: "calm",     emoji: "😌" },
-              ].map((m) => (
-                <button key={m.key} onClick={async () => {
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  await supabase.from("mood_entries").insert({ user_id: session.user.id, mood: m.key });
-                  handleMoodSelected(m.key);
-                }} style={{ fontSize: 28, padding: 8, borderRadius: 10, border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {m.emoji}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowMoodPrompt(false)} style={{ fontSize: 11, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>
-              {isRTL ? "אולי אח״כ" : "Maybe later"}
-            </button>
-          </div>
-        </motion.div>
-      )}
+      {/* Below-header: sidebar + main */}
+      <div className="dash-below">
 
-      {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 80 }}>
-        {/* Greeting */}
-        <motion.div
-          initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-          style={{ padding: '16px 20px 8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}
-        >
-          <div>
-            <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400, marginBottom: 2 }}>{greeting}</p>
-            <h1 style={{ fontSize: 20, fontWeight: 500, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
-              {isRTL ? `שלום ${firstName}` : `Hello ${firstName}`}
-            </h1>
-          </div>
-          {streakDays > 0 && (
-            <div style={{ background: '#fef3c7', borderRadius: 20, padding: '4px 12px', display: 'flex', alignItems: 'center', flexShrink: 0, marginTop: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 500, color: '#92400e' }}>{streakDays} {isRTL ? 'ימים ברצף' : 'day streak'}</span>
-            </div>
+        {/* Sidebar — desktop only (in RTL, first child = visual right) */}
+        <div className="dash-sidebar-wrap">
+          <Sidebar />
+        </div>
+
+        {/* Main content */}
+        <div className="dash-main">
+
+          {/* Mood prompt */}
+          {showMoodPrompt && (
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+              style={{ padding: '12px 20px 0' }}>
+              <div style={{ background: '#ffffff', borderRadius: 16, padding: 20, border: '0.5px solid #e2e8f0' }}>
+                <p style={{ fontSize: 15, fontWeight: 500, color: '#0f172a', marginBottom: 12, textAlign: 'center' }}>
+                  {isRTL ? "איך היה לך היום?" : "How was your day?"}
+                </p>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 10 }}>
+                  {[
+                    { key: "happy",     emoji: "😊" },
+                    { key: "anxious",   emoji: "😰" },
+                    { key: "exhausted", emoji: "😩" },
+                    { key: "sad",       emoji: "😢" },
+                    { key: "calm",      emoji: "😌" },
+                  ].map((m) => (
+                    <button key={m.key} onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session) return;
+                      await supabase.from("mood_entries").insert({ user_id: session.user.id, mood: m.key });
+                      handleMoodSelected(m.key);
+                    }} style={{ fontSize: 28, padding: 8, borderRadius: 10, border: 'none', background: 'none', cursor: 'pointer' }}>
+                      {m.emoji}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <button onClick={() => setShowMoodPrompt(false)}
+                    style={{ fontSize: 11, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    {isRTL ? "אולי אח״כ" : "Maybe later"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           )}
-        </motion.div>
 
-        <div style={{ padding: '0 20px', maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {accessState && <TrialStatusCard accessState={accessState} className="border-primary/10 bg-card/95 shadow-card" />}
-          <HeroJournalCard />
-          <ActionGrid />
-          <ToolboxCarousel />
-          <InsightsSection narrativeInsight={narrativeInsight} />
+          {/* Greeting row */}
+          <motion.div
+            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+            style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}
+          >
+            <div>
+              <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400, marginBottom: 3 }}>{greeting}</p>
+              <h1 style={{ fontSize: 26, fontWeight: 500, color: '#0f172a', margin: 0, lineHeight: 1.15 }}>
+                {isRTL ? `שלום ${firstName}` : `Hello, ${firstName}`}
+              </h1>
+            </div>
+            {streakDays > 0 && (
+              <div style={{
+                background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 14,
+                padding: '8px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                flexShrink: 0, marginTop: 2,
+              }}>
+                <span style={{ fontSize: 24, fontWeight: 500, color: '#c2410c', lineHeight: 1 }}>{streakDays}</span>
+                <span style={{ fontSize: 9, color: '#9a3412', marginTop: 2 }}>
+                  {isRTL ? 'ימים ברצף' : 'day streak'}
+                </span>
+              </div>
+            )}
+          </motion.div>
 
-          <div style={{ textAlign: 'center', paddingTop: 16, paddingBottom: 8 }}>
-            <button onClick={() => navigate("/app/support")} style={{ fontSize: 13, color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', display: 'block', margin: '0 auto 6px' }}>
-              {isRTL ? "עזרה ותמיכה" : "Help & Support"}
-            </button>
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>{t.footer.copyright}</p>
+          {/* Content inner — constrained width with padding */}
+          <div className="dash-content-inner" style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {accessState && (
+              <TrialStatusCard accessState={accessState} className="border-primary/10 bg-card/95 shadow-card" />
+            )}
+            <HeroJournalCard />
+            <ActionGrid />
+            <ToolboxCarousel />
+            <InsightsSection narrativeInsight={narrativeInsight} />
+
+            <div style={{ textAlign: 'center', paddingBottom: 8 }}>
+              <button onClick={() => navigate("/app/support")}
+                style={{ fontSize: 12, color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', display: 'block', margin: '0 auto 6px' }}>
+                {isRTL ? "עזרה ותמיכה" : "Help & Support"}
+              </button>
+              <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>{t.footer.copyright}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <BottomTabBar />
+      {/* Bottom nav — mobile only */}
+      <div className="dash-bottom-nav">
+        <BottomTabBar />
+      </div>
     </div>
   );
 };
