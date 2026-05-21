@@ -11,6 +11,7 @@ import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import InsightsSection from "@/components/dashboard/InsightsSection";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
+import GratitudeCard from "@/components/dashboard/GratitudeCard";
 
 import IOSInstallOverlay from "@/components/IOSInstallOverlay";
 import TrialStatusCard from "@/components/access/TrialStatusCard";
@@ -257,6 +258,7 @@ const Dashboard = () => {
               <TrialStatusCard accessState={accessState} className="border-primary/10 bg-card/95 shadow-card" />
             )}
             <HeroJournalCard />
+            <GratitudeCard />
             <ActionGrid />
             <ToolboxCarousel />
             <InsightsSection narrativeInsight={narrativeInsight} />
