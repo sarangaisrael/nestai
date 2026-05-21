@@ -23,10 +23,13 @@ const DEFAULTS = {
   hero_line1: 'הרצף הטיפולי', hero_line2: 'מתחיל כאן',
   hero_subtitle: 'NestAI מאפשרת למטופלים לתעד את היומיום שלהם בין הפגישות — ולמטפל לקבל סיכום מוכן לפני כל מפגש.',
   hero_cta1: 'התחל בחינם ←', hero_cta2: 'למטפלים',
-  hero_badge1: 'ללא הרשמה ארוכה', hero_badge2: 'פרטיות מלאה', hero_badge3: 'חינם לניסיון',
+  hero_badge1: 'ללא הרשמה ארוכה', hero_badge2: 'פרטיות מלאה', hero_badge3: 'הצפנה מקצה לקצה',
   slide1_title: 'לא תישאר לבד עם המחשבות',
   slide1_subtitle: 'האפליקציה מלווה אותך בין הפגישות — בשיחה טבעית, בלי לחץ.',
   slide1_bullet1: 'תיעוד יומי טבעי', slide1_bullet2: 'אין משימות ואין לחץ', slide1_bullet3: 'הכל שמור ומוגן',
+  slide2_title: 'סיכום חכם לפני כל פגישה',
+  slide2_subtitle: 'לפני כל מפגש, המטפל מקבל סיכום מוכן על מה שעבר על המטופל — בלי לבקש, בלי להכין.',
+  slide2_bullet1: 'סיכום שבועי אוטומטי', slide2_bullet2: 'מגמות ודפוסים רגשיים', slide2_bullet3: 'נושאים שכדאי לדון בהם',
   slide3_title: 'הברית שמחזיקה את הטיפול',
   slide3_subtitle: 'הרצף בין הפגישות הוא מה שמחזיק את התהליך הטיפולי.',
   slide3_bullet1: 'מחזקת את הקשר בין מטפל למטופל', slide3_bullet2: 'הנתונים שייכים למטופל', slide3_bullet3: 'בנויה על אמון',
@@ -103,6 +106,7 @@ const LandingPage = () => {
 
   const slides = [
     { title: content.slide1_title, subtitle: content.slide1_subtitle, bullets: [content.slide1_bullet1, content.slide1_bullet2, content.slide1_bullet3], mockup: 'chat' as const },
+    { title: content.slide2_title, subtitle: content.slide2_subtitle, bullets: [content.slide2_bullet1, content.slide2_bullet2, content.slide2_bullet3], mockup: 'summary' as const },
     { title: content.slide3_title, subtitle: content.slide3_subtitle, bullets: [content.slide3_bullet1, content.slide3_bullet2, content.slide3_bullet3], mockup: 'trends' as const },
   ];
   const currentSlide = slides[slide];
@@ -195,6 +199,42 @@ const LandingPage = () => {
     );
   };
 
+  const SummaryMockup = () => (
+    <div style={{ borderRadius: 16, background: '#ffffff', border: `1px solid ${C.cardBorder}`, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', padding: 20, maxWidth: 340, margin: '0 auto', direction: 'rtl' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>סיכום שבועי</span>
+        <span style={{ background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>✓ מוכן לפגישה</span>
+      </div>
+      {/* Summary text lines */}
+      <div style={{ background: '#F8FAFC', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+        {[
+          'הרגשתי לחץ בעבודה — קשה עם המנהל',
+          'שלושה לילות עם שינה קצרה',
+          'רגע טוב: ביקור משפחתי ביום ה׳',
+        ].map((line, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i < 2 ? 10 : 0 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.accent, marginTop: 6, flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6 }}>{line}</span>
+          </div>
+        ))}
+      </div>
+      {/* Themes row */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+        {['לחץ', 'שינה', 'משפחה'].map((tag, i) => (
+          <span key={i} style={{ background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '3px 12px', fontSize: 11, fontWeight: 600 }}>{tag}</span>
+        ))}
+      </div>
+      {/* AI note */}
+      <div style={{ background: '#E6F1FB', borderRadius: 10, padding: '10px 12px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#1E3A5F', marginBottom: 4 }}>המלצה לפגישה</div>
+        <div style={{ fontSize: 11, color: '#374151', lineHeight: 1.6 }}>
+          שווה לדון ביחסים עם סמכות בעבודה — נושא שחזר 3 שבועות ברצף.
+        </div>
+      </div>
+    </div>
+  );
+
   /* ── Shared button styles ── */
   const btnPrimary: React.CSSProperties = { background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '14px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
   const btnOutline: React.CSSProperties = { border: `1px solid ${C.accent}`, color: C.accent, background: 'transparent', borderRadius: 50, padding: '13px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" };
@@ -266,7 +306,7 @@ const LandingPage = () => {
                 {/* Text column */}
                 <div>
                   <span style={{ background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '4px 12px', fontSize: 12, fontWeight: 600, display: 'inline-block', marginBottom: 16 }}>
-                    שלב {slide + 1} / 2
+                    שלב {slide + 1} / 3
                   </span>
                   <h3 style={{ fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 800, color: C.text, marginBottom: 12, lineHeight: 1.2 }}>
                     {currentSlide.title}
@@ -287,6 +327,7 @@ const LandingPage = () => {
                 {/* Mockup column */}
                 <div>
                   {currentSlide.mockup === 'chat' && <ChatMockup />}
+                  {currentSlide.mockup === 'summary' && <SummaryMockup />}
                   {currentSlide.mockup === 'trends' && <TrendsMockup />}
                 </div>
               </div>
@@ -301,14 +342,14 @@ const LandingPage = () => {
             </button>
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {[0, 1].map(i => (
+              {[0, 1, 2].map(i => (
                 <button key={i} onClick={() => setSlide(i)}
                   style={{ width: i === slide ? 24 : 8, height: 8, borderRadius: i === slide ? 4 : '50%', background: i === slide ? C.accent : C.cardBorder, border: 'none', cursor: 'pointer', padding: 0, transition: 'all 0.2s ease' }} />
               ))}
             </div>
 
-            <button onClick={() => setSlide(s => Math.min(1, s + 1))} disabled={slide === 1}
-              style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${C.cardBorder}`, background: C.card, cursor: slide === 1 ? 'default' : 'pointer', opacity: slide === 1 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => setSlide(s => Math.min(2, s + 1))} disabled={slide === 2}
+              style={{ width: 40, height: 40, borderRadius: '50%', border: `1.5px solid ${C.cardBorder}`, background: C.card, cursor: slide === 2 ? 'default' : 'pointer', opacity: slide === 2 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={18} color={C.textSec} />
             </button>
           </div>
