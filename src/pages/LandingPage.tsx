@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { Capacitor } from "@capacitor/core";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 /* ── Brand tokens ──────────────────────────── */
 const C = {
@@ -251,8 +252,9 @@ const LandingPage = () => {
           {/* Right: logo */}
           <img src="/logo.png" alt="NestAI" style={{ display: 'block', height: 36, maxHeight: 36, width: 'auto' }} />
 
-          {/* Left: login */}
+          {/* Left: language switcher + login */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <LanguageSwitcher variant="icon" />
             <button onClick={() => navigate('/app/auth')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
               התחברות
             </button>
