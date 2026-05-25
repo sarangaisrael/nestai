@@ -60,11 +60,11 @@ const Dashboard = () => {
     setShowMoodPrompt(false);
     setTimeout(() => {
       toast({
-        title: isRTL ? "תודה ששיתפת 💙" : "Thanks for sharing 💙",
-        description: isRTL ? "רוצה לכתוב עוד?" : "Want to write more?",
+        title: t.dashboard.thankSharing,
+        description: t.dashboard.wantToWriteMore,
       });
     }, 500);
-  }, [isRTL, toast]);
+  }, [t, toast]);
 
   // Evening reminder
   useEffect(() => {
@@ -75,8 +75,8 @@ const Dashboard = () => {
         if (!localStorage.getItem(shownKey)) {
           localStorage.setItem(shownKey, "1");
           toast({
-            title: isRTL ? "איך היה לך היום?" : "How was your day?",
-            description: isRTL ? "זמן לכתוב ב-NestAI" : "Time to write in NestAI",
+            title: t.dashboard.moodQuestion,
+            description: t.dashboard.timeToWrite,
           });
         }
       }
@@ -84,7 +84,7 @@ const Dashboard = () => {
     const interval = setInterval(checkTime, 30000);
     checkTime();
     return () => clearInterval(interval);
-  }, [isRTL, toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     const init = async () => {
@@ -166,7 +166,7 @@ const Dashboard = () => {
           >
             <div style={{ background: '#ffffff', borderRadius: 16, padding: 20, border: '0.5px solid #e2e8f0' }}>
               <p style={{ fontSize: 15, fontWeight: 500, color: '#0f172a', marginBottom: 12, textAlign: 'center' }}>
-                {isRTL ? "איך היה לך היום?" : "How was your day?"}
+                {t.dashboard.moodQuestion}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 10 }}>
                 {[
@@ -195,7 +195,7 @@ const Dashboard = () => {
                   onClick={() => setShowMoodPrompt(false)}
                   style={{ fontSize: 11, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  {isRTL ? "אולי אח״כ" : "Maybe later"}
+                  {t.dashboard.maybeLater}
                 </button>
               </div>
             </div>
@@ -211,7 +211,7 @@ const Dashboard = () => {
             {greetingLabel}
           </p>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
-            {isRTL ? `שלום ${firstName}` : `Hello, ${firstName}`} 👋
+            {t.dashboard.helloPrefix} {firstName} 👋
           </h1>
         </motion.div>
 

@@ -20,7 +20,7 @@ const C = {
   navBorder:  '#E5E7EB',
 };
 
-const DEFAULTS = {
+const DEFAULTS_HE = {
   nav_logo: 'NestAI', nav_cta1_text: 'למטפלים', nav_cta2_text: 'התחל בחינם',
   hero_line1: 'הרצף הטיפולי', hero_line2: 'מתחיל כאן',
   hero_subtitle: 'NestAI מאפשרת למטופלים לתעד את היומיום שלהם בין הפגישות — ולמטפל לקבל סיכום מוכן לפני כל מפגש.',
@@ -45,10 +45,36 @@ const DEFAULTS = {
   footer_text: '© 2025 NestAI.care — הפלטפורמה מספקת כלים לתיעוד בלבד.',
 };
 
+const DEFAULTS_EN = {
+  nav_logo: 'NestAI', nav_cta1_text: 'For Therapists', nav_cta2_text: 'Get Started Free',
+  hero_line1: 'Therapeutic Continuity', hero_line2: 'Starts Here',
+  hero_subtitle: 'NestAI allows patients to document their daily life between sessions — giving the therapist a ready summary before each meeting.',
+  hero_cta1: 'Get Started Free →', hero_cta2: 'For Therapists',
+  hero_badge1: 'No lengthy signup', hero_badge2: 'Full privacy', hero_badge3: 'End-to-end encryption',
+  slide1_title: "You won't be alone with your thoughts",
+  slide1_subtitle: 'The app accompanies you between sessions — in natural conversation, without pressure.',
+  slide1_bullet1: 'Natural daily documentation', slide1_bullet2: 'No tasks, no pressure', slide1_bullet3: 'Everything saved and protected',
+  slide2_title: 'Smart summary before every session',
+  slide2_subtitle: "Before each meeting, your therapist gets a ready summary of what you went through — no asking, no preparing.",
+  slide2_bullet1: 'Automatic weekly summary', slide2_bullet2: 'Emotional trends and patterns', slide2_bullet3: 'Topics worth discussing',
+  slide3_title: 'The bond that sustains therapy',
+  slide3_subtitle: 'Continuity between sessions is what sustains the therapeutic process.',
+  slide3_bullet1: 'Strengthens the therapist-patient bond', slide3_bullet2: 'Data belongs to the patient', slide3_bullet3: 'Built on trust',
+  card1_title: 'For Therapists', card1_body: 'Get a ready summary before every session. The patient documents and you focus on therapy.', card1_cta: 'Join as Therapist →',
+  card2_title: 'For Patients', card2_body: "Simple daily documentation. You won't be alone with your thoughts.", card2_cta: 'Get Started Free →',
+  tools_title: 'The tools that will accompany you',
+  tools_subtitle: 'Simple, daily, and precise to the therapeutic process',
+  tool1_icon: '📝', tool1_title: 'Daily Documentation', tool1_text: 'Record what you went through between sessions — a thought, a feeling, or a moment you wanted to keep. No pressure, no tasks.',
+  tool2_icon: '📊', tool2_title: 'Trends Report', tool2_text: 'Automatic identification of recurring patterns over time — themes, emotions, and events that recur between sessions.',
+  tool3_icon: '🗓️', tool3_title: 'Pre-Session Summary', tool3_text: 'Before each meeting, the therapist gets a ready summary — no asking, no preparing. The patient documents, you focus.',
+  footer_text: '© 2025 NestAI.care — The platform provides documentation tools only.',
+};
+
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { dir } = useLanguage();
-  const [content, setContent] = useState(DEFAULTS);
+  const { dir, language, t } = useLanguage();
+  const [cmsOverride, setCmsOverride] = useState<Record<string, string>>({});
+  const content = language === 'he' ? { ...DEFAULTS_HE, ...cmsOverride } : DEFAULTS_EN;
   const [slide, setSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,7 +116,7 @@ const LandingPage = () => {
 
       try {
         const { data, error } = await supabase.from('landing_content').select('*').eq('id', 1).single();
-        if (!error && data) setContent({ ...DEFAULTS, ...data });
+        if (!error && data) setCmsOverride(data);
       } catch { /* use defaults */ }
 
       setIsLoading(false);
@@ -258,7 +284,7 @@ const LandingPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <LanguageSwitcher variant="icon" />
             <button onClick={() => navigate('/app/auth')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
-              התחברות
+              {t.common.login}
             </button>
           </div>
         </div>
@@ -297,7 +323,7 @@ const LandingPage = () => {
       <section style={{ ...sectionPad, background: C.bgAlt }}>
         <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
           <h2 style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: 48 }}>
-            איך זה עובד
+            {t.landing.howItWorks}
           </h2>
 
           <div style={{ position: 'relative', overflow: 'hidden' }}>
@@ -306,7 +332,7 @@ const LandingPage = () => {
                 {/* Text column */}
                 <div>
                   <span style={{ background: '#EFF6FF', color: C.accent, borderRadius: 50, padding: '4px 12px', fontSize: 12, fontWeight: 600, display: 'inline-block', marginBottom: 16 }}>
-                    שלב {slide + 1} / 3
+                    {t.landing.step} {slide + 1} / 3
                   </span>
                   <h3 style={{ fontSize: 'clamp(1.6rem, 3vw, 2rem)', fontWeight: 800, color: C.text, marginBottom: 12, lineHeight: 1.2 }}>
                     {currentSlide.title}
@@ -408,9 +434,9 @@ const LandingPage = () => {
       <footer style={{ background: '#1A1A2E', borderTop: `1px solid #2a2a45`, paddingTop: 32, paddingBottom: 32, paddingLeft: 24, paddingRight: 24 }}>
         <div style={{ maxWidth: '64rem', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
           <div style={{ display: 'flex', gap: 20 }}>
-            <Link to="/app/privacy" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>מדיניות פרטיות</Link>
-            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>תנאי שימוש</a>
-            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>צור קשר</a>
+            <Link to="/app/privacy" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>{t.nav.privacy}</Link>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>{t.landing.termsOfUse}</a>
+            <a href="#" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>{t.landing.contact}</a>
           </div>
           <span style={{ fontSize: 13, color: '#9CA3AF' }}>{content.footer_text}</span>
         </div>

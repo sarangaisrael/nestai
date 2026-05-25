@@ -116,6 +116,14 @@ export const en = {
     actionableTitle: "Something to Think About for Your Next Session",
     actionableInsight: "The connection between work pressure on Thursday and the feeling of emptiness on Saturday morning.",
     compassTitle: "Here's your emotional compass for the past week.",
+    // Mood prompt
+    moodQuestion: "How was your day?",
+    maybeLater: "Maybe later",
+    thankSharing: "Thanks for sharing 💙",
+    wantToWriteMore: "Want to write more?",
+    timeToWrite: "Time to write in NestAI",
+    // Greeting
+    helloPrefix: "Hello,",
     // Hero card
     writeLabel: "A moment of listening",
     writeQuestion: "How are you feeling right now?",
@@ -482,5 +490,9 @@ I believe that truly good therapy needs continuity, and NestAI is here to ensure
     mediaSubheadline: "The media recognizes that NestAI is the solution they've been waiting for to bridge the gap between sessions.",
     mediaQuote: "Israel Saranga returned from reserves duty, and felt that weekly therapy couldn't contain everything he went through... He used no-code tools to develop the NestAI platform.",
     mediaButton: "Read the full article on mako",
+    // LandingPage inline strings
+    step: "Step",
+    termsOfUse: "Terms of Use",
+    contact: "Contact",
   },
 };

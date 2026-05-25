@@ -116,6 +116,14 @@ export const he = {
     actionableTitle: "נקודה למחשבה למפגש הקרוב",
     actionableInsight: "הקשר בין העומס המקצועי ביום חמישי לתחושת הריקנות בשבת בבוקר.",
     compassTitle: "הנה המצפן הרגשי שלך לשבוע האחרון.",
+    // Mood prompt
+    moodQuestion: "איך היה לך היום?",
+    maybeLater: "אולי אח״כ",
+    thankSharing: "תודה ששיתפת 💙",
+    wantToWriteMore: "רוצה לכתוב עוד?",
+    timeToWrite: "זמן לכתוב ב-NestAI",
+    // Greeting
+    helloPrefix: "שלום",
     // Hero card
     writeLabel: "רגע של הקשבה",
     writeQuestion: "איך את/ה מרגיש/ה עכשיו?",
@@ -410,5 +418,9 @@ export const he = {
     mediaSubheadline: "גם בתקשורת מבינים ש-NestAI הוא הפתרון שחיכו לו כדי לגשר על הפער שבין הפגישות.",
     mediaQuote: "ישראל סרנגה חזר ממילואים, והרגיש שהטיפול השבועי לא מצליח להכיל את כל מה שעבר עליו... הוא השתמש בכלי נו-קוד כדי לפתח את פלטפורמת NestAI.",
     mediaButton: "לקריאת הכתבה המלאה ב-mako",
+    // LandingPage inline strings
+    step: "שלב",
+    termsOfUse: "תנאי שימוש",
+    contact: "צור קשר",
   },
 };
