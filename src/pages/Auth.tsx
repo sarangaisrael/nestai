@@ -47,31 +47,21 @@ const Auth = () => {
   const searchParams = new URLSearchParams(location.search);
   const referralCode = searchParams.get("ref")?.trim() ?? "";
   const requestedNextPath = searchParams.get("next")?.trim() ?? "";
-  const modeParam = searchParams.get("mode");
-  const hasExplicitAuthMode = modeParam === "patient" || modeParam === "therapist";
-  const authMode = modeParam === "therapist" ? "therapist" : "patient";
-  const isTherapistAuth = authMode === "therapist";
+  const hasExplicitAuthMode = modeParam === "patient";
 
   const getModeDefaultDestination = async (userId: string) => {
     const { data } = await supabase.auth.getUser();
     if (data.user && data.user.id === userId) {
-      const accessState = await ensureUserAccessProfile(data.user, isTherapistAuth ? "therapist" : "patient");
+      const accessState = await ensureUserAccessProfile(data.user, "patient");
       return getRouteForAccessState(accessState);
     }
-
-    return isTherapistAuth ? "/app/professional/dashboard" : "/app/dashboard";
+    return "/app/dashboard";
   };
 
   const getReadableAuthError = (rawMessage?: string) => {
     const normalized = rawMessage?.toLowerCase().trim() ?? "";
 
     if (normalized.includes("invalid login credentials")) {
-      if (isTherapistAuth) {
-        return isRTL
-          ? "פרטי ההתחברות לא תואמים לחשבון מטפל/ת. אם זה חשבון מטופל/ת, עברו ל׳כניסת מטופלים׳. אם עדיין אין לכם גישת מטפל/ת, אפשר להגיש בקשה במסך המטפלים."
-          : "These details don't match a therapist account. If this is a patient account, switch to Patient login. If you don't have therapist access yet, apply from the therapist screen.";
-      }
-
       return isRTL
         ? "האימייל או הסיסמה אינם נכונים, או שעדיין אין חשבון עם האימייל הזה. אפשר לנסות שוב, להירשם, או לאפס סיסמה."
         : "The email or password is incorrect, or there isn't an account with this email yet. Try again, sign up, or reset your password.";
@@ -111,29 +101,14 @@ const Auth = () => {
     return getDefaultRouteForUser(userId);
   };
 
-  const destinationNotice = isTherapistAuth
-    ? {
-        title: isRTL ? "אחרי ההתחברות" : "After login",
-        description: isRTL
-          ? "מטפלים נכנסים לדאשבורד המטפלים. בהרשמה תקבלו 30 ימי ניסיון וקוד מטפל לשיתוף עם מטופלים."
-          : "Therapists enter the therapist dashboard. On sign up you'll get a 30-day trial and a therapist code to share with patients.",
-      }
-    : {
-        title: isRTL ? "אחרי ההתחברות" : "After login",
-        description: isRTL
-          ? "הכניסה ממסך זה מובילה לאזור המטופלים. אפשר להירשם עצמאית או להזין קוד מטפל כדי לקבל גישה דרך המטפל/ת."
-          : "This screen leads to the patient area. You can sign up independently or enter a therapist code to be covered by your therapist.",
-      };
+  const destinationNotice = {
+    title: isRTL ? "אחרי ההתחברות" : "After login",
+    description: isRTL
+      ? "הכניסה ממסך זה מובילה לאזור המטופלים. אפשר להירשם עצמאית או להזין קוד מטפל כדי לקבל גישה דרך המטפל/ת."
+      : "This screen leads to the patient area. You can sign up independently or enter a therapist code to be covered by your therapist.",
+  };
 
   const normalizedTherapistCode = therapistCode.trim();
-
-  useEffect(() => {
-    if (isTherapistAuth) {
-      setIsLogin(true);
-      setIsForgotPassword(false);
-      setLoginError(null);
-    }
-  }, [isTherapistAuth]);
 
   // Use a ref to track recovery state to avoid stale closure issues
   const isResettingRef = useRef(isResettingPassword);
@@ -341,7 +316,7 @@ const Auth = () => {
           return;
         }
 
-        if (!isTherapistAuth && normalizedTherapistCode && !/^\d{6}$/.test(normalizedTherapistCode)) {
+        if (normalizedTherapistCode && !/^\d{6}$/.test(normalizedTherapistCode)) {
           setLoginError(isRTL ? "קוד מטפל חייב להכיל 6 ספרות" : "Therapist code must contain 6 digits");
           setLoading(false);
           return;
@@ -353,8 +328,8 @@ const Auth = () => {
           options: {
             emailRedirectTo: `${window.location.origin}${referralCode ? buildReferralPath(referralCode) : "/app/dashboard"}`,
             data: {
-              intended_role: isTherapistAuth ? "therapist" : "patient",
-              therapist_code: !isTherapistAuth && normalizedTherapistCode ? normalizedTherapistCode : null,
+              intended_role: "patient",
+              therapist_code: normalizedTherapistCode || null,
             },
           },
         });
@@ -364,7 +339,7 @@ const Auth = () => {
           return;
         }
         if (data.user) {
-          await ensureUserAccessProfile(data.user, isTherapistAuth ? "therapist" : "patient");
+          await ensureUserAccessProfile(data.user, "patient");
           await supabase.from("user_preferences").upsert({
             user_id: data.user.id,
             therapy_type: therapyType || null,
@@ -381,8 +356,6 @@ const Auth = () => {
   };
 
   const lang = isRTL ? 'he' : 'en';
-  const switchToPatientAuth = () => navigate("/app/auth?mode=patient");
-  const switchToTherapistAuth = () => navigate("/app/auth?mode=therapist&next=/app/professional/dashboard");
   const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -467,33 +440,13 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-6 animate-slide-up">
 
           <div className="text-center space-y-2">
-            <div className="inline-flex w-full rounded-full border border-border bg-background p-1">
-              <button
-                type="button"
-                onClick={switchToPatientAuth}
-                className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors ${!isTherapistAuth ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-              >
-                {isRTL ? "כניסת מטופלים" : "Patient login"}
-              </button>
-              <button
-                type="button"
-                onClick={switchToTherapistAuth}
-                className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors ${isTherapistAuth ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
-              >
-                {isRTL ? "כניסת מטפלים" : "Therapist login"}
-              </button>
-            </div>
             <h1 className="text-2xl font-bold text-foreground">
-              {isTherapistAuth
-                ? (isRTL ? "מטפלים — התחברות והרשמה" : "Therapist Sign In & Sign Up")
-                : (isRTL ? "מטופלים — התחברות והרשמה" : "Patient Sign In & Sign Up")}
+              {isRTL ? "התחברות והרשמה" : "Sign In & Sign Up"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {isTherapistAuth
-                ? (isRTL ? "הרשמה וכניסה למטפלים עם 30 ימי ניסיון, ולאחר מכן חידוש ידני." : "Therapist sign in and sign up with a 30-day trial, then manual renewal.")
-                : isLogin
-                  ? (isRTL ? "התחברו כדי להמשיך במסע שלכם" : "Sign in to continue your journey")
-                  : (isRTL ? "צרו חשבון כדי להתחיל — עם או בלי קוד מטפל" : "Create an account to get started — with or without a therapist code")}
+              {isLogin
+                ? (isRTL ? "התחברו כדי להמשיך במסע שלכם" : "Sign in to continue your journey")
+                : (isRTL ? "צרו חשבון כדי להתחיל — עם או בלי קוד מטפל" : "Create an account to get started — with or without a therapist code")}
             </p>
             <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-start">
               <div className="mt-0.5 shrink-0 rounded-full bg-background p-1.5 text-muted-foreground">
@@ -631,7 +584,7 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  {!isTherapistAuth && (
+                  {(
                     <div className="space-y-2">
                       <Label htmlFor="therapist-code" className="text-sm font-medium text-foreground">
                         {isRTL ? "קוד מטפל (אופציונלי)" : "Therapist code (optional)"}
@@ -694,7 +647,7 @@ const Auth = () => {
                 </div>
               )}
 
-              {!isTherapistAuth && (
+              {(
                 <button
                   type="button"
                   onClick={() => {

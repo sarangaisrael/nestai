@@ -251,13 +251,10 @@ const LandingPage = () => {
           {/* Right: logo */}
           <img src="/logo.png" alt="NestAI" style={{ display: 'block', height: 36, maxHeight: 36, width: 'auto' }} />
 
-          {/* Left: login + therapist */}
+          {/* Left: login */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => navigate('/app/auth')} style={{ background: 'none', border: 'none', color: C.text, fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
               התחברות
-            </button>
-            <button onClick={() => navigate('/for-therapists')} style={btnOutlineSm}>
-              למטפלים
             </button>
           </div>
         </div>
@@ -280,7 +277,6 @@ const LandingPage = () => {
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/app')} style={btnPrimary}>{content.hero_cta1}</button>
-          <button onClick={() => navigate('/for-therapists')} style={btnOutline}>{content.hero_cta2}</button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 28, flexWrap: 'wrap' }}>
@@ -390,35 +386,18 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── Audience Cards ── */}
-      <section style={{ ...sectionPad, background: C.bgAlt }}>
-        <h2 style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: 40 }}>
-          בחר את הנתיב שלך
+      {/* ── CTA ── */}
+      <section style={{ ...sectionPad, background: C.bgAlt, textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: 16 }}>
+          {content.card2_title || 'מוכן להתחיל?'}
         </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {/* Card 1 — Therapist */}
-          <div style={{ background: C.card, borderRadius: 20, padding: 32, border: `1px solid ${C.cardBorder}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>🧠</div>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: C.text, marginBottom: 12 }}>{content.card1_title}</h3>
-            <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 24 }}>{content.card1_body}</p>
-            <button onClick={() => navigate('/for-therapists')}
-              style={{ background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%', fontFamily: "'Heebo', sans-serif" }}>
-              {content.card1_cta}
-            </button>
-          </div>
-
-          {/* Card 2 — Patient */}
-          <div style={{ background: C.card, borderRadius: 20, padding: 32, border: `1px solid ${C.cardBorder}`, borderTop: `3px solid ${C.accent}`, boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 16 }}>💬</div>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: C.text, marginBottom: 12 }}>{content.card2_title}</h3>
-            <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 24 }}>{content.card2_body}</p>
-            <button onClick={() => navigate('/app')}
-              style={{ background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer', width: '100%', fontFamily: "'Heebo', sans-serif" }}>
-              {content.card2_cta}
-            </button>
-          </div>
-        </div>
+        <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.7, marginBottom: 28, maxWidth: 480, margin: '0 auto 28px' }}>
+          {content.card2_body}
+        </p>
+        <button onClick={() => navigate('/app')}
+          style={{ background: C.accent, color: '#fff', borderRadius: 50, border: 'none', padding: '14px 36px', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: "'Heebo', sans-serif" }}>
+          {content.card2_cta}
+        </button>
       </section>
 
       {/* ── Footer ── */}

@@ -67,6 +67,6 @@ export const ensureUserAccessProfile = async (
   }
 };
 
-export const getRouteForAccessState = (accessState: Pick<AccessState, "role">) => {
-  return accessState.role === "therapist" ? "/app/professional/dashboard" : "/app/dashboard";
+export const getRouteForAccessState = (_accessState: Pick<AccessState, "role">) => {
+  return "/app/dashboard";
 };
