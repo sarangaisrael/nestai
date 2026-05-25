@@ -5,6 +5,7 @@ import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { Capacitor } from "@capacitor/core";
 import { ChevronRight, ChevronLeft, Check } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /* ── Brand tokens ──────────────────────────── */
 const C = {
@@ -46,6 +47,7 @@ const DEFAULTS = {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { dir } = useLanguage();
   const [content, setContent] = useState(DEFAULTS);
   const [slide, setSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -243,7 +245,7 @@ const LandingPage = () => {
   const sectionPad: React.CSSProperties = { paddingTop: 80, paddingBottom: 80, paddingLeft: 24, paddingRight: 24 };
 
   return (
-    <div dir="rtl" style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: C.bg, color: C.text }}>
+    <div dir={dir} style={{ fontFamily: "'Heebo', sans-serif", minHeight: '100vh', background: C.bg, color: C.text }}>
 
       {/* ── Navbar ── */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: C.navBg, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', borderBottom: `1px solid ${C.navBorder}`, height: 64 }}>

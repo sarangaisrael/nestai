@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Heart } from "lucide-react";
 
+import AppHeader from "@/components/layout/AppHeader";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
@@ -138,6 +139,9 @@ const Dashboard = () => {
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: 'inherit' }} dir={dir}>
       <style>{CSS}</style>
+
+      {/* Header — contains chat icon, notification bell, logo, language switcher, menu */}
+      <AppHeader />
 
       {/* Overlays */}
       {accessState?.is_locked && (
