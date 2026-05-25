@@ -93,7 +93,7 @@ const AppHeader = () => {
       <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         {/* Main Nav Bar */}
         <div className="flex items-center justify-between px-4 h-14 border-b border-border/30">
-          {/* Left side: Chat + Notifications */}
+          {/* Left side: Chat + Notifications + Language */}
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -104,6 +104,7 @@ const AppHeader = () => {
               <MessageCircle className="h-5 w-5 text-foreground" />
             </Button>
             <NotificationBell />
+            <LanguageSwitcher variant="icon" />
           </div>
 
           {/* Center: Logo */}
