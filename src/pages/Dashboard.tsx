@@ -227,7 +227,7 @@ const Dashboard = () => {
           >
             <Heart size={15} color="#64748b" strokeWidth={1.5} />
             <span style={{ fontSize: 13, fontWeight: 500, color: '#475569' }}>
-              {isRTL ? "תמיכה במוצר" : "Product Support"}
+              {t.dashboard.support}
             </span>
           </button>
         </div>

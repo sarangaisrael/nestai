@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 const HeroJournalCard = () => {
   const navigate = useNavigate();
-  const { isRTL } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <motion.div
@@ -15,10 +15,10 @@ const HeroJournalCard = () => {
         fontSize: 9, fontWeight: 500, color: '#93c5fd',
         letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 10,
       }}>
-        {isRTL ? "רגע של הקשבה" : "A moment of listening"}
+        {t.dashboard.writeLabel}
       </p>
       <p style={{ fontSize: 16, fontWeight: 500, color: '#ffffff', marginBottom: 18, lineHeight: 1.5 }}>
-        {isRTL ? "איך את/ה מרגיש/ה עכשיו?" : "How are you feeling right now?"}
+        {t.dashboard.writeQuestion}
       </p>
       <div
         onClick={() => navigate("/app/chat")}
@@ -29,7 +29,7 @@ const HeroJournalCard = () => {
         }}
       >
         <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}>
-          {isRTL ? "כתוב משהו..." : "Write something..."}
+          {t.dashboard.writePlaceholder}
         </span>
       </div>
     </motion.div>

@@ -116,6 +116,25 @@ export const he = {
     actionableTitle: "נקודה למחשבה למפגש הקרוב",
     actionableInsight: "הקשר בין העומס המקצועי ביום חמישי לתחושת הריקנות בשבת בבוקר.",
     compassTitle: "הנה המצפן הרגשי שלך לשבוע האחרון.",
+    // Hero card
+    writeLabel: "רגע של הקשבה",
+    writeQuestion: "איך את/ה מרגיש/ה עכשיו?",
+    writePlaceholder: "כתוב משהו...",
+    // Section labels
+    toolbox: "ארגז הכלים",
+    support: "תמיכה במוצר",
+    // Bottom nav
+    navHome: "בית",
+    navJournal: "יומן",
+    // Action grid tiles
+    weeklySummaries: "סיכומים שבועיים",
+    weeklySummariesSub: "צפה בסיכום האחרון",
+    myJournal: "היומן שלי",
+    myJournalSub: "רשומות יומיומיות",
+    therapyTools: "כלים טיפוליים",
+    therapyToolsSub: "מדיטציה ונשימות",
+    monthlyTrends: "מגמות חודשיות",
+    monthlyTrendsSub: "ניתוח לאורך זמן",
   },
 
   // Auth

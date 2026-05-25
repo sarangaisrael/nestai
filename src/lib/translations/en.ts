@@ -116,6 +116,25 @@ export const en = {
     actionableTitle: "Something to Think About for Your Next Session",
     actionableInsight: "The connection between work pressure on Thursday and the feeling of emptiness on Saturday morning.",
     compassTitle: "Here's your emotional compass for the past week.",
+    // Hero card
+    writeLabel: "A moment of listening",
+    writeQuestion: "How are you feeling right now?",
+    writePlaceholder: "Write something...",
+    // Section labels
+    toolbox: "Toolbox",
+    support: "Product Support",
+    // Bottom nav
+    navHome: "Home",
+    navJournal: "Journal",
+    // Action grid tiles
+    weeklySummaries: "Weekly Summaries",
+    weeklySummariesSub: "View last summary",
+    myJournal: "My Journal",
+    myJournalSub: "Daily entries",
+    therapyTools: "Therapy Tools",
+    therapyToolsSub: "Meditation & breathing",
+    monthlyTrends: "Monthly Trends",
+    monthlyTrendsSub: "Long-term analysis",
   },
 
   // Auth

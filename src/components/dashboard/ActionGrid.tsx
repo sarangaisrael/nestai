@@ -4,12 +4,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 const ActionGrid = () => {
   const navigate = useNavigate();
-  const { isRTL } = useLanguage();
+  const { t } = useLanguage();
 
   const tiles = [
     {
-      label:      isRTL ? "סיכומים שבועיים" : "Weekly Summaries",
-      subtitle:   isRTL ? "צפה בסיכום האחרון" : "View last summary",
+      label:      t.dashboard.weeklySummaries,
+      subtitle:   t.dashboard.weeklySummariesSub,
       icon:       FileText,
       path:       "/app/summary",
       bg:         '#fffbeb',
@@ -20,8 +20,8 @@ const ActionGrid = () => {
       subColor:   '#b45309',
     },
     {
-      label:      isRTL ? "היומן שלי" : "My Journal",
-      subtitle:   isRTL ? "רשומות יומיומיות" : "Daily entries",
+      label:      t.dashboard.myJournal,
+      subtitle:   t.dashboard.myJournalSub,
       icon:       BookOpen,
       path:       "/app/journal",
       bg:         '#f0fdf4',
@@ -32,8 +32,8 @@ const ActionGrid = () => {
       subColor:   '#10b981',
     },
     {
-      label:      isRTL ? "כלים טיפוליים" : "Therapy Tools",
-      subtitle:   isRTL ? "מדיטציה ונשימות" : "Meditation & breathing",
+      label:      t.dashboard.therapyTools,
+      subtitle:   t.dashboard.therapyToolsSub,
       icon:       Sparkles,
       path:       "/app/meditation",
       bg:         '#fdf4ff',
@@ -44,8 +44,8 @@ const ActionGrid = () => {
       subColor:   '#7c3aed',
     },
     {
-      label:      isRTL ? "מגמות חודשיות" : "Monthly Trends",
-      subtitle:   isRTL ? "ניתוח לאורך זמן" : "Long-term analysis",
+      label:      t.dashboard.monthlyTrends,
+      subtitle:   t.dashboard.monthlyTrendsSub,
       icon:       TrendingUp,
       path:       "/app/monthly-summary",
       bg:         '#f0f9ff',

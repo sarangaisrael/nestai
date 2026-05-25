@@ -11,11 +11,13 @@ const tabs = [
 const BottomTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isRTL } = useLanguage();
+  const { t } = useLanguage();
 
-  const labels: Record<string, string> = isRTL
-    ? { home: "בית", journal: "יומן", settings: "הגדרות" }
-    : { home: "Home", journal: "Journal", settings: "Settings" };
+  const labels: Record<string, string> = {
+    home: t.dashboard.navHome,
+    journal: t.dashboard.navJournal,
+    settings: t.common.settings,
+  };
 
   return (
     <nav style={{

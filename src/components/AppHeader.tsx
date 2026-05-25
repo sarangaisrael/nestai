@@ -40,7 +40,7 @@ const AppHeader = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language, toggleLanguage } = useLanguage();
   const { isDark, toggle: toggleDark } = useDarkMode();
   const { settings: a11y, cycleFontSize } = useAccessibility();
   const { isAdmin } = useAdminStatus();
@@ -87,10 +87,30 @@ const AppHeader = () => {
           padding: '0 28px', height: 56,
           borderBottom: '0.5px solid #e2e8f0',
         }}>
-          {/* Right: chat icon (first child = visual right in RTL) */}
-          <button onClick={() => navigate("/app/chat")} style={iconBtn} aria-label="chat">
-            <MessageCircle size={15} color="#0f172a" strokeWidth={1.8} />
-          </button>
+          {/* Right: chat icon + language toggle (first child = visual right in RTL) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => navigate("/app/chat")} style={iconBtn} aria-label="chat">
+              <MessageCircle size={15} color="#0f172a" strokeWidth={1.8} />
+            </button>
+            <button
+              onClick={toggleLanguage}
+              aria-label="toggle language"
+              style={{
+                height: 26, padding: '0 9px',
+                borderRadius: 20,
+                background: 'transparent',
+                border: '1px solid #cbd5e1',
+                cursor: 'pointer',
+                fontSize: 11, fontWeight: 500,
+                color: '#64748b',
+                fontFamily: 'inherit',
+                flexShrink: 0,
+                lineHeight: 1,
+              }}
+            >
+              {language === 'he' ? 'EN' : 'עב'}
+            </button>
+          </div>
 
           {/* Center: logo */}
           <button

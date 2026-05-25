@@ -1,34 +1,53 @@
-import { createContext, useContext, useEffect, ReactNode } from 'react';
-import { translations, Translations } from '@/lib/translations';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { translations, Translations, Language, isRTL as isRTLFn } from '@/lib/translations';
+
+const STORAGE_KEY = 'nestai_lang';
 
 interface LanguageContextType {
-  language: 'he';
-  setLanguage: (lang: string) => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  toggleLanguage: () => void;
   t: Translations;
   isRTL: boolean;
-  dir: 'rtl';
+  dir: 'rtl' | 'ltr';
 }
 
+const defaultLang: Language = 'he';
+
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'he',
+  language: defaultLang,
   setLanguage: () => {},
-  t: translations['he'],
+  toggleLanguage: () => {},
+  t: translations[defaultLang],
   isRTL: true,
   dir: 'rtl',
 });
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return (saved === 'he' || saved === 'en') ? saved : defaultLang;
+  });
+
   useEffect(() => {
-    document.documentElement.dir = 'rtl';
-    document.documentElement.lang = 'he';
-  }, []);
+    const rtl = isRTLFn(language);
+    document.documentElement.dir = rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+    localStorage.setItem(STORAGE_KEY, language);
+  }, [language]);
+
+  const setLanguage = (lang: Language) => setLanguageState(lang);
+  const toggleLanguage = () => setLanguageState(prev => prev === 'he' ? 'en' : 'he');
+
+  const rtl = isRTLFn(language);
 
   const value: LanguageContextType = {
-    language: 'he',
-    setLanguage: () => {},
-    t: translations['he'],
-    isRTL: true,
-    dir: 'rtl',
+    language,
+    setLanguage,
+    toggleLanguage,
+    t: translations[language],
+    isRTL: rtl,
+    dir: rtl ? 'rtl' : 'ltr',
   };
 
   return (
@@ -38,6 +57,4 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useLanguage = (): LanguageContextType => {
-  return useContext(LanguageContext);
-};
+export const useLanguage = (): LanguageContextType => useContext(LanguageContext);
