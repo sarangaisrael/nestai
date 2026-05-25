@@ -47,6 +47,7 @@ const Auth = () => {
   const searchParams = new URLSearchParams(location.search);
   const referralCode = searchParams.get("ref")?.trim() ?? "";
   const requestedNextPath = searchParams.get("next")?.trim() ?? "";
+  const modeParam = searchParams.get("mode")?.trim() ?? "";
   const hasExplicitAuthMode = modeParam === "patient";
 
   const getModeDefaultDestination = async (userId: string) => {
