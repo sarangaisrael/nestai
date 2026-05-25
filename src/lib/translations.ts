@@ -1,5 +1,10 @@
 export type Language = 'he' | 'en';
 
+export const languageNames: Record<Language, string> = {
+  he: 'עברית',
+  en: 'English',
+};
+
 export const isRTL = (lang: Language) => lang === 'he';
 
 export interface Translations {

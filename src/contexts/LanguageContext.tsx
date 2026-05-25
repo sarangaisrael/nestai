@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { translations, Translations, Language, isRTL as isRTLFn } from '@/lib/translations';
+import { translations, Translations, Language, isRTL as isRTLFn } from '@/lib/translations/index';
 
 const STORAGE_KEY = 'nestai_lang';
 
