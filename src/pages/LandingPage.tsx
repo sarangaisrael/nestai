@@ -448,39 +448,34 @@ const LandingPage = () => {
       {blogPosts.length > 0 && (
         <section style={{ paddingTop: 80, paddingBottom: 80, paddingLeft: 24, paddingRight: 24, background: C.bg }}>
           <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#EFF6FF', borderRadius: 50, padding: '5px 14px', marginBottom: 10 }}>
-                  <BookOpen size={14} color={C.accent} />
-                  <span style={{ fontSize: 12, color: C.accent, fontWeight: 600 }}>בלוג</span>
-                </div>
-                <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, color: C.text, margin: 0 }}>
-                  מהבלוג שלנו
-                </h2>
+
+            {/* Section heading */}
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#EFF6FF', borderRadius: 50, padding: '5px 14px', marginBottom: 12 }}>
+                <BookOpen size={14} color={C.accent} />
+                <span style={{ fontSize: 12, color: C.accent, fontWeight: 600 }}>בלוג</span>
               </div>
-              <Link
-                to="/blog"
-                style={{ fontSize: 14, color: C.accent, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
-              >
-                לכל המאמרים ←
-              </Link>
+              <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, color: C.text, margin: 0 }}>
+                מהבלוג שלנו
+              </h2>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+            {/* 1 col on mobile → 3 on desktop */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {blogPosts.map(post => (
                 <Link
                   key={post.id}
                   to={`/blog/${post.slug}`}
-                  style={{ textDecoration: 'none', color: 'inherit' }}
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}
                 >
                   <article
                     style={{
+                      width: '100%',
                       background: C.card,
                       borderRadius: 16,
                       border: `1px solid ${C.cardBorder}`,
                       boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
                       overflow: 'hidden',
-                      height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                       transition: 'transform 0.2s ease, box-shadow 0.2s ease',
@@ -488,17 +483,26 @@ const LandingPage = () => {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(0,0,0,0.11)'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'; }}
                   >
+                    {/* Cover image or placeholder */}
                     {post.cover_image ? (
                       <div style={{ height: 160, overflow: 'hidden', flexShrink: 0 }}>
-                        <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img
+                          src={post.cover_image}
+                          alt={post.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.04)'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
+                        />
                       </div>
                     ) : (
-                      <div style={{ height: 110, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ height: 120, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <BookOpen size={32} color={C.accent} strokeWidth={1.5} />
                       </div>
                     )}
-                    <div style={{ padding: '18px 20px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+
+                    {/* Card body */}
+                    <div style={{ padding: '18px 20px 20px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 9 }}>
                         <Calendar size={12} color={C.textSec} />
                         <span style={{ fontSize: 11, color: C.textSec }}>
                           {(() => { try { return format(new Date(post.created_at), "d בMMMM yyyy", { locale: heLocale }); } catch { return ""; } })()}
@@ -509,18 +513,31 @@ const LandingPage = () => {
                       </h3>
                       {post.excerpt && (
                         <p style={{
-                          fontSize: 13, color: C.textSec, lineHeight: 1.7, margin: '0 0 12px', flexGrow: 1,
+                          fontSize: 13, color: C.textSec, lineHeight: 1.7, margin: '0 0 14px', flexGrow: 1,
                           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                         }}>
                           {post.excerpt}
                         </p>
                       )}
-                      <span style={{ fontSize: 13, color: C.accent, fontWeight: 600, marginTop: 'auto' }}>קרא עוד ←</span>
+                      <span style={{ fontSize: 13, color: C.accent, fontWeight: 600, marginTop: 'auto' }}>
+                        קרא עוד ←
+                      </span>
                     </div>
                   </article>
                 </Link>
               ))}
             </div>
+
+            {/* "See all" link — bottom right */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 28 }}>
+              <Link
+                to="/blog"
+                style={{ fontSize: 14, color: C.accent, fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+              >
+                לכל המאמרים ←
+              </Link>
+            </div>
+
           </div>
         </section>
       )}
