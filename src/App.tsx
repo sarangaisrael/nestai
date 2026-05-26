@@ -34,6 +34,8 @@ const Support            = lazy(() => import("./pages/Support"));
 const AdminGate          = lazy(() => import("./components/AdminGate"));
 const ChoosePathScreen   = lazy(() => import("./pages/ChoosePathScreen"));
 const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
+const Blog               = lazy(() => import("./pages/Blog"));
+const BlogPost           = lazy(() => import("./pages/BlogPost"));
 
 const queryClient = new QueryClient();
 
@@ -58,6 +60,8 @@ const App = () => (
               {/* ── Public / marketing ── */}
               <Route path="/"        element={<LandingPage />} />
               <Route path="/landing" element={<LandingPage />} />
+              <Route path="/blog"         element={<Blog />} />
+              <Route path="/blog/:slug"   element={<BlogPost />} />
               <Route path="/join/:ref" element={<JoinReferral />} />
 
               {/* ── Auth / onboarding ── */}

@@ -27,6 +27,7 @@ import {
   Music, Users, Search, ToggleLeft,
   MessageSquare, FileText, Bell, BarChart3,
   Copy, Send, Clock, Phone, Stethoscope, UserCheck, UserX,
+  BookOpen, Eye, EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import ContentInsights from "@/components/admin/ContentInsights";
@@ -58,6 +59,8 @@ interface TherapistRegistrationRow {
   reviewed_at: string | null;
   reviewed_by: string | null;
 }
+
+interface BlogPostRow { id: string; slug: string; title: string; excerpt: string | null; content: string | null; cover_image: string | null; published: boolean; created_at: string; updated_at: string; }
 
 interface AccessControlRow {
   user_id: string;
@@ -244,6 +247,13 @@ const AdminDashboard = () => {
   // ── Professional Leads ──
   const [professionalLeads, setProfessionalLeads] = useState<{ id: string; email: string; phone: string | null; created_at: string }[]>([]);
 
+  // ── Blog ──
+  const [blogPosts, setBlogPosts] = useState<BlogPostRow[]>([]);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<Partial<BlogPostRow> | null>(null);
+  const [savingBlog, setSavingBlog] = useState(false);
+  const [deletingBlogId, setDeletingBlogId] = useState<string | null>(null);
+
   /* ── Auth guard ── */
   useEffect(() => { if (!adminLoading && !isAdmin) navigate("/app/chat"); }, [adminLoading, isAdmin, navigate]);
   useEffect(() => { if (isAdmin) loadAllData(); }, [isAdmin]);
@@ -262,11 +272,75 @@ const AdminDashboard = () => {
       loadStatsFromDb(),
       loadProfessionalLeads(),
       loadTherapistRegistrations(),
-        loadAccessControlData(),
+      loadAccessControlData(),
+      loadBlogPosts(),
     ]);
     // Update user count after users loaded
     setStats(prev => ({ ...prev, users: usersResult?.length ?? 0 }));
     setLoadingData(false);
+  };
+
+  const loadBlogPosts = async () => {
+    setBlogLoading(true);
+    try {
+      const { data } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (data) setBlogPosts(data as any);
+    } catch { /* silent */ }
+    setBlogLoading(false);
+  };
+
+  const genSlug = (title: string) =>
+    title
+      .replace(/[^\w\s֐-׿-]/g, "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-") ||
+    `post-${Date.now()}`;
+
+  const saveBlogPost = async () => {
+    if (!editingBlog) return;
+    if (!editingBlog.title?.trim()) { toast({ title: "נא להזין כותרת", variant: "destructive" }); return; }
+    setSavingBlog(true);
+    try {
+      const now = new Date().toISOString();
+      const slug = editingBlog.slug?.trim() || genSlug(editingBlog.title);
+      if (editingBlog.id) {
+        // Update
+        const { error } = await supabase.from("blog_posts").update({
+          slug, title: editingBlog.title, excerpt: editingBlog.excerpt ?? null,
+          content: editingBlog.content ?? null, cover_image: editingBlog.cover_image ?? null,
+          published: editingBlog.published ?? false, updated_at: now,
+        }).eq("id", editingBlog.id);
+        if (error) throw error;
+      } else {
+        // Insert
+        const { error } = await supabase.from("blog_posts").insert({
+          slug, title: editingBlog.title, excerpt: editingBlog.excerpt ?? null,
+          content: editingBlog.content ?? null, cover_image: editingBlog.cover_image ?? null,
+          published: editingBlog.published ?? false, created_at: now, updated_at: now,
+        });
+        if (error) throw error;
+      }
+      toast({ title: "נשמר בהצלחה ✓" });
+      setEditingBlog(null);
+      await loadBlogPosts();
+    } catch (e: any) {
+      toast({ title: "שגיאה בשמירה", description: e?.message, variant: "destructive" });
+    }
+    setSavingBlog(false);
+  };
+
+  const deleteBlogPost = async (id: string) => {
+    setDeletingBlogId(id);
+    try {
+      await supabase.from("blog_posts").delete().eq("id", id);
+      setBlogPosts(prev => prev.filter(p => p.id !== id));
+      toast({ title: "המאמר נמחק" });
+    } catch { toast({ title: "שגיאה במחיקה", variant: "destructive" }); }
+    setDeletingBlogId(null);
   };
 
   const loadTherapistRegistrations = async () => {
@@ -812,6 +886,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="feedback" className="gap-1.5 text-xs sm:text-sm"><MessageSquare className="h-4 w-4" />משוב משתמשים</TabsTrigger>
             <TabsTrigger value="leads" className="gap-1.5 text-xs sm:text-sm"><Phone className="h-4 w-4" />לידים מקצועיים</TabsTrigger>
             <TabsTrigger value="landing-new" className="gap-1.5 text-xs sm:text-sm"><Globe className="h-4 w-4" />עמוד נחיתה</TabsTrigger>
+            <TabsTrigger value="blog" className="gap-1.5 text-xs sm:text-sm"><BookOpen className="h-4 w-4" />בלוג</TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1 — Landing Page ═══════ */}
@@ -1718,6 +1793,207 @@ const AdminDashboard = () => {
           {/* ═══════ TAB — Landing Page Content Editor ═══════ */}
           <TabsContent value="landing-new" className="space-y-6">
             <LandingContentEditor />
+          </TabsContent>
+
+          {/* ═══════ TAB — Blog ═══════ */}
+          <TabsContent value="blog" className="space-y-5">
+            <Card className="p-6 space-y-5">
+              {/* Header row */}
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" />ניהול בלוג
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">{blogPosts.length} מאמרים סה״כ</p>
+                </div>
+                <Button size="sm" className="gap-1.5" onClick={() => setEditingBlog({ published: false })}>
+                  <Plus className="h-4 w-4" />מאמר חדש +
+                </Button>
+              </div>
+
+              {/* ── Editor form ── */}
+              {editingBlog !== null && (
+                <div className="border border-border rounded-xl p-5 space-y-4 bg-muted/20">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-sm text-foreground">
+                      {editingBlog.id ? "עריכת מאמר" : "מאמר חדש"}
+                    </h4>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingBlog(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Title */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">כותרת *</label>
+                    <Input
+                      placeholder="כותרת המאמר"
+                      value={editingBlog.title ?? ""}
+                      onChange={e => setEditingBlog(prev => ({
+                        ...prev!,
+                        title: e.target.value,
+                        slug: prev?.slug || genSlug(e.target.value),
+                      }))}
+                      className="text-sm"
+                    />
+                  </div>
+
+                  {/* Slug */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">Slug (URL) </label>
+                    <Input
+                      placeholder="my-post-slug"
+                      value={editingBlog.slug ?? ""}
+                      onChange={e => setEditingBlog(prev => ({ ...prev!, slug: e.target.value }))}
+                      className="text-sm font-mono"
+                      dir="ltr"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      נגיש בכתובת: nestai.care/blog/<span className="font-mono">{editingBlog.slug || "..."}</span>
+                    </p>
+                  </div>
+
+                  {/* Excerpt */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">תקציר קצר</label>
+                    <Textarea
+                      placeholder="תיאור קצר שמופיע בכרטיס המאמר (1-2 משפטים)"
+                      value={editingBlog.excerpt ?? ""}
+                      onChange={e => setEditingBlog(prev => ({ ...prev!, excerpt: e.target.value }))}
+                      rows={2}
+                      className="text-sm resize-none"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">תוכן המאמר (HTML)</label>
+                    <Textarea
+                      placeholder={`<h2>כותרת</h2>\n<p>תוכן המאמר כאן...</p>`}
+                      value={editingBlog.content ?? ""}
+                      onChange={e => setEditingBlog(prev => ({ ...prev!, content: e.target.value }))}
+                      rows={12}
+                      className="text-sm font-mono resize-y"
+                      dir="ltr"
+                    />
+                    <p className="text-[11px] text-muted-foreground">תוכן HTML תקני. תגיות נתמכות: h2, h3, p, ul, ol, li, a, blockquote, img, hr, code, pre</p>
+                  </div>
+
+                  {/* Cover image */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-foreground">תמונת כריכה (URL)</label>
+                    <Input
+                      placeholder="https://..."
+                      value={editingBlog.cover_image ?? ""}
+                      onChange={e => setEditingBlog(prev => ({ ...prev!, cover_image: e.target.value }))}
+                      className="text-sm"
+                      dir="ltr"
+                    />
+                    {editingBlog.cover_image && (
+                      <img
+                        src={editingBlog.cover_image}
+                        alt="תצוגה מקדימה"
+                        className="rounded-lg mt-2 max-h-40 object-cover w-full"
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                  </div>
+
+                  {/* Published toggle */}
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={editingBlog.published ?? false}
+                      onCheckedChange={val => setEditingBlog(prev => ({ ...prev!, published: val }))}
+                    />
+                    <span className="text-sm text-foreground flex items-center gap-1.5">
+                      {editingBlog.published
+                        ? <><Eye className="h-4 w-4 text-green-600" />מפורסם — גלוי לציבור</>
+                        : <><EyeOff className="h-4 w-4 text-muted-foreground" />טיוטה — לא גלוי</>
+                      }
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-2">
+                    <Button className="gap-2" onClick={saveBlogPost} disabled={savingBlog}>
+                      {savingBlog ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      שמור
+                    </Button>
+                    <Button variant="outline" onClick={() => setEditingBlog(null)}>ביטול</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Posts list ── */}
+              {blogLoading ? (
+                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+              ) : blogPosts.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">אין מאמרים עדיין. לחץ ״מאמר חדש +״ כדי להתחיל.</p>
+              ) : (
+                <div className="overflow-x-auto border border-border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">כותרת</TableHead>
+                        <TableHead className="text-right">Slug</TableHead>
+                        <TableHead className="text-right">סטטוס</TableHead>
+                        <TableHead className="text-right">תאריך</TableHead>
+                        <TableHead className="text-right w-28">פעולות</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blogPosts.map(post => (
+                        <TableRow key={post.id}>
+                          <TableCell>
+                            <p className="font-medium text-sm text-foreground line-clamp-1">{post.title}</p>
+                            {post.excerpt && <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{post.excerpt}</p>}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground" dir="ltr">{post.slug}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${post.published ? 'bg-green-50 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                              {post.published ? <><Eye className="h-3 w-3" />מפורסם</> : <><EyeOff className="h-3 w-3" />טיוטה</>}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{formatDate(post.created_at)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setEditingBlog({ ...post })}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                    {deletingBlogId === post.id
+                                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                                      : <Trash2 className="h-4 w-4" />
+                                    }
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>מחיקת מאמר</AlertDialogTitle>
+                                    <AlertDialogDescription>האם למחוק את המאמר ״{post.title}״? פעולה זו לא ניתנת לביטול.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>ביטול</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteBlogPost(post.id)}>מחק</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

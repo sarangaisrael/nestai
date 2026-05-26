@@ -3,9 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { Capacitor } from "@capacitor/core";
-import { ChevronRight, ChevronLeft, Check } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, BookOpen, Calendar } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { format } from "date-fns";
+import { he as heLocale } from "date-fns/locale";
 
 /* ── Brand tokens ──────────────────────────── */
 const C = {
@@ -77,6 +79,7 @@ const LandingPage = () => {
   const content = language === 'he' ? { ...DEFAULTS_HE, ...cmsOverride } : DEFAULTS_EN;
   const [slide, setSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [blogPosts, setBlogPosts] = useState<Array<{ id: string; slug: string; title: string; excerpt: string | null; cover_image: string | null; created_at: string }>>([]);
 
   useEffect(() => {
     const link = document.createElement('link');
@@ -118,6 +121,17 @@ const LandingPage = () => {
         const { data, error } = await supabase.from('landing_content').select('*').eq('id', 1).single();
         if (!error && data) setCmsOverride(data);
       } catch { /* use defaults */ }
+
+      // Fetch latest 3 blog posts (silently, no error shown)
+      try {
+        const { data: bpData } = await supabase
+          .from('blog_posts')
+          .select('id, slug, title, excerpt, cover_image, created_at')
+          .eq('published', true)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        if (bpData) setBlogPosts(bpData as any);
+      } catch { /* silent */ }
 
       setIsLoading(false);
     };
@@ -429,6 +443,87 @@ const LandingPage = () => {
           {content.card2_cta}
         </button>
       </section>
+
+      {/* ── Blog preview ── */}
+      {blogPosts.length > 0 && (
+        <section style={{ paddingTop: 80, paddingBottom: 80, paddingLeft: 24, paddingRight: 24, background: C.bg }}>
+          <div style={{ maxWidth: '64rem', margin: '0 auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, flexWrap: 'wrap', gap: 12 }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#EFF6FF', borderRadius: 50, padding: '5px 14px', marginBottom: 10 }}>
+                  <BookOpen size={14} color={C.accent} />
+                  <span style={{ fontSize: 12, color: C.accent, fontWeight: 600 }}>בלוג</span>
+                </div>
+                <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, color: C.text, margin: 0 }}>
+                  מהבלוג שלנו
+                </h2>
+              </div>
+              <Link
+                to="/blog"
+                style={{ fontSize: 14, color: C.accent, fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+              >
+                לכל המאמרים ←
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+              {blogPosts.map(post => (
+                <Link
+                  key={post.id}
+                  to={`/blog/${post.slug}`}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  <article
+                    style={{
+                      background: C.card,
+                      borderRadius: 16,
+                      border: `1px solid ${C.cardBorder}`,
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                      overflow: 'hidden',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(0,0,0,0.11)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.05)'; }}
+                  >
+                    {post.cover_image ? (
+                      <div style={{ height: 160, overflow: 'hidden', flexShrink: 0 }}>
+                        <img src={post.cover_image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    ) : (
+                      <div style={{ height: 110, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <BookOpen size={32} color={C.accent} strokeWidth={1.5} />
+                      </div>
+                    )}
+                    <div style={{ padding: '18px 20px', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                        <Calendar size={12} color={C.textSec} />
+                        <span style={{ fontSize: 11, color: C.textSec }}>
+                          {(() => { try { return format(new Date(post.created_at), "d בMMMM yyyy", { locale: heLocale }); } catch { return ""; } })()}
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: C.text, margin: '0 0 8px', lineHeight: 1.4 }}>
+                        {post.title}
+                      </h3>
+                      {post.excerpt && (
+                        <p style={{
+                          fontSize: 13, color: C.textSec, lineHeight: 1.7, margin: '0 0 12px', flexGrow: 1,
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}>
+                          {post.excerpt}
+                        </p>
+                      )}
+                      <span style={{ fontSize: 13, color: C.accent, fontWeight: 600, marginTop: 'auto' }}>קרא עוד ←</span>
+                    </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Footer ── */}
       <footer style={{ background: '#1A1A2E', borderTop: `1px solid #2a2a45`, paddingTop: 32, paddingBottom: 32, paddingLeft: 24, paddingRight: 24 }}>
