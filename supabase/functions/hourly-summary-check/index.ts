@@ -462,11 +462,18 @@ serve(async (req) => {
         continue;
       }
 
-      // Calculate if we've passed the scheduled time this week for catch-up
-      const passedScheduledTime = 
-        userTimeDayIndex > scheduledDayIndex || 
-        (userTimeDayIndex === scheduledDayIndex && 
-         (userTime.hour > targetHour || (userTime.hour === targetHour && userTime.minute > targetMinute + 10)));
+      // Calculate days since scheduled day, handling week wraparound
+      let daysSince = userTimeDayIndex - scheduledDayIndex;
+      if (daysSince < 0) daysSince += 7;
+
+      // We've "passed" the scheduled time if:
+      // - We're past the scheduled day in the week, OR
+      // - We're on the scheduled day but past the time window
+      const passedScheduledTime =
+        daysSince > 0 ||
+        (daysSince === 0 &&
+         (userTime.hour > targetHour ||
+          (userTime.hour === targetHour && userTime.minute > targetMinute + 10)));
 
       // Send if: 1) It's the scheduled time, OR 2) We've passed it and haven't sent this week (catch-up)
       const shouldSend = (isCorrectDay && isCorrectHour && isWithinMinuteWindow) || passedScheduledTime;
