@@ -454,7 +454,7 @@ serve(async (req) => {
       // Since summaries are weekly, if one was sent in the last 6 days, skip.
       // This avoids timezone conversion bugs and ensures only one summary per week.
       const lastSentDate = prefs.weekly_summary_last_sent_at ? new Date(prefs.weekly_summary_last_sent_at) : null;
-      const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+      const sixDaysAgo = new Date(now.getTime() - 6.5 * 24 * 60 * 60 * 1000);
       const sentRecently = lastSentDate && lastSentDate >= sixDaysAgo;
 
       if (sentRecently) {
