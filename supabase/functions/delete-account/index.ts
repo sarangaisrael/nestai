@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
       "weekly_questionnaires",
       "weekly_emotion_ratings",
       "mood_entries",
+      "gratitude_entries",
       "user_preferences",
       "user_notifications",
       "push_subscriptions",

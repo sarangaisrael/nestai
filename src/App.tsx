@@ -31,7 +31,7 @@ const AdminLogin         = lazy(() => import("./pages/AdminLogin"));
 const JournalPage        = lazy(() => import("./pages/JournalPage"));
 const PatternsInsights   = lazy(() => import("./pages/PatternsInsights"));
 const Support            = lazy(() => import("./pages/Support"));
-const AdminGate          = lazy(() => import("./components/AdminGate"));
+const AdminGate          = lazy(() => import("./components/admin/AdminGate"));
 const ChoosePathScreen   = lazy(() => import("./pages/ChoosePathScreen"));
 const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
 const Blog               = lazy(() => import("./pages/Blog"));

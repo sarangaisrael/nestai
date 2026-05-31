@@ -6,6 +6,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// AES-256-GCM encryption
+async function encryptText(plaintext: string, keyString: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+  const keyBytes = new Uint8Array(hashBuffer);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedText = encoder.encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, encodedText);
+  const combined = new Uint8Array(12 + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), 12);
+  return btoa(String.fromCharCode(...combined));
+}
+
 // AES-256-GCM decryption
 async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
   const decoder = new TextDecoder();
@@ -213,9 +231,14 @@ serve(async (req) => {
       const aiData = await aiResponse.json();
       const newSummaryText = aiData.choices[0].message.content;
 
+      const encryptionKey = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
+      const textToSave = encryptionKey
+        ? await encryptText(newSummaryText, encryptionKey)
+        : newSummaryText;
+
       const { error: updateErr } = await supabase
         .from("weekly_summaries")
-        .update({ summary_text: newSummaryText })
+        .update({ summary_text: textToSave })
         .eq("id", summary_id);
 
       if (updateErr) throw updateErr;
@@ -419,9 +442,14 @@ ${p3Msgs.length > 0 ? p3Msgs.join("\n\n") : "אין כתיבה"}
 
       const newSummaryText = JSON.stringify(reportData);
 
+      const encryptionKeyMonthly = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
+      const monthlyTextToSave = encryptionKeyMonthly
+        ? await encryptText(newSummaryText, encryptionKeyMonthly)
+        : newSummaryText;
+
       const { error: updateErr } = await supabase
         .from("monthly_summaries")
-        .update({ summary_text: newSummaryText })
+        .update({ summary_text: monthlyTextToSave })
         .eq("id", summary_id);
 
       if (updateErr) throw updateErr;
