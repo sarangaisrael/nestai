@@ -40,6 +40,24 @@ async function decryptText(encryptedBase64: string, keyString: string): Promise<
   return decoder.decode(plaintextBytes);
 }
 
+// AES-256-GCM encryption using Web Crypto API (mirror of decryptText)
+async function encryptText(plaintext: string, keyString: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+  const keyBytes = new Uint8Array(hashBuffer);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedText = encoder.encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, encodedText);
+  const combined = new Uint8Array(12 + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), 12);
+  return btoa(String.fromCharCode(...combined));
+}
+
 function looksEncrypted(text: string): boolean {
   if (!text || text.length < 20) return false;
   try {
@@ -283,12 +301,15 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
     const aiData = await aiResponse.json();
     const summaryText = aiData.choices[0].message.content;
 
-    // Save summary to weekly_summaries table
+    // Save summary to weekly_summaries table (encrypted if key is available)
+    const encryptionKey = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
+    const textToSave = encryptionKey ? await encryptText(summaryText, encryptionKey) : summaryText;
+
     const { error: summaryInsertError } = await supabase.from("weekly_summaries").insert({
       user_id: userId,
       week_start: weekStart.toISOString(),
       week_end: now.toISOString(),
-      summary_text: summaryText,
+      summary_text: textToSave,
     });
 
     if (summaryInsertError) throw summaryInsertError;
