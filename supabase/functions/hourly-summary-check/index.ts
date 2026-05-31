@@ -147,6 +147,15 @@ async function generateAndSendSummary(
       .lte("created_at", now.toISOString())
       .order("created_at", { ascending: true });
 
+    // Fetch gratitude entries for the week
+    const { data: gratitudeEntries } = await supabase
+      .from("gratitude_entries")
+      .select("content, created_at")
+      .eq("user_id", userId)
+      .gte("created_at", weekStart.toISOString())
+      .lte("created_at", now.toISOString())
+      .order("created_at", { ascending: true });
+
     // Get encryption key
     const encryptionKey = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
 
@@ -211,6 +220,14 @@ async function generateAndSendSummary(
       ? `\n\n=== המלצות שעלו במהלך השבוע לדיון בטיפול ===\n${therapyRecommendations.join("\n")}`
       : "";
     
+    // Format gratitude data for the prompt
+    const gratitudeText = gratitudeEntries && gratitudeEntries.length > 0
+      ? `\n\n=== תודות שנרשמו השבוע (${gratitudeEntries.length} רשומות) ===\n${gratitudeEntries.map((g: any) => {
+          const date = new Date(g.created_at).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'numeric' });
+          return `${date}: ${g.content}`;
+        }).join('\n')}`
+      : "";
+
     // Format mood data for the prompt
     const moodSummaryText = moodEntries && moodEntries.length > 0
       ? `\n\n=== מצבי רוח שדווחו השבוע (${moodEntries.length} דיווחים) ===\n${moodEntries.map((m: any) => {
@@ -274,6 +291,8 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
 
 אם קיימים נתוני מצב רוח (mood entries) מהשבוע, יש לשלב אותם בתוך הסיכום בצורה טבעית - לתאר את המגמה הרגשית הכללית, ימים בולטים, ושינויים שעלו ממעקב מצב הרוח.
 
+אם קיימות רשומות תודות מהשבוע, שלב אותן בסיכום בצורה חמה וטבעית — כדגש חיובי על מה שהיה טוב השבוע.
+
 בסוף הסיכום, להוסיף משפט קצר אחד שמזכיר שהסיכום הוא רק כלי רפלקטיבי ואינו מחליף טיפול מקצועי.
 
 אורך: בינוני - לא קצר מדי ולא ארוך מדי.`;
@@ -288,7 +307,7 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}` },
+          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}${gratitudeText}` },
         ],
       }),
     });

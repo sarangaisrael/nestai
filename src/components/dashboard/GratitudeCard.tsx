@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +29,7 @@ const GratitudeCard = () => {
   const [saving, setSaving]           = useState(false);
   const [justSaved, setJustSaved]     = useState(false);
   const textareaRef                   = useRef<HTMLTextAreaElement>(null);
+  const navigate                      = useNavigate();
 
   // ── Fetch today's entries ────────────────────────────────────────────────
   useEffect(() => {
@@ -201,9 +203,27 @@ const GratitudeCard = () => {
           <span>🙏</span>
           <span>תודות היום</span>
         </div>
-        <span style={countBadge}>
-          {count}/{MAX_PER_DAY}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => navigate("/app/gratitude")}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              fontSize: 11,
+              fontWeight: 600,
+              color: "#3b82f6",
+              fontFamily: "inherit",
+              textDecoration: "none",
+            }}
+          >
+            כל התודות ←
+          </button>
+          <span style={countBadge}>
+            {count}/{MAX_PER_DAY}
+          </span>
+        </div>
       </div>
 
       {/* Today's entries */}
