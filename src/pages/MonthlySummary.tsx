@@ -30,6 +30,28 @@ import { generateTherapistPdf } from "@/lib/generateTherapistPdf";
 import { getThemeLabels, categorizeIntoThemes } from "@/lib/themeCategories";
 
 
+// ─── AES-256-GCM decrypt helpers (mirror of Edge Function) ──────────────────
+async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+  const keyBytes = new Uint8Array(hashBuffer);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+  );
+  const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+  const plaintextBytes = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, ciphertext);
+  return new TextDecoder().decode(plaintextBytes);
+}
+
+function looksEncrypted(text: string): boolean {
+  if (!text || text.length < 20) return false;
+  try { return atob(text).length >= 12; } catch { return false; }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── Types ───────────────────────────────────────────────────
 
 interface MonthlySummaryData {
@@ -699,6 +721,18 @@ const MonthlySummary = () => {
       ]);
 
       if (summaryResult.data) {
+        const encryptionKey = import.meta.env.VITE_MESSAGE_ENCRYPTION_KEY as string | undefined;
+        if (encryptionKey) {
+          for (const summary of summaryResult.data) {
+            if (looksEncrypted(summary.summary_text)) {
+              try {
+                summary.summary_text = await decryptText(summary.summary_text, encryptionKey);
+              } catch (e) {
+                console.error("Failed to decrypt monthly summary", summary.id, e);
+              }
+            }
+          }
+        }
         setSummaries(summaryResult.data);
         const unviewed = summaryResult.data.filter(s => !s.viewed_at);
         if (unviewed.length > 0) {

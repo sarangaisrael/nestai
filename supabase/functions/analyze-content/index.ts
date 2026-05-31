@@ -7,11 +7,14 @@ const corsHeaders = {
 };
 
 // AES-256-GCM decryption using Web Crypto API
-async function decryptText(encryptedBase64: string, keyBase64: string): Promise<string> {
+// Key derivation: SHA-256(keyString) — identical to hourly-summary-check and regenerate-summary
+async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
   try {
-    const decoder = new TextDecoder();
-    const keyBytes = Uint8Array.from(atob(keyBase64), c => c.charCodeAt(0));
-    
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(keyString);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+    const keyBytes = new Uint8Array(hashBuffer);
+
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
       keyBytes,
@@ -19,18 +22,18 @@ async function decryptText(encryptedBase64: string, keyBase64: string): Promise<
       false,
       ["decrypt"]
     );
-    
+
     const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
-    
+
     const plaintextBytes = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       cryptoKey,
       ciphertext
     );
-    
-    return decoder.decode(plaintextBytes);
+
+    return new TextDecoder().decode(plaintextBytes);
   } catch (error) {
     console.log("Decryption failed, returning original text");
     return encryptedBase64;
