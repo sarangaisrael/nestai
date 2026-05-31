@@ -8,6 +8,7 @@ import { Heart } from "lucide-react";
 
 import AppHeader from "@/components/layout/AppHeader";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
+import GratitudeCard from "@/components/dashboard/GratitudeCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
@@ -239,6 +240,7 @@ const Dashboard = () => {
         {/* ── Main cards ── */}
         <div style={{ padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <HeroJournalCard />
+          <GratitudeCard />
           <ActionGrid />
           <ToolboxCarousel />
         </div>
