@@ -65,6 +65,22 @@ serve(async (req) => {
       );
     }
 
+    // Extract user_id from request body — required to scope the query to a single user
+    let userId: string;
+    try {
+      const body = await req.json();
+      userId = body?.user_id;
+    } catch {
+      userId = "";
+    }
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "user_id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -82,10 +98,11 @@ serve(async (req) => {
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const oneWeekAgoISO = oneWeekAgo.toISOString();
 
-    // Fetch user messages from the last week only
+    // Fetch messages for the specified user only — scoped by user_id to prevent cross-tenant leakage
     const { data: messages, error: fetchError } = await supabase
       .from("messages")
       .select("text")
+      .eq("user_id", userId)
       .eq("role", "user")
       .gte("created_at", oneWeekAgoISO)
       .order("created_at");
