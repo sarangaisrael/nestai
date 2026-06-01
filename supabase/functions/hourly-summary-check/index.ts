@@ -321,7 +321,6 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
     const summaryText = aiData.choices[0].message.content;
 
     // Save summary to weekly_summaries table (encrypted if key is available)
-    const encryptionKey = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
     const textToSave = encryptionKey ? await encryptText(summaryText, encryptionKey) : summaryText;
 
     const { error: summaryInsertError } = await supabase.from("weekly_summaries").insert({
