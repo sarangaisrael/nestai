@@ -1,34 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ── Client-side AES-256-GCM helpers (mirror of Edge Function) ──────────────
-async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(keyString);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
-  const keyBytes = new Uint8Array(hashBuffer);
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
-  );
-  const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
-  const iv = combined.slice(0, 12);
-  const ciphertext = combined.slice(12);
-  const plaintextBytes = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv }, cryptoKey, ciphertext
-  );
-  return new TextDecoder().decode(plaintextBytes);
-}
 
-function looksEncrypted(text: string): boolean {
-  if (!text || text.length < 20) return false;
-  try {
-    const decoded = atob(text);
-    return decoded.length >= 12;
-  } catch {
-    return false;
-  }
-}
-// ────────────────────────────────────────────────────────────────────────────
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -128,18 +101,18 @@ const Summary = () => {
         throw error;
       }
 
-      const encryptionKey = import.meta.env.VITE_MESSAGE_ENCRYPTION_KEY || "nestai-encryption-key-2026";
       const rows: Summary[] = data || [];
 
-      if (encryptionKey) {
-        for (const summary of rows) {
-          if (looksEncrypted(summary.summary_text)) {
-            try {
-              summary.summary_text = await decryptText(summary.summary_text, encryptionKey);
-            } catch (e) {
-              console.error("Failed to decrypt summary", summary.id, e);
-            }
+      for (const summary of rows) {
+        try {
+          const response = await supabase.functions.invoke('get-decrypted-summary', {
+            body: { summary_id: summary.id },
+          });
+          if (response.data?.summary_text) {
+            summary.summary_text = response.data.summary_text;
           }
+        } catch (e) {
+          console.error("Failed to decrypt summary", summary.id, e);
         }
       }
 
