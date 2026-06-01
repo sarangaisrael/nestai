@@ -14,9 +14,10 @@ interface GratitudeEntry {
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 const todayRange = (): { start: string; end: string } => {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end   = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
   return { start: start.toISOString(), end: end.toISOString() };
 };
 
@@ -43,7 +44,7 @@ const GratitudeCard = () => {
         .select("id, content, created_at")
         .eq("user_id", user.id)
         .gte("created_at", start)
-        .lt("created_at", end)
+        .lte("created_at", end)
         .order("created_at", { ascending: true });
 
       setEntries(data ?? []);
