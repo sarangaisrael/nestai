@@ -723,7 +723,7 @@ const MonthlySummary = () => {
       ]);
 
       if (summaryResult.data) {
-        const encryptionKey = import.meta.env.VITE_MESSAGE_ENCRYPTION_KEY || "4eba7d3e008ee84c12cf2ec1b5a975cc81fe5d5c0b3aba1fce973f07da02c2e6";
+        const encryptionKey = import.meta.env.VITE_MESSAGE_ENCRYPTION_KEY || "nestai-encryption-key-2026";
         if (encryptionKey) {
           for (const summary of summaryResult.data) {
             if (looksEncrypted(summary.summary_text)) {
