@@ -36,7 +36,6 @@ const ChoosePathScreen   = lazy(() => import("./pages/ChoosePathScreen"));
 const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
 const Blog               = lazy(() => import("./pages/Blog"));
 const BlogPost           = lazy(() => import("./pages/BlogPost"));
-const Gratitude          = lazy(() => import("./pages/Gratitude"));
 
 const queryClient = new QueryClient();
 
@@ -90,7 +89,6 @@ const App = () => (
               <Route path="/app/patterns"         element={<AppLayout><PatternsInsights /></AppLayout>} />
               <Route path="/app/privacy"          element={<AppLayout><Privacy /></AppLayout>} />
               <Route path="/app/support"          element={<AppLayout><Support /></AppLayout>} />
-              <Route path="/app/gratitude"        element={<AppLayout><Gratitude /></AppLayout>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
