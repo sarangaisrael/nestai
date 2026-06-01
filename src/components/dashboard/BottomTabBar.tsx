@@ -23,7 +23,7 @@ const BottomTabBar = () => {
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
       background: '#ffffff',
-      borderTop: '1px solid #f1f5f9',
+      borderTop: '0.5px solid #e5e7eb',
       paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       fontFamily: "'Heebo', sans-serif",
     }}>
@@ -46,12 +46,12 @@ const BottomTabBar = () => {
               <Icon
                 size={20}
                 strokeWidth={active ? 2.2 : 1.5}
-                color={active ? '#6366f1' : '#94a3b8'}
+                color={active ? '#d97706' : '#9ca3af'}
               />
               <span style={{
                 fontSize: 10,
                 fontWeight: active ? 700 : 400,
-                color: active ? '#6366f1' : '#94a3b8',
+                color: active ? '#d97706' : '#9ca3af',
               }}>
                 {labels[key]}
               </span>

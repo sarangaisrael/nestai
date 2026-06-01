@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, type ElementType } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar, Wind, Lightbulb, X, Pencil } from "lucide-react";
@@ -291,25 +291,30 @@ const ToolboxCarousel = () => {
     );
   };
 
-  const toolEmojis: Record<string, string> = {
-    session:   "📅",
-    breathing: "🫧",
-    insight:   "💡",
+  const toolConfig: Record<string, { boxBg: string; iconColor: string; Icon: ElementType }> = {
+    session:   { boxBg: "#fef9c3", iconColor: "#d97706", Icon: Calendar },
+    breathing: { boxBg: "#e0f2fe", iconColor: "#0284c7", Icon: Wind },
+    insight:   { boxBg: "#fce7f3", iconColor: "#db2777", Icon: Lightbulb },
   };
 
   return (
     <>
       <div style={{ fontFamily: "'Heebo', sans-serif" }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-          {cards.map((card) => (
-            <ToolboxButton
-              key={card.id}
-              emoji={toolEmojis[card.id]}
-              title={card.title}
-              content={card.content}
-              onClick={() => setActiveCard(card.id)}
-            />
-          ))}
+          {cards.map((card) => {
+            const cfg = toolConfig[card.id];
+            return (
+              <ToolboxButton
+                key={card.id}
+                boxBg={cfg.boxBg}
+                iconColor={cfg.iconColor}
+                IconComponent={cfg.Icon}
+                title={card.title}
+                content={card.content}
+                onClick={() => setActiveCard(card.id)}
+              />
+            );
+          })}
         </div>
       </div>
 
@@ -320,8 +325,11 @@ const ToolboxCarousel = () => {
 
 // ── Toolbox tile ─────────────────────────────────────────────────────────────
 const ToolboxButton = ({
-  emoji, title, content, onClick,
-}: { emoji: string; title: string; content: string; onClick: () => void }) => {
+  boxBg, iconColor, IconComponent, title, content, onClick,
+}: {
+  boxBg: string; iconColor: string; IconComponent: ElementType;
+  title: string; content: string; onClick: () => void;
+}) => {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -330,17 +338,25 @@ const ToolboxButton = ({
       onMouseLeave={() => setHovered(false)}
       style={{
         background: '#ffffff',
-        border: `1px solid ${hovered ? '#c7d2fe' : '#f1f5f9'}`,
+        border: `1px solid ${hovered ? '#e2e8f0' : '#f1f5f9'}`,
         borderRadius: 14,
         padding: '14px 10px 12px',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         cursor: 'pointer', textAlign: 'center',
         transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
-        boxShadow: hovered ? '0 2px 10px rgba(99,102,241,0.10)' : 'none',
+        boxShadow: hovered ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
         fontFamily: "'Heebo', sans-serif",
       }}
     >
-      <span style={{ fontSize: 22, marginBottom: 8, lineHeight: 1 }}>{emoji}</span>
+      {/* Colored icon box */}
+      <div style={{
+        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+        background: boxBg,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 8,
+      }}>
+        <IconComponent size={16} color={iconColor} strokeWidth={1.8} />
+      </div>
       <p style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', margin: '0 0 3px', lineHeight: 1.3 }}>{title}</p>
       <p style={{
         fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.4,
