@@ -29,9 +29,50 @@ const getTimeOfDay = (): TimeOfDay => {
 
 const CSS = `
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Mobile-only bottom nav ── */
   .dash-bottom-nav { display: block; }
   @media (min-width: 768px) {
     .dash-bottom-nav { display: none !important; }
+  }
+
+  /* ── Desktop content wrapper ── */
+  .dash-body {
+    padding-bottom: 80px;
+  }
+  .dash-inner {
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+  }
+  .dash-greeting {
+    padding-top: 24px;
+    padding-bottom: 10px;
+  }
+  .dash-cards {
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  @media (min-width: 768px) {
+    .dash-body {
+      padding-bottom: 40px;
+    }
+    .dash-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .dash-greeting {
+      padding-top: 40px;
+      padding-bottom: 12px;
+    }
+    .dash-cards {
+      padding-top: 20px;
+      gap: 18px;
+    }
   }
 `;
 
@@ -184,13 +225,14 @@ const Dashboard = () => {
       {isIOS && !isInstalled && <IOSInstallOverlay />}
 
       {/* Scrollable body */}
-      <div style={{ paddingBottom: 80 }}>
+      <div className="dash-body">
+        <div className="dash-inner">
 
         {/* ── Mood prompt ── */}
         {showMoodPrompt && (
           <motion.div
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            style={{ padding: '12px 20px 0' }}
+            style={{ paddingTop: 12 }}
           >
             <div style={{ background: '#ffffff', borderRadius: 16, padding: 20, border: '0.5px solid #e2e8f0' }}>
               <p style={{ fontSize: 15, fontWeight: 500, color: '#0f172a', marginBottom: 12, textAlign: 'center' }}>
@@ -233,7 +275,7 @@ const Dashboard = () => {
         {/* ── Greeting ── */}
         <motion.div
           initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-          style={{ padding: '24px 20px 10px' }}
+          className="dash-greeting"
         >
           <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400, margin: '0 0 4px', fontFamily: "'Heebo', sans-serif" }}>
             {greetingLabel}
@@ -258,14 +300,15 @@ const Dashboard = () => {
         </motion.div>
 
         {/* ── Main cards ── */}
-        <div style={{ padding: '16px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="dash-cards">
           <HeroJournalCard />
           <GratitudeCard />
           <ActionGrid />
           <ToolboxCarousel />
         </div>
 
-      </div>
+        </div>{/* /dash-inner */}
+      </div>{/* /dash-body */}
 
       {/* ── Bottom nav — mobile only ── */}
       <div className="dash-bottom-nav">
