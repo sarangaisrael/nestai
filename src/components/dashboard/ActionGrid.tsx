@@ -92,11 +92,27 @@ const ActionGrid = () => {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontFamily: "'Heebo', sans-serif" }}>
-      {tiles.map((tile) => (
-        <TileButton key={tile.path} tile={tile} onClick={() => navigate(tile.path)} />
-      ))}
-    </div>
+    <>
+      <style>{`
+        .action-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          font-family: 'Heebo', sans-serif;
+        }
+        @media (min-width: 768px) {
+          .action-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+          }
+        }
+      `}</style>
+      <div className="action-grid">
+        {tiles.map((tile) => (
+          <TileButton key={tile.path} tile={tile} onClick={() => navigate(tile.path)} />
+        ))}
+      </div>
+    </>
   );
 };
 

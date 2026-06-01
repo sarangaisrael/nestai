@@ -76,6 +76,25 @@ const DashboardTopbar = () => {
 
   return (
     <>
+      <style>{`
+        .dash-topbar-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 54px;
+          padding: 0 16px;
+          max-width: 900px;
+          margin: 0 auto;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        @media (min-width: 768px) {
+          .dash-topbar-inner {
+            padding: 0 48px;
+          }
+        }
+      `}</style>
+
       {/* Fixed topbar */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
@@ -86,10 +105,7 @@ const DashboardTopbar = () => {
         paddingTop: 'env(safe-area-inset-top, 0px)',
         fontFamily: "'Heebo', sans-serif",
       }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          height: 54, padding: '0 16px', maxWidth: 640, margin: '0 auto',
-        }}>
+        <div className="dash-topbar-inner">
 
           {/* ── Right side (visual): chat + bell ── */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

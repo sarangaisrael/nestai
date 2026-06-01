@@ -36,7 +36,7 @@ const CSS = `
     .dash-bottom-nav { display: none !important; }
   }
 
-  /* ── Desktop content wrapper ── */
+  /* ── Mobile defaults ── */
   .dash-body {
     padding-bottom: 80px;
   }
@@ -49,6 +49,12 @@ const CSS = `
     padding-top: 24px;
     padding-bottom: 10px;
   }
+  .dash-greeting-label {
+    font-size: 12px;
+  }
+  .dash-greeting-name {
+    font-size: 26px;
+  }
   .dash-cards {
     padding-top: 16px;
     display: flex;
@@ -56,22 +62,30 @@ const CSS = `
     gap: 16px;
   }
 
+  /* ── Desktop overrides ── */
   @media (min-width: 768px) {
     .dash-body {
-      padding-bottom: 40px;
+      padding-bottom: 48px;
     }
     .dash-inner {
-      max-width: 680px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 48px;
+      box-sizing: border-box;
     }
     .dash-greeting {
       padding-top: 40px;
-      padding-bottom: 12px;
+      padding-bottom: 16px;
+    }
+    .dash-greeting-label {
+      font-size: 14px;
+    }
+    .dash-greeting-name {
+      font-size: 32px;
     }
     .dash-cards {
-      padding-top: 20px;
-      gap: 18px;
+      padding-top: 24px;
+      gap: 20px;
     }
   }
 `;
@@ -277,11 +291,11 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
           className="dash-greeting"
         >
-          <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400, margin: '0 0 4px', fontFamily: "'Heebo', sans-serif" }}>
+          <p className="dash-greeting-label" style={{ color: '#94a3b8', fontWeight: 400, margin: '0 0 4px', fontFamily: "'Heebo', sans-serif" }}>
             {greetingLabel}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, letterSpacing: '-1px', fontFamily: "'Heebo', sans-serif" }}>
+            <h1 className="dash-greeting-name" style={{ fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, letterSpacing: '-1px', fontFamily: "'Heebo', sans-serif" }}>
               {t.dashboard.helloPrefix} {firstName} 👋
             </h1>
             {streak > 0 && (
