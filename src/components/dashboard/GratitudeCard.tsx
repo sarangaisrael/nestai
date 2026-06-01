@@ -86,10 +86,11 @@ const GratitudeCard = () => {
   // ─── Styles ──────────────────────────────────────────────────────────────
   const card: React.CSSProperties = {
     background: "#ffffff",
-    border: "0.5px solid #e2e8f0",
-    borderRadius: 16,
+    border: "1px solid #f1f5f9",
+    borderRadius: 18,
     padding: "18px 18px 16px",
     boxSizing: "border-box",
+    fontFamily: "'Heebo', sans-serif",
   };
 
   const headerRow: React.CSSProperties = {
@@ -104,18 +105,9 @@ const GratitudeCard = () => {
     alignItems: "center",
     gap: 6,
     fontSize: 13,
-    fontWeight: 700,
+    fontWeight: 800,
     color: "#0f172a",
-  };
-
-  const countBadge: React.CSSProperties = {
-    fontSize: 11,
-    fontWeight: 600,
-    color: isComplete ? "#16a34a" : "#64748b",
-    background: isComplete ? "#dcfce7" : "#f1f5f9",
-    borderRadius: 50,
-    padding: "2px 9px",
-    letterSpacing: "0.02em",
+    letterSpacing: "-0.2px",
   };
 
   const entryBubble: React.CSSProperties = {
@@ -140,27 +132,27 @@ const GratitudeCard = () => {
     color: "#1e293b",
     lineHeight: 1.6,
     outline: "none",
-    fontFamily: "inherit",
+    fontFamily: "'Heebo', sans-serif",
     background: "#f8fafc",
     minHeight: 72,
     transition: "border-color 0.15s",
   };
 
   const saveBtn: React.CSSProperties = {
-    marginTop: 8,
-    background: text.trim() ? "#3b82f6" : "#cbd5e1",
-    color: "#ffffff",
+    background: text.trim() ? "#6366f1" : "#e2e8f0",
+    color: text.trim() ? "#ffffff" : "#94a3b8",
     border: "none",
-    borderRadius: 50,
-    padding: "7px 20px",
-    fontSize: 13,
-    fontWeight: 600,
+    borderRadius: 20,
+    padding: "7px 18px",
+    fontSize: 12,
+    fontWeight: 700,
     cursor: text.trim() && !saving ? "pointer" : "default",
-    fontFamily: "inherit",
-    transition: "background 0.15s",
+    fontFamily: "'Heebo', sans-serif",
+    transition: "background 0.15s, color 0.15s",
     display: "flex",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
+    letterSpacing: "-0.1px",
   };
 
   const confirmMsg: React.CSSProperties = {
@@ -177,13 +169,13 @@ const GratitudeCard = () => {
 
   const completedBanner: React.CSSProperties = {
     marginTop: 10,
-    background: "linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)",
-    border: "0.5px solid #bbf7d0",
+    background: "linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%)",
+    border: "0.5px solid #c7d2fe",
     borderRadius: 10,
     padding: "10px 14px",
     fontSize: 12,
     fontWeight: 500,
-    color: "#15803d",
+    color: "#4338ca",
     textAlign: "center",
   };
 
@@ -203,26 +195,30 @@ const GratitudeCard = () => {
           <span>🙏</span>
           <span>תודות היום</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* 3-dot progress */}
+          <div style={{ display: "flex", gap: 5 }}>
+            {[0, 1, 2].map(i => (
+              <span
+                key={i}
+                style={{
+                  width: 8, height: 8, borderRadius: "50%",
+                  background: i < count ? "#6366f1" : "#e2e8f0",
+                  transition: "background 0.2s",
+                }}
+              />
+            ))}
+          </div>
           <button
             onClick={() => navigate("/app/gratitude")}
             style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#3b82f6",
-              fontFamily: "inherit",
-              textDecoration: "none",
+              background: "none", border: "none", padding: 0,
+              cursor: "pointer", fontSize: 11, fontWeight: 700,
+              color: "#6366f1", fontFamily: "'Heebo', sans-serif",
             }}
           >
-            כל התודות ←
+            הכל ←
           </button>
-          <span style={countBadge}>
-            {count}/{MAX_PER_DAY}
-          </span>
         </div>
       </div>
 
@@ -257,7 +253,7 @@ const GratitudeCard = () => {
             style={textareaStyle}
             dir="rtl"
           />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
             <button
               style={saveBtn}
               onClick={handleSave}
@@ -265,14 +261,12 @@ const GratitudeCard = () => {
             >
               {saving ? (
                 <>
-                  <span style={{ width: 12, height: 12, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
+                  <span style={{ width: 11, height: 11, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />
                   שומר...
                 </>
-              ) : "שמור"}
+              ) : "שמור ✓"}
             </button>
-            {text.length > 0 && (
-              <span style={{ fontSize: 10, color: "#94a3b8" }}>{text.length}/300</span>
-            )}
+            <span style={{ fontSize: 10, color: "#cbd5e1" }}>{text.length}/300</span>
           </div>
         </div>
       )}

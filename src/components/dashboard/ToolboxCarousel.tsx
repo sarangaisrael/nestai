@@ -291,40 +291,63 @@ const ToolboxCarousel = () => {
     );
   };
 
+  const toolEmojis: Record<string, string> = {
+    session:   "📅",
+    breathing: "🫧",
+    insight:   "💡",
+  };
+
   return (
     <>
-      <div>
-        <p style={{ fontSize: 9, fontWeight: 600, color: '#cbd5e1', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-          {isRTL ? "ארגז הכלים" : "TOOLBOX"}
-        </p>
+      <div style={{ fontFamily: "'Heebo', sans-serif" }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
           {cards.map((card) => (
-            <button
+            <ToolboxButton
               key={card.id}
+              emoji={toolEmojis[card.id]}
+              title={card.title}
+              content={card.content}
               onClick={() => setActiveCard(card.id)}
-              style={{
-                background: '#ffffff', border: '0.5px solid #e2e8f0',
-                borderRadius: 14, padding: '14px 12px',
-                display: 'flex', flexDirection: 'column',
-                cursor: 'pointer', textAlign: 'start', transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f8fafc'}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#ffffff'}
-            >
-              <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 10 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <card.icon size={13} color="#1d4ed8" strokeWidth={2} />
-                </div>
-              </div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', margin: '0 0 4px', lineHeight: 1.3 }}>{card.title}</p>
-              <p style={{ fontSize: 10, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>{card.content}</p>
-            </button>
+            />
           ))}
         </div>
       </div>
 
       {renderOverlay()}
     </>
+  );
+};
+
+// ── Toolbox tile ─────────────────────────────────────────────────────────────
+const ToolboxButton = ({
+  emoji, title, content, onClick,
+}: { emoji: string; title: string; content: string; onClick: () => void }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: '#ffffff',
+        border: `1px solid ${hovered ? '#c7d2fe' : '#f1f5f9'}`,
+        borderRadius: 14,
+        padding: '14px 10px 12px',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        cursor: 'pointer', textAlign: 'center',
+        transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
+        boxShadow: hovered ? '0 2px 10px rgba(99,102,241,0.10)' : 'none',
+        fontFamily: "'Heebo', sans-serif",
+      }}
+    >
+      <span style={{ fontSize: 22, marginBottom: 8, lineHeight: 1 }}>{emoji}</span>
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', margin: '0 0 3px', lineHeight: 1.3 }}>{title}</p>
+      <p style={{
+        fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.4,
+        overflow: 'hidden', display: '-webkit-box',
+        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      } as React.CSSProperties}>{content}</p>
+    </button>
   );
 };
 

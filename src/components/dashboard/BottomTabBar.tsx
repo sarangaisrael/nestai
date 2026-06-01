@@ -22,12 +22,14 @@ const BottomTabBar = () => {
   return (
     <nav style={{
       position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-      background: '#ffffff', borderTop: '0.5px solid #e2e8f0',
-      paddingBottom: 'env(safe-area-inset-bottom,0px)',
+      background: '#ffffff',
+      borderTop: '1px solid #f1f5f9',
+      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      fontFamily: "'Heebo', sans-serif",
     }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-        height: 56, maxWidth: 480, margin: '0 auto',
+        height: 58, maxWidth: 480, margin: '0 auto',
       }}>
         {tabs.map(({ key, path, icon: Icon }) => {
           const active = location.pathname === path;
@@ -37,17 +39,19 @@ const BottomTabBar = () => {
               onClick={() => navigate(path)}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-                padding: '6px 20px', background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px 22px', background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: "'Heebo', sans-serif",
               }}
             >
               <Icon
                 size={20}
-                strokeWidth={active ? 2 : 1.5}
-                color={active ? '#1e3a5f' : '#cbd5e1'}
+                strokeWidth={active ? 2.2 : 1.5}
+                color={active ? '#6366f1' : '#94a3b8'}
               />
               <span style={{
-                fontSize: 10, fontWeight: active ? 500 : 400,
-                color: active ? '#1e3a5f' : '#cbd5e1',
+                fontSize: 10,
+                fontWeight: active ? 700 : 400,
+                color: active ? '#6366f1' : '#94a3b8',
               }}>
                 {labels[key]}
               </span>

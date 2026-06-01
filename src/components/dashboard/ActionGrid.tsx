@@ -1,103 +1,165 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, BookOpen, Sparkles, TrendingUp } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const ActionGrid = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [journalCount, setJournalCount] = useState<number | null>(null);
+  const [hasSummary, setHasSummary]     = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Count journal messages this week
+      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", session.user.id)
+        .eq("role", "user")
+        .gte("created_at", weekAgo);
+      if (count !== null) setJournalCount(count);
+
+      // Check for unviewed weekly summary
+      const { data: summaries } = await supabase
+        .from("weekly_summaries")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .is("viewed_at", null)
+        .limit(1);
+      if (summaries && summaries.length > 0) setHasSummary(true);
+    };
+    load();
+  }, []);
 
   const tiles = [
     {
-      label:      t.dashboard.weeklySummaries,
-      subtitle:   t.dashboard.weeklySummariesSub,
-      icon:       FileText,
-      path:       "/app/summary",
-      bg:         '#fffbeb',
-      border:     '#fde68a',
-      iconBg:     '#fef3c7',
-      iconColor:  '#d97706',
-      titleColor: '#92400e',
-      subColor:   '#b45309',
+      label:    t.dashboard.weeklySummaries,
+      subtitle: t.dashboard.weeklySummariesSub,
+      emoji:    "📋",
+      path:     "/app/summary",
+      bg:       "#fefce8",
+      border:   "#fde68a",
+      titleColor: "#92400e",
+      subColor:   "#b45309",
+      badge:    hasSummary ? "חדש" : null,
+      badgeBg:  "#fde68a",
+      badgeColor: "#92400e",
     },
     {
-      label:      t.dashboard.myJournal,
-      subtitle:   t.dashboard.myJournalSub,
-      icon:       BookOpen,
-      path:       "/app/journal",
-      bg:         '#f0fdf4',
-      border:     '#bbf7d0',
-      iconBg:     '#d1fae5',
-      iconColor:  '#059669',
-      titleColor: '#065f46',
-      subColor:   '#10b981',
+      label:    t.dashboard.myJournal,
+      subtitle: t.dashboard.myJournalSub,
+      emoji:    "📖",
+      path:     "/app/journal",
+      bg:       "#f0fdf4",
+      border:   "#bbf7d0",
+      titleColor: "#065f46",
+      subColor:   "#10b981",
+      badge:    journalCount !== null ? `${journalCount}` : null,
+      badgeBg:  "#bbf7d0",
+      badgeColor: "#065f46",
     },
     {
-      label:      t.dashboard.therapyTools,
-      subtitle:   t.dashboard.therapyToolsSub,
-      icon:       Sparkles,
-      path:       "/app/meditation",
-      bg:         '#fdf4ff',
-      border:     '#e9d5ff',
-      iconBg:     '#ede9fe',
-      iconColor:  '#7c3aed',
-      titleColor: '#5b21b6',
-      subColor:   '#7c3aed',
+      label:    t.dashboard.therapyTools,
+      subtitle: t.dashboard.therapyToolsSub,
+      emoji:    "✨",
+      path:     "/app/meditation",
+      bg:       "#fdf4ff",
+      border:   "#e9d5ff",
+      titleColor: "#5b21b6",
+      subColor:   "#7c3aed",
+      badge:    null,
+      badgeBg:  "",
+      badgeColor: "",
     },
     {
-      label:      t.dashboard.monthlyTrends,
-      subtitle:   t.dashboard.monthlyTrendsSub,
-      icon:       TrendingUp,
-      path:       "/app/monthly-summary",
-      bg:         '#f0f9ff',
-      border:     '#bae6fd',
-      iconBg:     '#e0f2fe',
-      iconColor:  '#0284c7',
-      titleColor: '#0c4a6e',
-      subColor:   '#0284c7',
+      label:    t.dashboard.monthlyTrends,
+      subtitle: t.dashboard.monthlyTrendsSub,
+      emoji:    "📈",
+      path:     "/app/monthly-summary",
+      bg:       "#eff6ff",
+      border:   "#bfdbfe",
+      titleColor: "#1e40af",
+      subColor:   "#3b82f6",
+      badge:    "↑",
+      badgeBg:  "#bfdbfe",
+      badgeColor: "#1e40af",
     },
   ];
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: 12,
-    }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontFamily: "'Heebo', sans-serif" }}>
       {tiles.map((tile) => (
-        <button
-          key={tile.path}
-          onClick={() => navigate(tile.path)}
-          style={{
-            background:    tile.bg,
-            border:        `0.5px solid ${tile.border}`,
-            borderRadius:  16,
-            padding:       '16px 14px',
-            display:       'flex',
-            flexDirection: 'column',
-            cursor:        'pointer',
-            textAlign:     'start',
-            transition:    'opacity 0.15s',
-          }}
-          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.opacity = '0.82'}
-          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.opacity = '1'}
-        >
-          <div style={{
-            width: 34, height: 34, borderRadius: 9,
-            background: tile.iconBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 10, flexShrink: 0,
-          }}>
-            <tile.icon size={15} color={tile.iconColor} strokeWidth={2} />
-          </div>
-          <p style={{ fontSize: 12, fontWeight: 600, color: tile.titleColor, margin: '0 0 3px' }}>
-            {tile.label}
-          </p>
-          <p style={{ fontSize: 10, fontWeight: 500, color: tile.subColor, margin: 0, opacity: 0.85 }}>
-            {tile.subtitle}
-          </p>
-        </button>
+        <TileButton key={tile.path} tile={tile} onClick={() => navigate(tile.path)} />
       ))}
     </div>
+  );
+};
+
+interface Tile {
+  label: string; subtitle: string; emoji: string; path: string;
+  bg: string; border: string; titleColor: string; subColor: string;
+  badge: string | null; badgeBg: string; badgeColor: string;
+}
+
+const TileButton = ({ tile, onClick }: { tile: Tile; onClick: () => void }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background:     tile.bg,
+        border:         `1px solid ${tile.border}`,
+        borderRadius:   16,
+        padding:        "14px 12px 14px 14px",
+        display:        "flex",
+        flexDirection:  "column",
+        cursor:         "pointer",
+        textAlign:      "start",
+        position:       "relative",
+        transform:      hovered ? "translateY(-2px)" : "translateY(0)",
+        transition:     "transform 0.18s ease, box-shadow 0.18s ease",
+        boxShadow:      hovered ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
+        fontFamily:     "'Heebo', sans-serif",
+      }}
+    >
+      {/* Badge — top-left (visual left = start in RTL) */}
+      {tile.badge && (
+        <span style={{
+          position: "absolute", top: 10, left: 10,
+          background: tile.badgeBg, color: tile.badgeColor,
+          borderRadius: 50, padding: "1px 7px",
+          fontSize: 10, fontWeight: 700,
+        }}>
+          {tile.badge}
+        </span>
+      )}
+
+      {/* Emoji — top-right (visual right = end in RTL) */}
+      <span style={{
+        position: "absolute", top: 10, right: 10,
+        fontSize: 18, lineHeight: 1,
+      }}>
+        {tile.emoji}
+      </span>
+
+      {/* Text — pushed down to clear the absolute elements */}
+      <div style={{ marginTop: 28 }}>
+        <p style={{ fontSize: 12, fontWeight: 800, color: tile.titleColor, margin: "0 0 3px", letterSpacing: "-0.2px" }}>
+          {tile.label}
+        </p>
+        <p style={{ fontSize: 10, fontWeight: 500, color: tile.subColor, margin: 0, opacity: 0.85 }}>
+          {tile.subtitle}
+        </p>
+      </div>
+    </button>
   );
 };
 
