@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 // ── Client-side AES-256-GCM helpers (mirror of Edge Function) ──────────────
 async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
-  const decoder = new TextDecoder();
   const encoder = new TextEncoder();
   const keyData = encoder.encode(keyString);
   const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
@@ -14,8 +13,10 @@ async function decryptText(encryptedBase64: string, keyString: string): Promise<
   const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
   const iv = combined.slice(0, 12);
   const ciphertext = combined.slice(12);
-  const plaintextBytes = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, ciphertext);
-  return decoder.decode(plaintextBytes);
+  const plaintextBytes = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv }, cryptoKey, ciphertext
+  );
+  return new TextDecoder().decode(plaintextBytes);
 }
 
 function looksEncrypted(text: string): boolean {

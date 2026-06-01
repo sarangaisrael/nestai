@@ -39,10 +39,12 @@ async function decryptText(encryptedBase64: string, keyString: string): Promise<
   const cryptoKey = await crypto.subtle.importKey(
     "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
   );
-  const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+  const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
   const iv = combined.slice(0, 12);
   const ciphertext = combined.slice(12);
-  const plaintextBytes = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, ciphertext);
+  const plaintextBytes = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv }, cryptoKey, ciphertext
+  );
   return new TextDecoder().decode(plaintextBytes);
 }
 
