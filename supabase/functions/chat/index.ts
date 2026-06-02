@@ -118,7 +118,14 @@ serve(async (req) => {
     const encryptedUserMessage = await encryptText(message, ENCRYPTION_KEY);
     const { error: insertUserError } = await supabase
       .from("messages")
-      .insert({ user_id: userId, role: "user", text: encryptedUserMessage });
+      .insert({
+        user_id: userId,
+        role: "user",
+        text: encryptedUserMessage,
+        is_system: false,
+        reply_count: 0,
+        source: "chat",
+      });
 
     if (insertUserError) {
       console.error("Failed to save user message:", insertUserError);
@@ -229,7 +236,14 @@ serve(async (req) => {
     const encryptedReply = await encryptText(reply, ENCRYPTION_KEY);
     const { error: insertReplyError } = await supabase
       .from("messages")
-      .insert({ user_id: userId, role: "assistant", text: encryptedReply });
+      .insert({
+        user_id: userId,
+        role: "assistant",
+        text: encryptedReply,
+        is_system: false,
+        reply_count: 0,
+        source: "chat",
+      });
 
     if (insertReplyError) {
       // Non-fatal: reply is already generated, just log and continue
