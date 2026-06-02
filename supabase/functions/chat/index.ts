@@ -6,38 +6,43 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// AES-256-GCM decryption using Web Crypto API
+// ── AES-256-GCM helpers (exact mirror of hourly-summary-check) ───────────────
+
+async function encryptText(plaintext: string, keyString: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+  const keyBytes = new Uint8Array(hashBuffer);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedText = encoder.encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, encodedText);
+  const combined = new Uint8Array(12 + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), 12);
+  return btoa(String.fromCharCode(...combined));
+}
+
 async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
   try {
-    const decoder = new TextDecoder();
     const encoder = new TextEncoder();
-    
-    // Hash the key to ensure it's always 32 bytes for AES-256
     const keyData = encoder.encode(keyString);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
     const keyBytes = new Uint8Array(hashBuffer);
-    
     const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      keyBytes,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"]
+      "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
     );
-    
-    const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+    const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
     const iv = combined.slice(0, 12);
     const ciphertext = combined.slice(12);
-    
     const plaintextBytes = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      cryptoKey,
-      ciphertext
+      { name: "AES-GCM", iv }, cryptoKey, ciphertext
     );
-    
-    return decoder.decode(plaintextBytes);
-  } catch (error) {
-    console.log("Decryption failed, returning original text (likely unencrypted)");
+    return new TextDecoder().decode(plaintextBytes);
+  } catch {
+    // Not encrypted or wrong key — return as-is
     return encryptedBase64;
   }
 }
@@ -45,12 +50,13 @@ async function decryptText(encryptedBase64: string, keyString: string): Promise<
 function looksEncrypted(text: string): boolean {
   if (!text || text.length < 20) return false;
   try {
-    const decoded = atob(text);
-    return decoded.length >= 12;
+    return atob(text).length >= 12;
   } catch {
     return false;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -58,29 +64,29 @@ serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const GEMINI_API_KEY          = Deno.env.get("GEMINI_API_KEY");
+    const SUPABASE_URL            = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ENCRYPTION_KEY = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
+    const ENCRYPTION_KEY          = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
 
     if (!GEMINI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing required environment variables");
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    
-    // SECURITY FIX: Extract userId from JWT instead of request body
-    const authHeader = req.headers.get('Authorization');
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: "Missing authorization header" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    
-    const token = authHeader.replace('Bearer ', '');
+
+    const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+
     if (authError || !user) {
       console.error("Auth error:", authError);
       return new Response(
@@ -88,13 +94,14 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    
-    const userId = user.id;
-    const body = await req.json();
-    const message = body?.message;
 
-    // Input validation
-    if (!message || typeof message !== 'string') {
+    const userId = user.id;
+
+    // ── Parse & validate body ─────────────────────────────────────────────────
+    const body = await req.json();
+    const message: string = body?.message;
+
+    if (!message || typeof message !== "string") {
       return new Response(
         JSON.stringify({ error: "Missing or invalid message" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -107,7 +114,18 @@ serve(async (req) => {
       );
     }
 
-    // Get recent messages for context and reply count
+    // ── Save user message (encrypted) ─────────────────────────────────────────
+    const encryptedUserMessage = await encryptText(message, ENCRYPTION_KEY);
+    const { error: insertUserError } = await supabase
+      .from("messages")
+      .insert({ user_id: userId, role: "user", text: encryptedUserMessage });
+
+    if (insertUserError) {
+      console.error("Failed to save user message:", insertUserError);
+      throw insertUserError;
+    }
+
+    // ── Fetch recent history for context (decrypt for AI) ─────────────────────
     const { data: recentMessages, error: fetchError } = await supabase
       .from("messages")
       .select("role, text, created_at")
@@ -120,27 +138,25 @@ serve(async (req) => {
       throw fetchError;
     }
 
-    // Decrypt messages if encryption key is available
-    const decryptedMessages = ENCRYPTION_KEY 
-      ? await Promise.all((recentMessages || []).map(async (msg) => {
-          if (looksEncrypted(msg.text)) {
-            const decryptedText = await decryptText(msg.text, ENCRYPTION_KEY);
-            return { ...msg, text: decryptedText };
-          }
-          return msg;
-        }))
-      : recentMessages || [];
+    const decryptedMessages = await Promise.all(
+      (recentMessages || []).map(async (msg) => {
+        if (looksEncrypted(msg.text)) {
+          return { ...msg, text: await decryptText(msg.text, ENCRYPTION_KEY) };
+        }
+        return msg;
+      })
+    );
 
-    // Build conversation history in chronological order
-    const messagesAsc = [...decryptedMessages].reverse();
-    const conversationHistory = messagesAsc
+    // Chronological order, last 10 exchanges
+    const conversationHistory = [...decryptedMessages]
+      .reverse()
       .slice(-10)
       .map((msg) => ({
         role: msg.role as "user" | "assistant",
         content: msg.text,
       }));
 
-    // Try to fetch the AI system prompt from system_messages (Admin is the SOLE source)
+    // ── System prompt (from DB, fallback to minimal Hebrew prompt) ────────────
     let basePrompt = "";
     let aiSiteInstruction = "";
     let appInstructions = "";
@@ -149,47 +165,47 @@ serve(async (req) => {
         .from("system_messages")
         .select("title, body")
         .in("title", ["chat_system_prompt", "ai_site_instruction", "app_instructions"]);
-      
+
       for (const row of (promptRows || [])) {
-        if (row.title === "chat_system_prompt") basePrompt = row.body;
+        if (row.title === "chat_system_prompt")   basePrompt = row.body;
         else if (row.title === "ai_site_instruction") aiSiteInstruction = row.body;
-        else if (row.title === "app_instructions") appInstructions = row.body;
+        else if (row.title === "app_instructions")    appInstructions = row.body;
       }
     } catch (e) {
       console.log("Could not fetch system prompts:", e);
     }
 
-    // If no admin prompt is set, use a minimal fallback
     if (!basePrompt && !aiSiteInstruction) {
       basePrompt = "אתה עוזר ידידותי. ענה בקצרה ובעברית.";
     }
 
-    // Admin prompt is the SOLE source of behavior - no hardcoded rules
-    // Admin prompt + site instruction + app instructions = SOLE source of behavior
-    const systemPrompt = [basePrompt, aiSiteInstruction, appInstructions].filter(Boolean).join("\n\n");
+    const systemPrompt = [basePrompt, aiSiteInstruction, appInstructions]
+      .filter(Boolean)
+      .join("\n\n");
 
-    // Include conversation history + current message
-    const messages = [
+    // ── Call Gemini ───────────────────────────────────────────────────────────
+    const aiPayload = [
       { role: "system", content: systemPrompt },
       ...conversationHistory,
-      { role: "user", content: message }
+      { role: "user", content: message },
     ];
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-pro",
-        messages,
-      }),
-    });
+    const aiResponse = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ model: "gemini-2.0-flash", messages: aiPayload }),
+      }
+    );
 
     if (!aiResponse.ok) {
-      console.error("AI API error:", await aiResponse.text());
-      throw new Error("AI API error");
+      const errText = await aiResponse.text();
+      console.error("AI API error:", errText);
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
@@ -201,29 +217,36 @@ serve(async (req) => {
 
     const rawReply: string = aiData.choices[0].message.content;
 
-    // Split into blocks separated by blank lines, keep only blocks that contain Hebrew,
-    // then take the last contiguous Hebrew block — the actual response always appears last.
+    // Keep only Hebrew blocks (Gemini sometimes prepends English reasoning)
     const blocks = rawReply.split(/\n\s*\n/);
-    const hebrewBlocks = blocks.filter((b) => /[\u0590-\u05FF]/.test(b));
-    const reply = (hebrewBlocks.length > 0 ? hebrewBlocks[hebrewBlocks.length - 1] : rawReply).trim();
+    const hebrewBlocks = blocks.filter((b) => /[֐-׿]/.test(b));
+    const reply = (hebrewBlocks.length > 0
+      ? hebrewBlocks[hebrewBlocks.length - 1]
+      : rawReply
+    ).trim();
 
+    // ── Save AI reply (encrypted) ─────────────────────────────────────────────
+    const encryptedReply = await encryptText(reply, ENCRYPTION_KEY);
+    const { error: insertReplyError } = await supabase
+      .from("messages")
+      .insert({ user_id: userId, role: "assistant", text: encryptedReply });
+
+    if (insertReplyError) {
+      // Non-fatal: reply is already generated, just log and continue
+      console.error("Failed to save assistant message:", insertReplyError);
+    }
+
+    // ── Return plaintext reply to client ──────────────────────────────────────
     return new Response(
-      JSON.stringify({
-        reply,
-        shouldRespond: true
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ reply, shouldRespond: true }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch (error) {
     console.error("Chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
