@@ -64,10 +64,15 @@ serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY          = Deno.env.get("GEMINI_API_KEY");
-    const SUPABASE_URL            = Deno.env.get("SUPABASE_URL");
+    console.log("[chat] ── STEP 1: reading env vars");
+    const GEMINI_API_KEY            = Deno.env.get("GEMINI_API_KEY");
+    const SUPABASE_URL              = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ENCRYPTION_KEY          = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
+    const ENCRYPTION_KEY            = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
+    console.log("[chat] GEMINI_API_KEY present:", !!GEMINI_API_KEY);
+    console.log("[chat] SUPABASE_URL present:", !!SUPABASE_URL);
+    console.log("[chat] SUPABASE_SERVICE_ROLE_KEY present:", !!SUPABASE_SERVICE_ROLE_KEY);
+    console.log("[chat] ENCRYPTION_KEY source:", Deno.env.get("MESSAGE_ENCRYPTION_KEY") ? "env" : "fallback");
 
     if (!GEMINI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing required environment variables");
@@ -76,8 +81,10 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // ── Auth ──────────────────────────────────────────────────────────────────
+    console.log("[chat] ── STEP 2: verifying JWT");
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("[chat] No Authorization header");
       return new Response(
         JSON.stringify({ error: "Missing authorization header" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -88,20 +95,24 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error("Auth error:", authError);
+      console.error("[chat] Auth error:", JSON.stringify(authError));
       return new Response(
         JSON.stringify({ error: "Invalid or expired token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    console.log("[chat] JWT OK, userId:", user.id);
 
     const userId = user.id;
 
     // ── Parse & validate body ─────────────────────────────────────────────────
+    console.log("[chat] ── STEP 3: parsing request body");
     const body = await req.json();
     const message: string = body?.message;
+    console.log("[chat] message length:", message?.length ?? "undefined");
 
     if (!message || typeof message !== "string") {
+      console.error("[chat] Missing or invalid message field");
       return new Response(
         JSON.stringify({ error: "Missing or invalid message" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -115,6 +126,7 @@ serve(async (req) => {
     }
 
     // ── Save user message (encrypted) ─────────────────────────────────────────
+    console.log("[chat] ── STEP 4: encrypting and saving user message");
     const encryptedUserMessage = await encryptText(message, ENCRYPTION_KEY);
     const { error: insertUserError } = await supabase
       .from("messages")
@@ -128,11 +140,13 @@ serve(async (req) => {
       });
 
     if (insertUserError) {
-      console.error("Failed to save user message:", insertUserError);
+      console.error("[chat] Failed to save user message:", JSON.stringify(insertUserError));
       throw insertUserError;
     }
+    console.log("[chat] User message saved OK");
 
     // ── Fetch recent history for context (decrypt for AI) ─────────────────────
+    console.log("[chat] ── STEP 5: fetching message history");
     const { data: recentMessages, error: fetchError } = await supabase
       .from("messages")
       .select("role, text, created_at")
@@ -141,9 +155,10 @@ serve(async (req) => {
       .limit(15);
 
     if (fetchError) {
-      console.error("Error fetching recent messages:", fetchError);
+      console.error("[chat] Error fetching recent messages:", JSON.stringify(fetchError));
       throw fetchError;
     }
+    console.log("[chat] Fetched", recentMessages?.length ?? 0, "messages");
 
     const decryptedMessages = await Promise.all(
       (recentMessages || []).map(async (msg) => {
@@ -162,8 +177,10 @@ serve(async (req) => {
         role: msg.role as "user" | "assistant",
         content: msg.text,
       }));
+    console.log("[chat] Conversation history length:", conversationHistory.length);
 
     // ── System prompt (from DB, fallback to minimal Hebrew prompt) ────────────
+    console.log("[chat] ── STEP 6: fetching system prompt");
     let basePrompt = "";
     let aiSiteInstruction = "";
     let appInstructions = "";
@@ -174,16 +191,18 @@ serve(async (req) => {
         .in("title", ["chat_system_prompt", "ai_site_instruction", "app_instructions"]);
 
       for (const row of (promptRows || [])) {
-        if (row.title === "chat_system_prompt")   basePrompt = row.body;
+        if (row.title === "chat_system_prompt")       basePrompt = row.body;
         else if (row.title === "ai_site_instruction") aiSiteInstruction = row.body;
         else if (row.title === "app_instructions")    appInstructions = row.body;
       }
+      console.log("[chat] System prompts loaded — basePrompt:", !!basePrompt, "siteInstruction:", !!aiSiteInstruction);
     } catch (e) {
-      console.log("Could not fetch system prompts:", e);
+      console.log("[chat] Could not fetch system prompts:", e);
     }
 
     if (!basePrompt && !aiSiteInstruction) {
       basePrompt = "אתה עוזר ידידותי. ענה בקצרה ובעברית.";
+      console.log("[chat] Using fallback system prompt");
     }
 
     const systemPrompt = [basePrompt, aiSiteInstruction, appInstructions]
@@ -191,11 +210,13 @@ serve(async (req) => {
       .join("\n\n");
 
     // ── Call Gemini ───────────────────────────────────────────────────────────
+    console.log("[chat] ── STEP 7: calling Gemini gemini-2.5-flash");
     const aiPayload = [
       { role: "system", content: systemPrompt },
       ...conversationHistory,
       { role: "user", content: message },
     ];
+    console.log("[chat] aiPayload message count:", aiPayload.length);
 
     const aiResponse = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
@@ -208,21 +229,24 @@ serve(async (req) => {
         body: JSON.stringify({ model: "gemini-2.5-flash", messages: aiPayload }),
       }
     );
+    console.log("[chat] Gemini HTTP status:", aiResponse.status);
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      console.error("AI API error:", errText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
+      console.error("[chat] Gemini API error body:", errText);
+      throw new Error(`AI API error: ${aiResponse.status} — ${errText}`);
     }
 
     const aiData = await aiResponse.json();
+    console.log("[chat] Gemini response keys:", Object.keys(aiData).join(", "));
 
     if (!aiData.choices?.length || !aiData.choices[0]?.message?.content) {
-      console.error("Unexpected AI response format:", JSON.stringify(aiData));
+      console.error("[chat] Unexpected Gemini response format:", JSON.stringify(aiData));
       throw new Error("Invalid AI response format");
     }
 
     const rawReply: string = aiData.choices[0].message.content;
+    console.log("[chat] rawReply length:", rawReply.length);
 
     // Keep only Hebrew blocks (Gemini sometimes prepends English reasoning)
     const blocks = rawReply.split(/\n\s*\n/);
@@ -231,8 +255,10 @@ serve(async (req) => {
       ? hebrewBlocks[hebrewBlocks.length - 1]
       : rawReply
     ).trim();
+    console.log("[chat] reply length after Hebrew filter:", reply.length);
 
     // ── Save AI reply (encrypted) ─────────────────────────────────────────────
+    console.log("[chat] ── STEP 8: saving assistant reply");
     const encryptedReply = await encryptText(reply, ENCRYPTION_KEY);
     const { error: insertReplyError } = await supabase
       .from("messages")
@@ -246,10 +272,12 @@ serve(async (req) => {
       });
 
     if (insertReplyError) {
-      // Non-fatal: reply is already generated, just log and continue
-      console.error("Failed to save assistant message:", insertReplyError);
+      console.error("[chat] Failed to save assistant message (non-fatal):", JSON.stringify(insertReplyError));
+    } else {
+      console.log("[chat] Assistant message saved OK");
     }
 
+    console.log("[chat] ── STEP 9: returning response to client");
     // ── Return plaintext reply to client ──────────────────────────────────────
     return new Response(
       JSON.stringify({ reply, shouldRespond: true }),
@@ -257,7 +285,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error("[chat] ── FATAL ERROR:", error instanceof Error ? error.message : String(error));
+    console.error("[chat] Stack:", error instanceof Error ? error.stack : "no stack");
+    console.error("[chat] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
