@@ -6,6 +6,57 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ── AES-256-GCM helpers (mirrors chat and hourly-summary-check) ───────────────
+
+async function encryptText(plaintext: string, keyString: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(keyString);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+  const keyBytes = new Uint8Array(hashBuffer);
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedText = encoder.encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, encodedText);
+  const combined = new Uint8Array(12 + ciphertext.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(ciphertext), 12);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptText(encryptedBase64: string, keyString: string): Promise<string> {
+  try {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(keyString);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", keyData);
+    const keyBytes = new Uint8Array(hashBuffer);
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw", keyBytes, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+    );
+    const combined = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
+    const iv = combined.slice(0, 12);
+    const ciphertext = combined.slice(12);
+    const plaintextBytes = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv }, cryptoKey, ciphertext
+    );
+    return new TextDecoder().decode(plaintextBytes);
+  } catch {
+    return encryptedBase64; // Not encrypted or wrong key — return as-is
+  }
+}
+
+function looksEncrypted(text: string): boolean {
+  if (!text || text.length < 20) return false;
+  try {
+    return atob(text).length >= 12;
+  } catch {
+    return false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function getMonthRange(year: number, month: number): { start: Date; end: Date } {
   const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
   const end = new Date(Date.UTC(year, month, 1, 0, 0, 0));
@@ -41,6 +92,12 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
+    const ENCRYPTION_KEY = Deno.env.get('MESSAGE_ENCRYPTION_KEY') || 'nestai-encryption-key-2026';
 
     const now = new Date();
     const israelTime = new Intl.DateTimeFormat('en-CA', {
@@ -117,11 +174,21 @@ serve(async (req) => {
           continue;
         }
 
+        // Decrypt each weekly summary before use
+        const decryptedWeeklySummaries = await Promise.all(
+          weeklySummaries.map(async (s) => ({
+            ...s,
+            summary_text: looksEncrypted(s.summary_text)
+              ? await decryptText(s.summary_text, ENCRYPTION_KEY)
+              : s.summary_text,
+          }))
+        );
+
         processedCount++;
 
         // Group summaries by period
         const summariesInPeriod = (start: Date, end: Date) =>
-          (weeklySummaries || []).filter(s =>
+          decryptedWeeklySummaries.filter(s =>
             s.week_start >= start.toISOString() && s.week_start < end.toISOString()
           );
 
@@ -215,12 +282,6 @@ ${formatPeriodSummaries(p2Summaries, p2Name)}
 ${formatPeriodSummaries(p3Summaries, p3Name)}
 
 צור דו"ח חודשי. זכור: תובנות קצרות ובגובה העיניים, וצעדים מעשיים קדימה.`;
-
-        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-        if (!GEMINI_API_KEY) {
-          console.error('monthly-summary-scheduler: GEMINI_API_KEY not configured');
-          continue;
-        }
 
         const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
           method: 'POST',
@@ -322,6 +383,7 @@ ${formatPeriodSummaries(p3Summaries, p3Name)}
         }
 
         const summaryText = JSON.stringify(reportData);
+        const encryptedSummaryText = await encryptText(summaryText, ENCRYPTION_KEY);
 
         const { error: insertError } = await supabase
           .from('monthly_summaries')
@@ -329,7 +391,7 @@ ${formatPeriodSummaries(p3Summaries, p3Name)}
             user_id: user.user_id,
             month_start: period1.start.toISOString(),
             month_end: period1.end.toISOString(),
-            summary_text: summaryText,
+            summary_text: encryptedSummaryText,
           });
 
         if (insertError) {
