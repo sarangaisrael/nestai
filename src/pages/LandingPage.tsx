@@ -14,8 +14,10 @@ const CSS = `
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
     gap: 48px;
-    padding: 88px 52px 72px;
+    padding: 72px 48px;
     align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
   }
   .lp-steps-header {
     display: grid;
@@ -103,7 +105,7 @@ const PhoneMockup = () => (
     borderRadius: 32,
     background: '#f8fafc',
     padding: 20,
-    maxWidth: 260,
+    maxWidth: 300,
     width: '100%',
     fontFamily: F,
     boxSizing: 'border-box',
@@ -259,7 +261,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div dir="rtl" style={{ minHeight: '100vh', background: '#ffffff', fontFamily: F }}>
+    <div dir="rtl" style={{ minHeight: '100vh', background: '#ffffff', fontFamily: F, maxWidth: 1200, margin: '0 auto' }}>
       <style>{CSS}</style>
 
       {/* ── Navbar ── */}
@@ -269,7 +271,14 @@ const LandingPage = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50,
       }}>
-        {/* Left: auth links */}
+        {/* Right: logo (first in DOM = right side in RTL flex) */}
+        <button
+          onClick={() => navigate('/')}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F }}
+        >
+          <span style={{ fontSize: 17, fontWeight: 900, color: '#111', letterSpacing: '-0.5px' }}>NestAI</span>
+        </button>
+        {/* Left: auth links (second in DOM = left side in RTL flex) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <button
             onClick={() => navigate('/app/auth')}
@@ -284,19 +293,12 @@ const LandingPage = () => {
             התחל בחינם
           </button>
         </div>
-        {/* Right: logo */}
-        <button
-          onClick={() => navigate('/')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F }}
-        >
-          <span style={{ fontSize: 17, fontWeight: 900, color: '#111', letterSpacing: '-0.5px' }}>NestAI</span>
-        </button>
       </nav>
 
       {/* ── Hero ── */}
       <section className="lp-hero">
         {/* Text column (right in RTL grid) */}
-        <div className="lp-hero-text">
+        <div className="lp-hero-text" style={{ maxWidth: 480 }}>
           {/* Eyebrow */}
           <p style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', margin: '0 0 4px', letterSpacing: '0.02em' }}>
             מרחב לעיבוד ומעקב של התהליך הטיפולי
