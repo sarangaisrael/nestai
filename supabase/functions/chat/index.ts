@@ -43,7 +43,7 @@ async function decryptText(encryptedBase64: string, keyString: string): Promise<
 }
 
 function looksEncrypted(text: string): boolean {
-  if (text.length < 20) return false;
+  if (!text || text.length < 20) return false;
   try {
     const decoded = atob(text);
     return decoded.length >= 12;
@@ -61,7 +61,7 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ENCRYPTION_KEY = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
+    const ENCRYPTION_KEY = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
 
     if (!GEMINI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing required environment variables");
@@ -193,6 +193,12 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
+
+    if (!aiData.choices?.length || !aiData.choices[0]?.message?.content) {
+      console.error("Unexpected AI response format:", JSON.stringify(aiData));
+      throw new Error("Invalid AI response format");
+    }
+
     const rawReply: string = aiData.choices[0].message.content;
 
     // Split into blocks separated by blank lines, keep only blocks that contain Hebrew,
