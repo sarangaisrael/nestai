@@ -69,14 +69,23 @@ const DashboardTopbar = () => {
 
   return (
     <>
+      {/* Fixed topbar */}
       <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
         background: "#ffffff",
         borderBottom: "0.5px solid #e5e7eb",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        fontFamily: F,
+      }}>
+      <div style={{
         padding: "12px 28px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        fontFamily: F,
         flexShrink: 0,
       }}>
         {/* Right side (visual in RTL): hamburger menu */}
@@ -186,6 +195,10 @@ const DashboardTopbar = () => {
           <MessageCircle size={15} color="#374151" strokeWidth={1.8} />
         </TopBtn>
       </div>
+      </div>
+
+      {/* Spacer to push content below the fixed topbar */}
+      <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 56px)" }} />
 
       <FeedbackForm open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
