@@ -290,7 +290,7 @@ const LandingPage = () => {
             onClick={() => navigate('/app')}
             style={{ ...btnPrimary, padding: '8px 18px', borderRadius: 20 }}
           >
-            התחל בחינם
+            מתחילים לכתוב בחינם
           </button>
         </div>
       </nav>
@@ -328,7 +328,7 @@ const LandingPage = () => {
           {/* CTA buttons */}
           <div className="lp-hero-btns" style={{ marginBottom: 28 }}>
             <button onClick={() => navigate('/app')} style={btnPrimary}>
-              מתחילים — בחינם
+              מתחילים לכתוב בחינם
             </button>
             <button style={btnOutline}>
               איך זה עובד?
@@ -357,7 +357,7 @@ const LandingPage = () => {
         {/* Header */}
         <div className="lp-steps-header">
           <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
-            שלושה צעדים.
+            3 צעדים פשוטים בדרך לטיפול אפקטיבי יותר
           </h2>
           <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
             מהרגע שאתה פותח את האפליקציה עד לפגישה הבאה — הכל קורה בשביל שתגיע מוכן ומחובר לעצמך.
@@ -369,8 +369,8 @@ const LandingPage = () => {
           {[
             {
               num: '01',
-              title: 'תעד בטבעיות',
-              body: 'כתוב מה עבר עליך — מחשבה, רגש, רגע קשה. שתי דקות ביום מספיקות.',
+              title: 'כתיבה חופשית',
+              body: 'כותבים שתי דקות ביום את מה שיושב על הלב, בלי לפחד לשכוח שום דבר במפגש.',
             },
             {
               num: '02',
@@ -379,8 +379,8 @@ const LandingPage = () => {
             },
             {
               num: '03',
-              title: 'הגע מוכן לפגישה',
-              body: 'סיכום אוטומטי מחכה לך לפני כל מפגש — בלי לבקש, בלי להכין.',
+              title: 'מפסיקים לבזבז זמן יקר',
+              body: 'מקבלים סיכום מדויק ישירות לנייד, ומגיעים לקליניקה מוכנים לצלול ישר לעומק.',
             },
           ].map(step => (
             <div key={step.num} className="lp-step-card">
@@ -425,7 +425,7 @@ const LandingPage = () => {
               fontFamily: F, whiteSpace: 'nowrap', flexShrink: 0,
             }}
           >
-            התחל עכשיו
+            מתחילים לכתוב בחינם
           </button>
         </div>
       </section>
