@@ -121,37 +121,39 @@ const Index = () => {
     setInput("");
     setLoading(true);
 
+    // Optimistically add user message to local state.
+    // The `chat` edge function handles saving both the user message and AI reply
+    // to the DB — so we must NOT call encrypt-message here (that would double-save).
+    const optimisticUserMsg: Message = {
+      id: `temp-user-${Date.now()}`,
+      text: messageText,
+      role: "user",
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, optimisticUserMsg]);
+
     try {
-      const { data: encryptData, error: encryptError } = await supabase.functions.invoke('encrypt-message', {
-        body: { text: messageText, role: "user", is_system: false, reply_count: 0 }
-      });
-      if (encryptError) throw encryptError;
-      
-      const savedMessage = encryptData.message;
-      setMessages(prev => [...prev, savedMessage as Message]);
-      
       const { data: functionData, error: functionError } = await supabase.functions.invoke('chat', {
         body: { message: messageText, userId: user.id }
       });
       if (functionError) throw functionError;
 
       if (!functionData.shouldRespond || !functionData.reply) {
-        setLoading(false);
         return;
       }
 
-      const aiReply = functionData.reply;
-      const replyCount = functionData.replyCount || 1;
-      
-      const { data: assistantData, error: assistantError } = await supabase.functions.invoke('encrypt-message', {
-        body: { text: aiReply, role: "assistant", is_system: false, reply_count: replyCount }
-      });
-      if (assistantError) throw assistantError;
-      
-      const assistantMessage = assistantData.message;
-      setMessages(prev => [...prev, assistantMessage as Message]);
+      // Add AI reply to local state — already saved to DB by the chat function
+      const aiReplyMsg: Message = {
+        id: `temp-ai-${Date.now()}`,
+        text: functionData.reply,
+        role: "assistant",
+        created_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, aiReplyMsg]);
     } catch (error: any) {
       console.error("Error sending message:", error);
+      // Roll back the optimistic message on failure
+      setMessages(prev => prev.filter(m => m.id !== optimisticUserMsg.id));
       if (error?.message?.includes("JWT") || error?.message?.includes("token") || error?.message?.includes("session")) {
         toast({ title: t.errors.somethingWentWrong, description: t.chat.reloginRequired, variant: "destructive" });
         setTimeout(() => navigate("/app/auth"), 1500);
@@ -160,7 +162,6 @@ const Index = () => {
       }
     } finally {
       setLoading(false);
-      
     }
   };
 
