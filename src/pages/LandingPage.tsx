@@ -287,8 +287,18 @@ const LandingPage = () => {
     init();
   }, [navigate]);
 
-  // Fetch CMS content non-blocking — defaults are already set so the page
-  // renders immediately; text swaps in once Supabase responds.
+  // Fetch CMS content non-blocking — defaults render immediately, DB text swaps in.
+  // Column mapping: semantic name → actual landing_content DB column
+  //   hero_eyebrow       ← hero_cta2       (repurposed)
+  //   hero_eyebrow2      ← nav_cta1_text   (repurposed)
+  //   steps_title        ← tools_title     (repurposed)
+  //   steps_subtitle     ← tools_subtitle  (repurposed)
+  //   step1_title/body   ← slide1_title / slide1_subtitle
+  //   step2_title/body   ← slide2_title / slide2_subtitle
+  //   step3_title/body   ← slide3_title / slide3_subtitle
+  //   cta_section_title  ← card1_title     (repurposed)
+  //   cta_section_sub    ← card1_body      (repurposed)
+  //   cta_section_button ← card1_cta       (repurposed)
   useEffect(() => {
     supabase
       .from('landing_content')
@@ -297,15 +307,31 @@ const LandingPage = () => {
       .single()
       .then(({ data }) => {
         if (!data) return;
-        setContent(prev => {
-          const merged = { ...prev };
-          (Object.keys(prev) as (keyof LandingContent)[]).forEach(key => {
-            const val = (data as Record<string, unknown>)[key];
-            if (typeof val === 'string' && val.trim() !== '') {
-              merged[key] = val;
-            }
-          });
-          return merged;
+        const d = data as Record<string, string>;
+        const pick = (col: string, fallback: string) =>
+          d[col]?.trim() ? d[col] : fallback;
+        setContent({
+          nav_cta2_text:      pick('nav_cta2_text',   DEFAULT_CONTENT.nav_cta2_text),
+          hero_eyebrow:       pick('hero_cta2',       DEFAULT_CONTENT.hero_eyebrow),
+          hero_eyebrow2:      pick('nav_cta1_text',   DEFAULT_CONTENT.hero_eyebrow2),
+          hero_line1:         pick('hero_line1',      DEFAULT_CONTENT.hero_line1),
+          hero_line2:         pick('hero_line2',      DEFAULT_CONTENT.hero_line2),
+          hero_subtitle:      pick('hero_subtitle',   DEFAULT_CONTENT.hero_subtitle),
+          hero_cta1:          pick('hero_cta1',       DEFAULT_CONTENT.hero_cta1),
+          hero_badge1:        pick('hero_badge1',     DEFAULT_CONTENT.hero_badge1),
+          hero_badge2:        pick('hero_badge2',     DEFAULT_CONTENT.hero_badge2),
+          hero_badge3:        pick('hero_badge3',     DEFAULT_CONTENT.hero_badge3),
+          steps_title:        pick('tools_title',     DEFAULT_CONTENT.steps_title),
+          steps_subtitle:     pick('tools_subtitle',  DEFAULT_CONTENT.steps_subtitle),
+          step1_title:        pick('slide1_title',    DEFAULT_CONTENT.step1_title),
+          step1_body:         pick('slide1_subtitle', DEFAULT_CONTENT.step1_body),
+          step2_title:        pick('slide2_title',    DEFAULT_CONTENT.step2_title),
+          step2_body:         pick('slide2_subtitle', DEFAULT_CONTENT.step2_body),
+          step3_title:        pick('slide3_title',    DEFAULT_CONTENT.step3_title),
+          step3_body:         pick('slide3_subtitle', DEFAULT_CONTENT.step3_body),
+          cta_section_title:  pick('card1_title',     DEFAULT_CONTENT.cta_section_title),
+          cta_section_sub:    pick('card1_body',      DEFAULT_CONTENT.cta_section_sub),
+          cta_section_button: pick('card1_cta',       DEFAULT_CONTENT.cta_section_button),
         });
       });
   }, []);

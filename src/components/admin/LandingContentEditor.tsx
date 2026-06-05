@@ -14,38 +14,50 @@ interface FieldDef {
   group: string;
 }
 
+// Column name mapping reference (semantic → actual DB column):
+//   hero eyebrow line 1  → hero_cta2       (repurposed)
+//   hero eyebrow line 2  → nav_cta1_text   (repurposed)
+//   steps section title  → tools_title     (repurposed)
+//   steps section sub    → tools_subtitle  (repurposed)
+//   step 1 title/body    → slide1_title / slide1_subtitle
+//   step 2 title/body    → slide2_title / slide2_subtitle
+//   step 3 title/body    → slide3_title / slide3_subtitle
+//   CTA block title      → card1_title     (repurposed)
+//   CTA block subtitle   → card1_body      (repurposed)
+//   CTA block button     → card1_cta       (repurposed)
+
 const FIELD_DEFS: FieldDef[] = [
   // ── Navbar ──────────────────────────────────────────────────────────────────
-  { key: 'nav_cta2_text',      label: 'כפתור ניווט (CTA)',                    group: '🗂️ ניווט' },
+  { key: 'nav_cta2_text',   label: 'כפתור ניווט (CTA)',                      group: '🗂️ ניווט' },
 
   // ── Hero ─────────────────────────────────────────────────────────────────────
-  { key: 'hero_eyebrow',       label: 'שורת eyebrow (סגול)',                  group: '🦸 Hero' },
-  { key: 'hero_eyebrow2',      label: 'שורת eyebrow 2 (אפור)',                group: '🦸 Hero' },
-  { key: 'hero_line1',         label: 'כותרת H1 — חלק שחור',                 group: '🦸 Hero' },
-  { key: 'hero_line2',         label: 'כותרת H1 — חלק צבעוני (אינדיגו)',     group: '🦸 Hero' },
-  { key: 'hero_subtitle',      label: 'פסקת משנה',                            group: '🦸 Hero', multiline: true },
-  { key: 'hero_cta1',          label: 'כפתור ראשי',                           group: '🦸 Hero' },
-  { key: 'hero_badge1',        label: 'תג אמינות 1',                          group: '🦸 Hero' },
-  { key: 'hero_badge2',        label: 'תג אמינות 2',                          group: '🦸 Hero' },
-  { key: 'hero_badge3',        label: 'תג אמינות 3',                          group: '🦸 Hero' },
+  { key: 'hero_cta2',       label: 'Eyebrow — שורה 1 (סגול)',                group: '🦸 Hero' },
+  { key: 'nav_cta1_text',   label: 'Eyebrow — שורה 2 (אפור)',                group: '🦸 Hero' },
+  { key: 'hero_line1',      label: 'כותרת H1 — חלק שחור',                   group: '🦸 Hero' },
+  { key: 'hero_line2',      label: 'כותרת H1 — חלק צבעוני (אינדיגו)',       group: '🦸 Hero' },
+  { key: 'hero_subtitle',   label: 'פסקת משנה',                              group: '🦸 Hero', multiline: true },
+  { key: 'hero_cta1',       label: 'כפתור ראשי (Hero)',                      group: '🦸 Hero' },
+  { key: 'hero_badge1',     label: 'תג אמינות 1',                            group: '🦸 Hero' },
+  { key: 'hero_badge2',     label: 'תג אמינות 2',                            group: '🦸 Hero' },
+  { key: 'hero_badge3',     label: 'תג אמינות 3',                            group: '🦸 Hero' },
 
-  // ── Steps section ────────────────────────────────────────────────────────────
-  { key: 'steps_title',        label: 'כותרת הסקשן',                          group: '👣 3 צעדים' },
-  { key: 'steps_subtitle',     label: 'תת-כותרת הסקשן',                       group: '👣 3 צעדים', multiline: true },
-  { key: 'step1_title',        label: 'צעד 1 — כותרת',                        group: '👣 3 צעדים' },
-  { key: 'step1_body',         label: 'צעד 1 — גוף',                          group: '👣 3 צעדים', multiline: true },
-  { key: 'step2_title',        label: 'צעד 2 — כותרת',                        group: '👣 3 צעדים' },
-  { key: 'step2_body',         label: 'צעד 2 — גוף',                          group: '👣 3 צעדים', multiline: true },
-  { key: 'step3_title',        label: 'צעד 3 — כותרת',                        group: '👣 3 צעדים' },
-  { key: 'step3_body',         label: 'צעד 3 — גוף',                          group: '👣 3 צעדים', multiline: true },
+  // ── Steps section (stored in tools_* and slide*_title/subtitle columns) ─────
+  { key: 'tools_title',     label: 'כותרת הסקשן',                            group: '👣 3 צעדים' },
+  { key: 'tools_subtitle',  label: 'תת-כותרת הסקשן',                         group: '👣 3 צעדים', multiline: true },
+  { key: 'slide1_title',    label: 'צעד 1 — כותרת',                          group: '👣 3 צעדים' },
+  { key: 'slide1_subtitle', label: 'צעד 1 — גוף',                            group: '👣 3 צעדים', multiline: true },
+  { key: 'slide2_title',    label: 'צעד 2 — כותרת',                          group: '👣 3 צעדים' },
+  { key: 'slide2_subtitle', label: 'צעד 2 — גוף',                            group: '👣 3 צעדים', multiline: true },
+  { key: 'slide3_title',    label: 'צעד 3 — כותרת',                          group: '👣 3 צעדים' },
+  { key: 'slide3_subtitle', label: 'צעד 3 — גוף',                            group: '👣 3 צעדים', multiline: true },
 
-  // ── CTA section ──────────────────────────────────────────────────────────────
-  { key: 'cta_section_title',  label: 'כותרת',                                group: '📣 סקשן CTA' },
-  { key: 'cta_section_sub',    label: 'תת-כותרת',                             group: '📣 סקשן CTA', multiline: true },
-  { key: 'cta_section_button', label: 'טקסט כפתור',                           group: '📣 סקשן CTA' },
+  // ── CTA section (stored in card1_* columns) ──────────────────────────────────
+  { key: 'card1_title',     label: 'כותרת',                                   group: '📣 סקשן CTA' },
+  { key: 'card1_body',      label: 'תת-כותרת',                                group: '📣 סקשן CTA', multiline: true },
+  { key: 'card1_cta',       label: 'טקסט כפתור',                              group: '📣 סקשן CTA' },
 
   // ── Footer ───────────────────────────────────────────────────────────────────
-  { key: 'footer_text',        label: 'טקסט פוטר',                            group: '🦶 פוטר', multiline: true },
+  { key: 'footer_text',     label: 'טקסט פוטר',                              group: '🦶 פוטר', multiline: true },
 ];
 
 // Get unique groups in order of first appearance
