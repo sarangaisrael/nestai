@@ -67,7 +67,22 @@ const CSS = `
   }
   .lp-cta-btn-full { width: auto; }
 
+  /* ── Testimonials ── */
+  .lp-testimonials-section {
+    padding: 72px 52px;
+    background: #ffffff;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .lp-testimonials-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
   @media (max-width: 768px) {
+    .lp-testimonials-section { padding: 52px 24px !important; max-width: 100% !important; }
+    .lp-testimonials-grid    { grid-template-columns: 1fr; }
     .lp-hero {
       grid-template-columns: 1fr;
       padding: 52px 24px 48px;
@@ -220,6 +235,20 @@ type LandingContent = {
   cta_section_title: string;
   cta_section_sub: string;
   cta_section_button: string;
+  // Testimonials
+  show_testimonials: boolean;
+  testimonial_1_quote: string;
+  testimonial_1_name: string;
+  testimonial_1_role: string;
+  testimonial_2_quote: string;
+  testimonial_2_name: string;
+  testimonial_2_role: string;
+  testimonial_3_quote: string;
+  testimonial_3_name: string;
+  testimonial_3_role: string;
+  testimonial_4_quote: string;
+  testimonial_4_name: string;
+  testimonial_4_role: string;
 };
 
 const DEFAULT_CONTENT: LandingContent = {
@@ -244,6 +273,20 @@ const DEFAULT_CONTENT: LandingContent = {
   cta_section_title:  'מוכן/ה להתחיל?',
   cta_section_sub:    'הצטרף לאלפי משתמשים שמגיעים לכל פגישה מוכנים יותר.',
   cta_section_button: 'מתחילים לכתוב בחינם',
+  // Testimonials
+  show_testimonials:   false,
+  testimonial_1_quote: 'NestAI שינה לי את כל חוויית הטיפול. אני מגיעה לכל פגישה עם ראש מסודר — במקום לנסות לזכור בזמן אמת מה קרה לי השבוע.',
+  testimonial_1_name:  'מ. כהן',
+  testimonial_1_role:  'בטיפול CBT כבר שנה',
+  testimonial_2_quote: 'סוף סוף יש לי מקום לרשום את מה שעובר עליי בין הפגישות. הסיכום השבועי עוזר לי לא לאבד את הניתוחים שלי כשאני כבר בחדר עם המטפלת.',
+  testimonial_2_name:  'י. לוי',
+  testimonial_2_role:  'בתהליך טיפולי אינטנסיבי',
+  testimonial_3_quote: 'המטופלים שמגיעים עם NestAI מגיעים מוכנים יותר. אני רואה הבדל בעומק השיחות — הם לא מבזבזים 10 דקות על מה קרה השבוע אלא צוללים ישר לעומק.',
+  testimonial_3_name:  'ד"ר מיכל אברהם',
+  testimonial_3_role:  'פסיכולוגית קלינית תל אביב',
+  testimonial_4_quote: 'ממליץ על NestAI לכל המטופלים שלי שרוצים להעמיק את התהליך. הכלי הזה יוצר רצף אמיתי בין הפגישות ומאפשר לנו לעבוד ביעילות הרבה יותר גבוהה.',
+  testimonial_4_name:  'אורי שפירא MSW',
+  testimonial_4_role:  'עובד סוציאלי קליני חיפה',
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -332,6 +375,20 @@ const LandingPage = () => {
           cta_section_title:  pick('card1_title',     DEFAULT_CONTENT.cta_section_title),
           cta_section_sub:    pick('card1_body',      DEFAULT_CONTENT.cta_section_sub),
           cta_section_button: pick('card1_cta',       DEFAULT_CONTENT.cta_section_button),
+          // Testimonials — direct column names
+          show_testimonials:   (data as any).show_testimonials === true,
+          testimonial_1_quote: pick('testimonial_1_quote', DEFAULT_CONTENT.testimonial_1_quote),
+          testimonial_1_name:  pick('testimonial_1_name',  DEFAULT_CONTENT.testimonial_1_name),
+          testimonial_1_role:  pick('testimonial_1_role',  DEFAULT_CONTENT.testimonial_1_role),
+          testimonial_2_quote: pick('testimonial_2_quote', DEFAULT_CONTENT.testimonial_2_quote),
+          testimonial_2_name:  pick('testimonial_2_name',  DEFAULT_CONTENT.testimonial_2_name),
+          testimonial_2_role:  pick('testimonial_2_role',  DEFAULT_CONTENT.testimonial_2_role),
+          testimonial_3_quote: pick('testimonial_3_quote', DEFAULT_CONTENT.testimonial_3_quote),
+          testimonial_3_name:  pick('testimonial_3_name',  DEFAULT_CONTENT.testimonial_3_name),
+          testimonial_3_role:  pick('testimonial_3_role',  DEFAULT_CONTENT.testimonial_3_role),
+          testimonial_4_quote: pick('testimonial_4_quote', DEFAULT_CONTENT.testimonial_4_quote),
+          testimonial_4_name:  pick('testimonial_4_name',  DEFAULT_CONTENT.testimonial_4_name),
+          testimonial_4_role:  pick('testimonial_4_role',  DEFAULT_CONTENT.testimonial_4_role),
         });
       });
   }, []);
@@ -451,6 +508,142 @@ const LandingPage = () => {
           <PhoneMockup />
         </div>
       </section>
+
+      {/* ── Testimonials section ── */}
+      {content.show_testimonials && (() => {
+        const cards = [
+          {
+            bg: '#faf5ff', accent: '#7c3aed',
+            avatarBg: '#ede9fe', avatarColor: '#6d28d9', initials: 'מ.כ',
+            quote: content.testimonial_1_quote,
+            name: content.testimonial_1_name,
+            role: content.testimonial_1_role,
+            badge: 'מטופלת',
+          },
+          {
+            bg: '#eff6ff', accent: '#2563eb',
+            avatarBg: '#dbeafe', avatarColor: '#1e40af', initials: 'י.ל',
+            quote: content.testimonial_2_quote,
+            name: content.testimonial_2_name,
+            role: content.testimonial_2_role,
+            badge: 'מטופל',
+          },
+          {
+            bg: '#f0fdf4', accent: '#059669',
+            avatarBg: '#d1fae5', avatarColor: '#065f46', initials: 'ד.מ',
+            quote: content.testimonial_3_quote,
+            name: content.testimonial_3_name,
+            role: content.testimonial_3_role,
+            badge: 'מטפלת',
+          },
+          {
+            bg: '#fffbeb', accent: '#d97706',
+            avatarBg: '#fef3c7', avatarColor: '#92400e', initials: 'א.ש',
+            quote: content.testimonial_4_quote,
+            name: content.testimonial_4_name,
+            role: content.testimonial_4_role,
+            badge: 'מטפל',
+          },
+        ];
+        return (
+          <section className="lp-testimonials-section">
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                background: '#dcfce7', color: '#16a34a',
+                borderRadius: 50, padding: '4px 14px',
+                fontSize: 12, fontWeight: 700,
+                marginBottom: 16, fontFamily: F,
+              }}>
+                מה אומרים עלינו
+              </span>
+              <h2 style={{
+                fontSize: 32, fontWeight: 900, color: '#111',
+                margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px',
+              }}>
+                אנשים שכבר בתהליך
+              </h2>
+              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>
+                מטופלים ומטפלים שמשתמשים ב-NestAI
+              </p>
+            </div>
+
+            {/* 2×2 grid */}
+            <div className="lp-testimonials-grid">
+              {cards.map((card, i) => (
+                <div key={i} style={{
+                  position: 'relative', overflow: 'hidden',
+                  borderRadius: 24, background: card.bg,
+                  padding: '28px 28px 24px', boxSizing: 'border-box',
+                }}>
+                  {/* Accent shape — top-right corner */}
+                  <div style={{
+                    position: 'absolute', top: 0, right: 0,
+                    width: 80, height: 80,
+                    borderRadius: '0 24px 0 80px',
+                    background: card.accent, opacity: 0.15,
+                    pointerEvents: 'none',
+                  }} />
+
+                  {/* Large quote mark */}
+                  <div style={{
+                    fontSize: 56, fontWeight: 900, lineHeight: 1,
+                    color: card.accent, opacity: 0.25,
+                    marginBottom: 8, fontFamily: F, userSelect: 'none',
+                  }}>
+                    "
+                  </div>
+
+                  {/* Quote text */}
+                  <p style={{
+                    fontSize: 14, color: '#374151', lineHeight: 1.8,
+                    margin: '0 0 20px', position: 'relative', fontFamily: F,
+                  }}>
+                    {card.quote}
+                  </p>
+
+                  {/* Thin divider */}
+                  <div style={{
+                    borderTop: `0.5px solid ${card.accent}`,
+                    opacity: 0.3, marginBottom: 16,
+                  }} />
+
+                  {/* Author row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Square avatar with initials */}
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 14, flexShrink: 0,
+                      background: card.avatarBg, color: card.avatarColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 11, fontWeight: 800, fontFamily: F,
+                    }}>
+                      {card.initials}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#111', margin: 0, fontFamily: F }}>
+                        {card.name}
+                      </p>
+                      <p style={{ fontSize: 12, color: '#6b7280', margin: 0, fontFamily: F }}>
+                        {card.role}
+                      </p>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700,
+                      color: card.accent,
+                      border: `1px solid ${card.accent}`,
+                      borderRadius: 50, padding: '2px 10px',
+                      opacity: 0.85, flexShrink: 0, fontFamily: F,
+                    }}>
+                      {card.badge}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ── Steps section ── */}
       <section className="lp-steps-section" style={{ background: '#f9fafb', padding: '72px 52px' }}>

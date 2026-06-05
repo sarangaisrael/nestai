@@ -11,6 +11,7 @@ interface FieldDef {
   key: string;
   label: string;
   multiline?: boolean;
+  toggle?: boolean;   // renders a boolean toggle instead of text input
   group: string;
 }
 
@@ -57,7 +58,22 @@ const FIELD_DEFS: FieldDef[] = [
   { key: 'card1_cta',       label: 'טקסט כפתור',                              group: '📣 סקשן CTA' },
 
   // ── Footer ───────────────────────────────────────────────────────────────────
-  { key: 'footer_text',     label: 'טקסט פוטר',                              group: '🦶 פוטר', multiline: true },
+  { key: 'footer_text',           label: 'טקסט פוטר',           group: '🦶 פוטר', multiline: true },
+
+  // ── Testimonials ─────────────────────────────────────────────────────────────
+  { key: 'show_testimonials',     label: 'הצג סקשן המלצות',     group: '⭐ המלצות', toggle: true },
+  { key: 'testimonial_1_quote',   label: 'המלצה 1 — ציטוט',     group: '⭐ המלצות', multiline: true },
+  { key: 'testimonial_1_name',    label: 'המלצה 1 — שם',         group: '⭐ המלצות' },
+  { key: 'testimonial_1_role',    label: 'המלצה 1 — תפקיד',      group: '⭐ המלצות' },
+  { key: 'testimonial_2_quote',   label: 'המלצה 2 — ציטוט',     group: '⭐ המלצות', multiline: true },
+  { key: 'testimonial_2_name',    label: 'המלצה 2 — שם',         group: '⭐ המלצות' },
+  { key: 'testimonial_2_role',    label: 'המלצה 2 — תפקיד',      group: '⭐ המלצות' },
+  { key: 'testimonial_3_quote',   label: 'המלצה 3 — ציטוט',     group: '⭐ המלצות', multiline: true },
+  { key: 'testimonial_3_name',    label: 'המלצה 3 — שם',         group: '⭐ המלצות' },
+  { key: 'testimonial_3_role',    label: 'המלצה 3 — תפקיד',      group: '⭐ המלצות' },
+  { key: 'testimonial_4_quote',   label: 'המלצה 4 — ציטוט',     group: '⭐ המלצות', multiline: true },
+  { key: 'testimonial_4_name',    label: 'המלצה 4 — שם',         group: '⭐ המלצות' },
+  { key: 'testimonial_4_role',    label: 'המלצה 4 — תפקיד',      group: '⭐ המלצות' },
 ];
 
 // Get unique groups in order of first appearance
@@ -69,6 +85,7 @@ const GROUPS = FIELD_DEFS.reduce<string[]>((acc, field) => {
 const LandingContentEditor = () => {
   const { toast } = useToast();
   const [form, setForm] = useState<Record<string, string>>({});
+  const [showTestimonials, setShowTestimonials] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -83,9 +100,15 @@ const LandingContentEditor = () => {
           .single();
 
         if (!error && data) {
+          const d = data as Record<string, unknown>;
+          // Handle boolean toggle separately
+          setShowTestimonials(d.show_testimonials === true);
+          // Stringify all other fields for the text form
           const stringified: Record<string, string> = {};
-          Object.entries(data).forEach(([k, v]) => {
-            stringified[k] = v == null ? '' : String(v);
+          Object.entries(d).forEach(([k, v]) => {
+            if (k !== 'show_testimonials') {
+              stringified[k] = v == null ? '' : String(v);
+            }
           });
           setForm(stringified);
         }
@@ -104,7 +127,12 @@ const LandingContentEditor = () => {
     try {
       const { error } = await supabase
         .from('landing_content')
-        .upsert({ id: 1, ...form, updated_at: new Date().toISOString() });
+        .upsert({
+          id: 1,
+          ...form,
+          show_testimonials: showTestimonials,
+          updated_at: new Date().toISOString(),
+        });
 
       if (error) throw error;
 
@@ -174,7 +202,22 @@ const LandingContentEditor = () => {
                   >
                     {field.label}
                   </label>
-                  {field.multiline ? (
+                  {field.toggle ? (
+                    /* Boolean toggle */
+                    <button
+                      type="button"
+                      onClick={() => setShowTestimonials(v => !v)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                        showTestimonials ? 'bg-primary' : 'bg-muted'
+                      }`}
+                      aria-checked={showTestimonials}
+                      role="switch"
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
+                        showTestimonials ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  ) : field.multiline ? (
                     <Textarea
                       id={field.key}
                       value={form[field.key] ?? ''}
