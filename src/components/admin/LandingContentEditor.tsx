@@ -15,65 +15,37 @@ interface FieldDef {
 }
 
 const FIELD_DEFS: FieldDef[] = [
-  // Group: Navbar
-  { key: 'nav_logo',      label: 'לוגו (טקסט)',                      group: '🗂️ כותרות ניווט' },
-  { key: 'nav_cta1_text', label: 'כפתור 1 (קישור למטפלים)',           group: '🗂️ כותרות ניווט' },
-  { key: 'nav_cta2_text', label: 'כפתור 2 (התחל בחינם)',              group: '🗂️ כותרות ניווט' },
+  // ── Navbar ──────────────────────────────────────────────────────────────────
+  { key: 'nav_cta2_text',      label: 'כפתור ניווט (CTA)',                    group: '🗂️ ניווט' },
 
-  // Group: Hero
-  { key: 'hero_line1',    label: 'שורה ראשית 1 (שחור)',               group: '🦸 Hero' },
-  { key: 'hero_line2',    label: 'שורה ראשית 2 (ירוק)',               group: '🦸 Hero' },
-  { key: 'hero_subtitle', label: 'טקסט משנה',                         group: '🦸 Hero', multiline: true },
-  { key: 'hero_cta1',     label: 'כפתור ראשי',                        group: '🦸 Hero' },
-  { key: 'hero_cta2',     label: 'כפתור משני',                        group: '🦸 Hero' },
-  { key: 'hero_badge1',   label: 'תג 1',                              group: '🦸 Hero' },
-  { key: 'hero_badge2',   label: 'תג 2',                              group: '🦸 Hero' },
-  { key: 'hero_badge3',   label: 'תג 3',                              group: '🦸 Hero' },
+  // ── Hero ─────────────────────────────────────────────────────────────────────
+  { key: 'hero_eyebrow',       label: 'שורת eyebrow (סגול)',                  group: '🦸 Hero' },
+  { key: 'hero_eyebrow2',      label: 'שורת eyebrow 2 (אפור)',                group: '🦸 Hero' },
+  { key: 'hero_line1',         label: 'כותרת H1 — חלק שחור',                 group: '🦸 Hero' },
+  { key: 'hero_line2',         label: 'כותרת H1 — חלק צבעוני (אינדיגו)',     group: '🦸 Hero' },
+  { key: 'hero_subtitle',      label: 'פסקת משנה',                            group: '🦸 Hero', multiline: true },
+  { key: 'hero_cta1',          label: 'כפתור ראשי',                           group: '🦸 Hero' },
+  { key: 'hero_badge1',        label: 'תג אמינות 1',                          group: '🦸 Hero' },
+  { key: 'hero_badge2',        label: 'תג אמינות 2',                          group: '🦸 Hero' },
+  { key: 'hero_badge3',        label: 'תג אמינות 3',                          group: '🦸 Hero' },
 
-  // Group: Slide 1
-  { key: 'slide1_title',    label: 'כותרת',                           group: '🎞️ שקופית 1 — מטופלים' },
-  { key: 'slide1_subtitle', label: 'תת-כותרת',                        group: '🎞️ שקופית 1 — מטופלים', multiline: true },
-  { key: 'slide1_bullet1',  label: 'נקודה 1',                         group: '🎞️ שקופית 1 — מטופלים' },
-  { key: 'slide1_bullet2',  label: 'נקודה 2',                         group: '🎞️ שקופית 1 — מטופלים' },
-  { key: 'slide1_bullet3',  label: 'נקודה 3',                         group: '🎞️ שקופית 1 — מטופלים' },
+  // ── Steps section ────────────────────────────────────────────────────────────
+  { key: 'steps_title',        label: 'כותרת הסקשן',                          group: '👣 3 צעדים' },
+  { key: 'steps_subtitle',     label: 'תת-כותרת הסקשן',                       group: '👣 3 צעדים', multiline: true },
+  { key: 'step1_title',        label: 'צעד 1 — כותרת',                        group: '👣 3 צעדים' },
+  { key: 'step1_body',         label: 'צעד 1 — גוף',                          group: '👣 3 צעדים', multiline: true },
+  { key: 'step2_title',        label: 'צעד 2 — כותרת',                        group: '👣 3 צעדים' },
+  { key: 'step2_body',         label: 'צעד 2 — גוף',                          group: '👣 3 צעדים', multiline: true },
+  { key: 'step3_title',        label: 'צעד 3 — כותרת',                        group: '👣 3 צעדים' },
+  { key: 'step3_body',         label: 'צעד 3 — גוף',                          group: '👣 3 צעדים', multiline: true },
 
-  // Group: Slide 2
-  { key: 'slide2_title',    label: 'כותרת',                           group: '🎞️ שקופית 2 — מטפלים' },
-  { key: 'slide2_subtitle', label: 'תת-כותרת',                        group: '🎞️ שקופית 2 — מטפלים', multiline: true },
-  { key: 'slide2_bullet1',  label: 'נקודה 1',                         group: '🎞️ שקופית 2 — מטפלים' },
-  { key: 'slide2_bullet2',  label: 'נקודה 2',                         group: '🎞️ שקופית 2 — מטפלים' },
-  { key: 'slide2_bullet3',  label: 'נקודה 3',                         group: '🎞️ שקופית 2 — מטפלים' },
+  // ── CTA section ──────────────────────────────────────────────────────────────
+  { key: 'cta_section_title',  label: 'כותרת',                                group: '📣 סקשן CTA' },
+  { key: 'cta_section_sub',    label: 'תת-כותרת',                             group: '📣 סקשן CTA', multiline: true },
+  { key: 'cta_section_button', label: 'טקסט כפתור',                           group: '📣 סקשן CTA' },
 
-  // Group: Slide 3
-  { key: 'slide3_title',    label: 'כותרת',                           group: '🎞️ שקופית 3 — רציפות' },
-  { key: 'slide3_subtitle', label: 'תת-כותרת',                        group: '🎞️ שקופית 3 — רציפות', multiline: true },
-  { key: 'slide3_bullet1',  label: 'נקודה 1',                         group: '🎞️ שקופית 3 — רציפות' },
-  { key: 'slide3_bullet2',  label: 'נקודה 2',                         group: '🎞️ שקופית 3 — רציפות' },
-  { key: 'slide3_bullet3',  label: 'נקודה 3',                         group: '🎞️ שקופית 3 — רציפות' },
-
-  // Group: Tools
-  { key: 'tools_title',    label: 'כותרת הסקשן',                      group: '🛠️ כלים' },
-  { key: 'tools_subtitle', label: 'תת-כותרת הסקשן',                   group: '🛠️ כלים', multiline: true },
-  { key: 'tool1_icon',  label: 'כלי 1 — אמוג׳י',                      group: '🛠️ כלים' },
-  { key: 'tool1_title', label: 'כלי 1 — כותרת',                       group: '🛠️ כלים' },
-  { key: 'tool1_text',  label: 'כלי 1 — טקסט',                        group: '🛠️ כלים', multiline: true },
-  { key: 'tool2_icon',  label: 'כלי 2 — אמוג׳י',                      group: '🛠️ כלים' },
-  { key: 'tool2_title', label: 'כלי 2 — כותרת',                       group: '🛠️ כלים' },
-  { key: 'tool2_text',  label: 'כלי 2 — טקסט',                        group: '🛠️ כלים', multiline: true },
-  { key: 'tool3_icon',  label: 'כלי 3 — אמוג׳י',                      group: '🛠️ כלים' },
-  { key: 'tool3_title', label: 'כלי 3 — כותרת',                       group: '🛠️ כלים' },
-  { key: 'tool3_text',  label: 'כלי 3 — טקסט',                        group: '🛠️ כלים', multiline: true },
-
-  // Group: Audience Cards
-  { key: 'card1_title', label: 'כרטיס מטפל — כותרת',                 group: '🃏 כרטיסי קהל' },
-  { key: 'card1_body',  label: 'כרטיס מטפל — גוף',                   group: '🃏 כרטיסי קהל', multiline: true },
-  { key: 'card1_cta',   label: 'כרטיס מטפל — כפתור',                 group: '🃏 כרטיסי קהל' },
-  { key: 'card2_title', label: 'כרטיס מטופל — כותרת',                group: '🃏 כרטיסי קהל' },
-  { key: 'card2_body',  label: 'כרטיס מטופל — גוף',                  group: '🃏 כרטיסי קהל', multiline: true },
-  { key: 'card2_cta',   label: 'כרטיס מטופל — כפתור',                group: '🃏 כרטיסי קהל' },
-
-  // Group: Footer
-  { key: 'footer_text', label: 'טקסט פוטר',                          group: '🦶 פוטר', multiline: true },
+  // ── Footer ───────────────────────────────────────────────────────────────────
+  { key: 'footer_text',        label: 'טקסט פוטר',                            group: '🦶 פוטר', multiline: true },
 ];
 
 // Get unique groups in order of first appearance

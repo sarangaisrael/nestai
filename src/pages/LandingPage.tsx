@@ -197,10 +197,61 @@ const PhoneMockup = () => (
   </div>
 );
 
+// ── CMS content type + defaults ──────────────────────────────────────────────
+type LandingContent = {
+  nav_cta2_text: string;
+  hero_eyebrow: string;
+  hero_eyebrow2: string;
+  hero_line1: string;
+  hero_line2: string;
+  hero_subtitle: string;
+  hero_cta1: string;
+  hero_badge1: string;
+  hero_badge2: string;
+  hero_badge3: string;
+  steps_title: string;
+  steps_subtitle: string;
+  step1_title: string;
+  step1_body: string;
+  step2_title: string;
+  step2_body: string;
+  step3_title: string;
+  step3_body: string;
+  cta_section_title: string;
+  cta_section_sub: string;
+  cta_section_button: string;
+};
+
+const DEFAULT_CONTENT: LandingContent = {
+  nav_cta2_text:      'מתחילים לכתוב בחינם',
+  hero_eyebrow:       'מרחב לעיבוד ומעקב של התהליך הטיפולי',
+  hero_eyebrow2:      '100% חינם לתמיד',
+  hero_line1:         'הטיפול נמשך גם',
+  hero_line2:         'בין הפגישות.',
+  hero_subtitle:      'תעד את מה שעובר עליך, עקוב אחרי התקדמות, וקבל סיכום שמעצים כל מפגש.',
+  hero_cta1:          'מתחילים לכתוב בחינם',
+  hero_badge1:        'ללא כרטיס אשראי',
+  hero_badge2:        'פרטיות מלאה',
+  hero_badge3:        'מוצפן',
+  steps_title:        '3 צעדים פשוטים בדרך לטיפול אפקטיבי יותר',
+  steps_subtitle:     'מהרגע שאתה פותח את האפליקציה עד לפגישה הבאה — הכל קורה בשביל שתגיע מוכן ומחובר לעצמך.',
+  step1_title:        'כתיבה חופשית',
+  step1_body:         'כותבים שתי דקות ביום את מה שיושב על הלב, בלי לפחד לשכוח שום דבר במפגש.',
+  step2_title:        'ראה את המגמות',
+  step2_body:         'עקוב אחרי דפוסים חוזרים וראה את ההתקדמות הרגשית שלך לאורך זמן.',
+  step3_title:        'מפסיקים לבזבז זמן יקר',
+  step3_body:         'מקבלים סיכום מדויק ישירות לנייד, ומגיעים לקליניקה מוכנים לצלול ישר לעומק.',
+  cta_section_title:  'מוכן/ה להתחיל?',
+  cta_section_sub:    'הצטרף לאלפי משתמשים שמגיעים לכל פגישה מוכנים יותר.',
+  cta_section_button: 'מתחילים לכתוב בחינם',
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 /* ── Main component ─────────────────────────────────────────────────────────── */
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [content, setContent] = useState<LandingContent>(DEFAULT_CONTENT);
 
   /* ── Auth redirect + CMS (unchanged logic) ── */
   useEffect(() => {
@@ -235,6 +286,29 @@ const LandingPage = () => {
     };
     init();
   }, [navigate]);
+
+  // Fetch CMS content non-blocking — defaults are already set so the page
+  // renders immediately; text swaps in once Supabase responds.
+  useEffect(() => {
+    supabase
+      .from('landing_content')
+      .select('*')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (!data) return;
+        setContent(prev => {
+          const merged = { ...prev };
+          (Object.keys(prev) as (keyof LandingContent)[]).forEach(key => {
+            const val = (data as Record<string, unknown>)[key];
+            if (typeof val === 'string' && val.trim() !== '') {
+              merged[key] = val;
+            }
+          });
+          return merged;
+        });
+      });
+  }, []);
 
   if (isLoading) {
     return (
@@ -290,7 +364,7 @@ const LandingPage = () => {
             onClick={() => navigate('/app')}
             style={{ ...btnPrimary, padding: '8px 18px', borderRadius: 20 }}
           >
-            מתחילים לכתוב בחינם
+            {content.nav_cta2_text}
           </button>
         </div>
       </nav>
@@ -301,10 +375,10 @@ const LandingPage = () => {
         <div className="lp-hero-text" style={{ maxWidth: 480 }}>
           {/* Eyebrow */}
           <p style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', margin: '0 0 4px', letterSpacing: '0.02em' }}>
-            מרחב לעיבוד ומעקב של התהליך הטיפולי
+            {content.hero_eyebrow}
           </p>
           <p style={{ fontSize: 12, fontWeight: 500, color: '#94a3b8', margin: '0 0 18px' }}>
-            100% חינם לתמיד
+            {content.hero_eyebrow2}
           </p>
 
           {/* H1 */}
@@ -313,8 +387,8 @@ const LandingPage = () => {
             lineHeight: 1.05, letterSpacing: '-2.5px',
             margin: '0 0 20px', fontFamily: F,
           }}>
-            הטיפול נמשך גם{' '}
-            <span style={{ color: '#6366f1' }}>בין הפגישות.</span>
+            {content.hero_line1}{' '}
+            <span style={{ color: '#6366f1' }}>{content.hero_line2}</span>
           </h1>
 
           {/* Subtitle */}
@@ -322,13 +396,13 @@ const LandingPage = () => {
             fontSize: 16, color: '#64748b', lineHeight: 1.75,
             maxWidth: 400, margin: '0 0 32px',
           }}>
-            תעד את מה שעובר עליך, עקוב אחרי התקדמות, וקבל סיכום שמעצים כל מפגש.
+            {content.hero_subtitle}
           </p>
 
           {/* CTA buttons */}
           <div className="lp-hero-btns" style={{ marginBottom: 28 }}>
             <button onClick={() => navigate('/app')} style={btnPrimary}>
-              מתחילים לכתוב בחינם
+              {content.hero_cta1}
             </button>
             <button style={btnOutline}>
               איך זה עובד?
@@ -337,7 +411,7 @@ const LandingPage = () => {
 
           {/* Trust badges */}
           <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-            {['ללא כרטיס אשראי', 'פרטיות מלאה', 'מוצפן'].map(label => (
+            {[content.hero_badge1, content.hero_badge2, content.hero_badge3].map(label => (
               <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#94a3b8' }}>
                 <span style={{ color: '#10b981', fontWeight: 700 }}>✓</span>
                 {label}
@@ -357,31 +431,19 @@ const LandingPage = () => {
         {/* Header */}
         <div className="lp-steps-header">
           <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
-            3 צעדים פשוטים בדרך לטיפול אפקטיבי יותר
+            {content.steps_title}
           </h2>
           <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-            מהרגע שאתה פותח את האפליקציה עד לפגישה הבאה — הכל קורה בשביל שתגיע מוכן ומחובר לעצמך.
+            {content.steps_subtitle}
           </p>
         </div>
 
         {/* Cards */}
         <div className="lp-steps-grid">
           {[
-            {
-              num: '01',
-              title: 'כתיבה חופשית',
-              body: 'כותבים שתי דקות ביום את מה שיושב על הלב, בלי לפחד לשכוח שום דבר במפגש.',
-            },
-            {
-              num: '02',
-              title: 'ראה את המגמות',
-              body: 'עקוב אחרי דפוסים חוזרים וראה את ההתקדמות הרגשית שלך לאורך זמן.',
-            },
-            {
-              num: '03',
-              title: 'מפסיקים לבזבז זמן יקר',
-              body: 'מקבלים סיכום מדויק ישירות לנייד, ומגיעים לקליניקה מוכנים לצלול ישר לעומק.',
-            },
+            { num: '01', title: content.step1_title, body: content.step1_body },
+            { num: '02', title: content.step2_title, body: content.step2_body },
+            { num: '03', title: content.step3_title, body: content.step3_body },
           ].map(step => (
             <div key={step.num} className="lp-step-card">
               <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 16px', letterSpacing: '0.05em' }}>
@@ -408,10 +470,10 @@ const LandingPage = () => {
           {/* Text right */}
           <div>
             <h2 style={{ fontSize: 32, fontWeight: 900, color: '#ffffff', margin: '0 0 10px', fontFamily: F, letterSpacing: '-1px' }}>
-              מוכן/ה להתחיל?
+              {content.cta_section_title}
             </h2>
             <p style={{ fontSize: 15, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>
-              הצטרף לאלפי משתמשים שמגיעים לכל פגישה מוכנים יותר.
+              {content.cta_section_sub}
             </p>
           </div>
           {/* Button left */}
@@ -425,7 +487,7 @@ const LandingPage = () => {
               fontFamily: F, whiteSpace: 'nowrap', flexShrink: 0,
             }}
           >
-            מתחילים לכתוב בחינם
+            {content.cta_section_button}
           </button>
         </div>
       </section>
