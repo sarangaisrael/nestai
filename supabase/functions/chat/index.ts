@@ -125,8 +125,45 @@ serve(async (req) => {
       );
     }
 
+    // ── Fetch recent history for context BEFORE saving current message ─────────
+    // (Fetching first ensures the current message is never duplicated in history)
+    console.log("[chat] ── STEP 4: fetching message history");
+    const { data: recentMessages, error: fetchError } = await supabase
+      .from("messages")
+      .select("role, text, created_at")
+      .eq("user_id", userId)
+      .eq("is_system", false)          // exclude system-tagged messages
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (fetchError) {
+      console.error("[chat] Error fetching recent messages:", JSON.stringify(fetchError));
+      throw fetchError;
+    }
+    console.log("[chat] Fetched", recentMessages?.length ?? 0, "messages");
+
+    const decryptedMessages = await Promise.all(
+      (recentMessages || []).map(async (msg) => {
+        if (looksEncrypted(msg.text)) {
+          return { ...msg, text: await decryptText(msg.text, ENCRYPTION_KEY) };
+        }
+        return msg;
+      })
+    );
+
+    // Chronological order, last 10 exchanges (exclude any stray system-prompt text)
+    const conversationHistory = [...decryptedMessages]
+      .reverse()
+      .slice(-10)
+      .filter((msg) => msg.role === "user" || msg.role === "assistant")
+      .map((msg) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.text,
+      }));
+    console.log("[chat] Conversation history length:", conversationHistory.length);
+
     // ── Save user message (encrypted) ─────────────────────────────────────────
-    console.log("[chat] ── STEP 4: encrypting and saving user message");
+    console.log("[chat] ── STEP 5: encrypting and saving user message");
     const encryptedUserMessage = await encryptText(message, ENCRYPTION_KEY);
     const { error: insertUserError } = await supabase
       .from("messages")
@@ -145,42 +182,9 @@ serve(async (req) => {
     }
     console.log("[chat] User message saved OK");
 
-    // ── Fetch recent history for context (decrypt for AI) ─────────────────────
-    console.log("[chat] ── STEP 5: fetching message history");
-    const { data: recentMessages, error: fetchError } = await supabase
-      .from("messages")
-      .select("role, text, created_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(15);
-
-    if (fetchError) {
-      console.error("[chat] Error fetching recent messages:", JSON.stringify(fetchError));
-      throw fetchError;
-    }
-    console.log("[chat] Fetched", recentMessages?.length ?? 0, "messages");
-
-    const decryptedMessages = await Promise.all(
-      (recentMessages || []).map(async (msg) => {
-        if (looksEncrypted(msg.text)) {
-          return { ...msg, text: await decryptText(msg.text, ENCRYPTION_KEY) };
-        }
-        return msg;
-      })
-    );
-
-    // Chronological order, last 10 exchanges
-    const conversationHistory = [...decryptedMessages]
-      .reverse()
-      .slice(-10)
-      .map((msg) => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.text,
-      }));
-    console.log("[chat] Conversation history length:", conversationHistory.length);
-
     // ── System prompt (from DB, fallback to minimal Hebrew prompt) ────────────
     console.log("[chat] ── STEP 6: fetching system prompt");
+
     let basePrompt = "";
     let aiSiteInstruction = "";
     let appInstructions = "";
@@ -251,11 +255,24 @@ serve(async (req) => {
     // Keep only Hebrew blocks (Gemini sometimes prepends English reasoning)
     const blocks = rawReply.split(/\n\s*\n/);
     const hebrewBlocks = blocks.filter((b) => /[֐-׿]/.test(b));
-    const reply = (hebrewBlocks.length > 0
+    const hebrewText = (hebrewBlocks.length > 0
       ? hebrewBlocks[hebrewBlocks.length - 1]
       : rawReply
     ).trim();
-    console.log("[chat] reply length after Hebrew filter:", reply.length);
+
+    // Strip markdown formatting so plain text reaches the client
+    const reply = hebrewText
+      .replace(/\*\*(.+?)\*\*/g, "$1")   // **bold**
+      .replace(/\*(.+?)\*/g, "$1")        // *italic*
+      .replace(/__(.+?)__/g, "$1")        // __bold__
+      .replace(/_(.+?)_/g, "$1")          // _italic_
+      .replace(/^#{1,6}\s+/gm, "")        // # headers
+      .replace(/^[-*•]\s+/gm, "")         // bullet points
+      .replace(/^\d+\.\s+/gm, "")         // numbered lists
+      .replace(/`{1,3}[^`]*`{1,3}/g, "")  // `code` / ```blocks```
+      .replace(/\[(.+?)\]\(.+?\)/g, "$1") // [link](url) → link text only
+      .trim();
+    console.log("[chat] reply length after Hebrew filter + markdown strip:", reply.length);
 
     // ── Save AI reply (encrypted) ─────────────────────────────────────────────
     console.log("[chat] ── STEP 8: saving assistant reply");
