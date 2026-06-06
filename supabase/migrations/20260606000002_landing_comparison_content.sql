@@ -1,0 +1,20 @@
+-- Editable text content for the comparison section
+ALTER TABLE landing_content
+  ADD COLUMN IF NOT EXISTS comparison_tag          TEXT NOT NULL DEFAULT 'למה לא פשוט ChatGPT?',
+  ADD COLUMN IF NOT EXISTS comparison_title        TEXT NOT NULL DEFAULT 'לא כל AI מתאים לתהליך טיפולי',
+  ADD COLUMN IF NOT EXISTS comparison_subtitle     TEXT NOT NULL DEFAULT 'ההבדל בין כלי כללי לכלי שנבנה בשביל זה',
+  ADD COLUMN IF NOT EXISTS comparison_row1_feature TEXT NOT NULL DEFAULT 'זיכרון לאורך זמן',
+  ADD COLUMN IF NOT EXISTS comparison_row1_chatgpt TEXT NOT NULL DEFAULT 'מתחיל מאפס בכל שיחה',
+  ADD COLUMN IF NOT EXISTS comparison_row1_nestai  TEXT NOT NULL DEFAULT 'עוקב לאורך כל התהליך',
+  ADD COLUMN IF NOT EXISTS comparison_row2_feature TEXT NOT NULL DEFAULT 'סיכום לפגישה',
+  ADD COLUMN IF NOT EXISTS comparison_row2_chatgpt TEXT NOT NULL DEFAULT 'לא קיים',
+  ADD COLUMN IF NOT EXISTS comparison_row2_nestai  TEXT NOT NULL DEFAULT 'אוטומטי לפני כל מפגש',
+  ADD COLUMN IF NOT EXISTS comparison_row3_feature TEXT NOT NULL DEFAULT 'מותאם לטיפול',
+  ADD COLUMN IF NOT EXISTS comparison_row3_chatgpt TEXT NOT NULL DEFAULT 'כלי כללי לכל מטרה',
+  ADD COLUMN IF NOT EXISTS comparison_row3_nestai  TEXT NOT NULL DEFAULT 'נבנה בשביל התהליך הטיפולי',
+  ADD COLUMN IF NOT EXISTS comparison_row4_feature TEXT NOT NULL DEFAULT 'פרטיות והצפנה',
+  ADD COLUMN IF NOT EXISTS comparison_row4_chatgpt TEXT NOT NULL DEFAULT 'נתונים עשויים לשמש לאימון',
+  ADD COLUMN IF NOT EXISTS comparison_row4_nestai  TEXT NOT NULL DEFAULT 'מוצפן, לא נשמר לאימון AI',
+  ADD COLUMN IF NOT EXISTS comparison_row5_feature TEXT NOT NULL DEFAULT 'מעקב מגמות רגשיות',
+  ADD COLUMN IF NOT EXISTS comparison_row5_chatgpt TEXT NOT NULL DEFAULT 'לא קיים',
+  ADD COLUMN IF NOT EXISTS comparison_row5_nestai  TEXT NOT NULL DEFAULT 'גרפים ותובנות לאורך זמן';

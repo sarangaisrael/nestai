@@ -61,7 +61,25 @@ const FIELD_DEFS: FieldDef[] = [
   { key: 'footer_text',           label: 'טקסט פוטר',           group: '🦶 פוטר', multiline: true },
 
   // ── Comparison ───────────────────────────────────────────────────────────────
-  { key: 'show_comparison',       label: 'הצג סקשן השוואה',     group: '⚖️ השוואה', toggle: true },
+  { key: 'show_comparison',         label: 'הצג סקשן השוואה',        group: '⚖️ השוואה', toggle: true },
+  { key: 'comparison_tag',          label: 'תג (פיל האדום)',          group: '⚖️ השוואה' },
+  { key: 'comparison_title',        label: 'כותרת',                   group: '⚖️ השוואה' },
+  { key: 'comparison_subtitle',     label: 'תת-כותרת',                group: '⚖️ השוואה' },
+  { key: 'comparison_row1_feature', label: 'שורה 1 — תכונה',          group: '⚖️ השוואה' },
+  { key: 'comparison_row1_chatgpt', label: 'שורה 1 — טקסט ChatGPT',   group: '⚖️ השוואה' },
+  { key: 'comparison_row1_nestai',  label: 'שורה 1 — טקסט NestAI',    group: '⚖️ השוואה' },
+  { key: 'comparison_row2_feature', label: 'שורה 2 — תכונה',          group: '⚖️ השוואה' },
+  { key: 'comparison_row2_chatgpt', label: 'שורה 2 — טקסט ChatGPT',   group: '⚖️ השוואה' },
+  { key: 'comparison_row2_nestai',  label: 'שורה 2 — טקסט NestAI',    group: '⚖️ השוואה' },
+  { key: 'comparison_row3_feature', label: 'שורה 3 — תכונה',          group: '⚖️ השוואה' },
+  { key: 'comparison_row3_chatgpt', label: 'שורה 3 — טקסט ChatGPT',   group: '⚖️ השוואה' },
+  { key: 'comparison_row3_nestai',  label: 'שורה 3 — טקסט NestAI',    group: '⚖️ השוואה' },
+  { key: 'comparison_row4_feature', label: 'שורה 4 — תכונה',          group: '⚖️ השוואה' },
+  { key: 'comparison_row4_chatgpt', label: 'שורה 4 — טקסט ChatGPT (— אפור)',  group: '⚖️ השוואה' },
+  { key: 'comparison_row4_nestai',  label: 'שורה 4 — טקסט NestAI',    group: '⚖️ השוואה' },
+  { key: 'comparison_row5_feature', label: 'שורה 5 — תכונה',          group: '⚖️ השוואה' },
+  { key: 'comparison_row5_chatgpt', label: 'שורה 5 — טקסט ChatGPT',   group: '⚖️ השוואה' },
+  { key: 'comparison_row5_nestai',  label: 'שורה 5 — טקסט NestAI',    group: '⚖️ השוואה' },
 
   // ── Testimonials ─────────────────────────────────────────────────────────────
   { key: 'show_testimonials',     label: 'הצג סקשן המלצות',     group: '⭐ המלצות', toggle: true },

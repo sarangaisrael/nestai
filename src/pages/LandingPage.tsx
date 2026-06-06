@@ -253,6 +253,24 @@ type LandingContent = {
   cta_section_button: string;
   // Comparison
   show_comparison: boolean;
+  comparison_tag: string;
+  comparison_title: string;
+  comparison_subtitle: string;
+  comparison_row1_feature: string;
+  comparison_row1_chatgpt: string;
+  comparison_row1_nestai: string;
+  comparison_row2_feature: string;
+  comparison_row2_chatgpt: string;
+  comparison_row2_nestai: string;
+  comparison_row3_feature: string;
+  comparison_row3_chatgpt: string;
+  comparison_row3_nestai: string;
+  comparison_row4_feature: string;
+  comparison_row4_chatgpt: string;
+  comparison_row4_nestai: string;
+  comparison_row5_feature: string;
+  comparison_row5_chatgpt: string;
+  comparison_row5_nestai: string;
   // Testimonials
   show_testimonials: boolean;
   testimonial_1_quote: string;
@@ -292,7 +310,25 @@ const DEFAULT_CONTENT: LandingContent = {
   cta_section_sub:    'הצטרף לאלפי משתמשים שמגיעים לכל פגישה מוכנים יותר.',
   cta_section_button: 'מתחילים לכתוב בחינם',
   // Comparison
-  show_comparison:     false,
+  show_comparison:          false,
+  comparison_tag:           'למה לא פשוט ChatGPT?',
+  comparison_title:         'לא כל AI מתאים לתהליך טיפולי',
+  comparison_subtitle:      'ההבדל בין כלי כללי לכלי שנבנה בשביל זה',
+  comparison_row1_feature:  'זיכרון לאורך זמן',
+  comparison_row1_chatgpt:  'מתחיל מאפס בכל שיחה',
+  comparison_row1_nestai:   'עוקב לאורך כל התהליך',
+  comparison_row2_feature:  'סיכום לפגישה',
+  comparison_row2_chatgpt:  'לא קיים',
+  comparison_row2_nestai:   'אוטומטי לפני כל מפגש',
+  comparison_row3_feature:  'מותאם לטיפול',
+  comparison_row3_chatgpt:  'כלי כללי לכל מטרה',
+  comparison_row3_nestai:   'נבנה בשביל התהליך הטיפולי',
+  comparison_row4_feature:  'פרטיות והצפנה',
+  comparison_row4_chatgpt:  'נתונים עשויים לשמש לאימון',
+  comparison_row4_nestai:   'מוצפן, לא נשמר לאימון AI',
+  comparison_row5_feature:  'מעקב מגמות רגשיות',
+  comparison_row5_chatgpt:  'לא קיים',
+  comparison_row5_nestai:   'גרפים ותובנות לאורך זמן',
   // Testimonials
   show_testimonials:   false,
   testimonial_1_quote: 'NestAI שינה לי את כל חוויית הטיפול. אני מגיעה לכל פגישה עם ראש מסודר — במקום לנסות לזכור בזמן אמת מה קרה לי השבוע.',
@@ -396,7 +432,25 @@ const LandingPage = () => {
           cta_section_sub:    pick('card1_body',      DEFAULT_CONTENT.cta_section_sub),
           cta_section_button: pick('card1_cta',       DEFAULT_CONTENT.cta_section_button),
           // Comparison
-          show_comparison:     (data as any).show_comparison === true,
+          show_comparison:          (data as any).show_comparison === true,
+          comparison_tag:           pick('comparison_tag',          DEFAULT_CONTENT.comparison_tag),
+          comparison_title:         pick('comparison_title',        DEFAULT_CONTENT.comparison_title),
+          comparison_subtitle:      pick('comparison_subtitle',     DEFAULT_CONTENT.comparison_subtitle),
+          comparison_row1_feature:  pick('comparison_row1_feature', DEFAULT_CONTENT.comparison_row1_feature),
+          comparison_row1_chatgpt:  pick('comparison_row1_chatgpt', DEFAULT_CONTENT.comparison_row1_chatgpt),
+          comparison_row1_nestai:   pick('comparison_row1_nestai',  DEFAULT_CONTENT.comparison_row1_nestai),
+          comparison_row2_feature:  pick('comparison_row2_feature', DEFAULT_CONTENT.comparison_row2_feature),
+          comparison_row2_chatgpt:  pick('comparison_row2_chatgpt', DEFAULT_CONTENT.comparison_row2_chatgpt),
+          comparison_row2_nestai:   pick('comparison_row2_nestai',  DEFAULT_CONTENT.comparison_row2_nestai),
+          comparison_row3_feature:  pick('comparison_row3_feature', DEFAULT_CONTENT.comparison_row3_feature),
+          comparison_row3_chatgpt:  pick('comparison_row3_chatgpt', DEFAULT_CONTENT.comparison_row3_chatgpt),
+          comparison_row3_nestai:   pick('comparison_row3_nestai',  DEFAULT_CONTENT.comparison_row3_nestai),
+          comparison_row4_feature:  pick('comparison_row4_feature', DEFAULT_CONTENT.comparison_row4_feature),
+          comparison_row4_chatgpt:  pick('comparison_row4_chatgpt', DEFAULT_CONTENT.comparison_row4_chatgpt),
+          comparison_row4_nestai:   pick('comparison_row4_nestai',  DEFAULT_CONTENT.comparison_row4_nestai),
+          comparison_row5_feature:  pick('comparison_row5_feature', DEFAULT_CONTENT.comparison_row5_feature),
+          comparison_row5_chatgpt:  pick('comparison_row5_chatgpt', DEFAULT_CONTENT.comparison_row5_chatgpt),
+          comparison_row5_nestai:   pick('comparison_row5_nestai',  DEFAULT_CONTENT.comparison_row5_nestai),
           // Testimonials — direct column names
           show_testimonials:   (data as any).show_testimonials === true,
           testimonial_1_quote: pick('testimonial_1_quote', DEFAULT_CONTENT.testimonial_1_quote),
@@ -667,14 +721,48 @@ const LandingPage = () => {
         );
       })()}
 
+      {/* ── Steps section ── */}
+      <section className="lp-steps-section" style={{ background: '#f9fafb', padding: '72px 52px' }}>
+        {/* Header */}
+        <div className="lp-steps-header">
+          <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
+            {content.steps_title}
+          </h2>
+          <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
+            {content.steps_subtitle}
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="lp-steps-grid">
+          {[
+            { num: '01', title: content.step1_title, body: content.step1_body },
+            { num: '02', title: content.step2_title, body: content.step2_body },
+            { num: '03', title: content.step3_title, body: content.step3_body },
+          ].map(step => (
+            <div key={step.num} className="lp-step-card">
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 16px', letterSpacing: '0.05em' }}>
+                {step.num}
+              </p>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 10px', fontFamily: F }}>
+                {step.title}
+              </h3>
+              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>
+                {step.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Comparison section ── */}
       {content.show_comparison && (() => {
         const rows: { feature: string; chatgptIcon: '✗' | '—'; chatgptText: string; nestaiText: string }[] = [
-          { feature: 'זיכרון לאורך זמן',     chatgptIcon: '✗', chatgptText: 'מתחיל מאפס בכל שיחה',                nestaiText: 'עוקב לאורך כל התהליך' },
-          { feature: 'סיכום לפגישה',          chatgptIcon: '✗', chatgptText: 'לא קיים',                            nestaiText: 'אוטומטי לפני כל מפגש' },
-          { feature: 'מותאם לטיפול',          chatgptIcon: '✗', chatgptText: 'כלי כללי לכל מטרה',                  nestaiText: 'נבנה בשביל התהליך הטיפולי' },
-          { feature: 'פרטיות והצפנה',        chatgptIcon: '—', chatgptText: 'נתונים עשויים לשמש לאימון',           nestaiText: 'מוצפן, לא נשמר לאימון AI' },
-          { feature: 'מעקב מגמות רגשיות',    chatgptIcon: '✗', chatgptText: 'לא קיים',                            nestaiText: 'גרפים ותובנות לאורך זמן' },
+          { feature: content.comparison_row1_feature, chatgptIcon: '✗', chatgptText: content.comparison_row1_chatgpt, nestaiText: content.comparison_row1_nestai },
+          { feature: content.comparison_row2_feature, chatgptIcon: '✗', chatgptText: content.comparison_row2_chatgpt, nestaiText: content.comparison_row2_nestai },
+          { feature: content.comparison_row3_feature, chatgptIcon: '✗', chatgptText: content.comparison_row3_chatgpt, nestaiText: content.comparison_row3_nestai },
+          { feature: content.comparison_row4_feature, chatgptIcon: '—', chatgptText: content.comparison_row4_chatgpt, nestaiText: content.comparison_row4_nestai },
+          { feature: content.comparison_row5_feature, chatgptIcon: '✗', chatgptText: content.comparison_row5_chatgpt, nestaiText: content.comparison_row5_nestai },
         ];
         return (
           <section className="lp-comparison-section">
@@ -688,16 +776,16 @@ const LandingPage = () => {
                 fontSize: 12, fontWeight: 700,
                 marginBottom: 16, fontFamily: F,
               }}>
-                למה לא פשוט ChatGPT?
+                {content.comparison_tag}
               </span>
               <h2 style={{
                 fontSize: 32, fontWeight: 900, color: '#111',
                 margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px',
               }}>
-                לא כל AI מתאים לתהליך טיפולי
+                {content.comparison_title}
               </h2>
               <p style={{ fontSize: 14, color: '#94a3b8', margin: 0, fontFamily: F }}>
-                ההבדל בין כלי כללי לכלי שנבנה בשביל זה
+                {content.comparison_subtitle}
               </p>
             </div>
 
@@ -707,7 +795,7 @@ const LandingPage = () => {
                 {/* Header row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr' }}>
                   <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: F }}>
-                    פיצ'ר
+                    תכונה
                   </div>
                   <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>
                     ChatGPT
@@ -754,40 +842,6 @@ const LandingPage = () => {
           </section>
         );
       })()}
-
-      {/* ── Steps section ── */}
-      <section className="lp-steps-section" style={{ background: '#f9fafb', padding: '72px 52px' }}>
-        {/* Header */}
-        <div className="lp-steps-header">
-          <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
-            {content.steps_title}
-          </h2>
-          <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-            {content.steps_subtitle}
-          </p>
-        </div>
-
-        {/* Cards */}
-        <div className="lp-steps-grid">
-          {[
-            { num: '01', title: content.step1_title, body: content.step1_body },
-            { num: '02', title: content.step2_title, body: content.step2_body },
-            { num: '03', title: content.step3_title, body: content.step3_body },
-          ].map(step => (
-            <div key={step.num} className="lp-step-card">
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 16px', letterSpacing: '0.05em' }}>
-                {step.num}
-              </p>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 10px', fontFamily: F }}>
-                {step.title}
-              </h3>
-              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>
-                {step.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ── CTA section ── */}
       <section className="lp-cta-section" style={{
