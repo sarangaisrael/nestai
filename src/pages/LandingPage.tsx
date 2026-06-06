@@ -67,6 +67,21 @@ const CSS = `
   }
   .lp-cta-btn-full { width: auto; }
 
+  /* ── Comparison table ── */
+  .lp-comparison-section {
+    padding: 72px 52px;
+    background: #ffffff;
+  }
+  .lp-comparison-scroll {
+    overflow-x: auto;
+  }
+  .lp-comparison-table {
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    min-width: 520px;
+  }
+
   /* ── Testimonials ── */
   .lp-testimonials-section {
     padding: 72px 52px;
@@ -106,6 +121,7 @@ const CSS = `
     .lp-footer-row { flex-direction: column; gap: 12px; align-items: flex-start; }
     .lp-mockup-wrap { order: 1; }
     .lp-hero-text  { order: 0; }
+    .lp-comparison-section { padding: 52px 24px !important; }
     .lp-nav { padding: 14px 24px !important; }
     .lp-steps-section { padding: 52px 24px !important; }
     .lp-cta-section { margin: 0 16px !important; padding: 40px 24px !important; }
@@ -235,6 +251,8 @@ type LandingContent = {
   cta_section_title: string;
   cta_section_sub: string;
   cta_section_button: string;
+  // Comparison
+  show_comparison: boolean;
   // Testimonials
   show_testimonials: boolean;
   testimonial_1_quote: string;
@@ -273,6 +291,8 @@ const DEFAULT_CONTENT: LandingContent = {
   cta_section_title:  'מוכן/ה להתחיל?',
   cta_section_sub:    'הצטרף לאלפי משתמשים שמגיעים לכל פגישה מוכנים יותר.',
   cta_section_button: 'מתחילים לכתוב בחינם',
+  // Comparison
+  show_comparison:     false,
   // Testimonials
   show_testimonials:   false,
   testimonial_1_quote: 'NestAI שינה לי את כל חוויית הטיפול. אני מגיעה לכל פגישה עם ראש מסודר — במקום לנסות לזכור בזמן אמת מה קרה לי השבוע.',
@@ -375,6 +395,8 @@ const LandingPage = () => {
           cta_section_title:  pick('card1_title',     DEFAULT_CONTENT.cta_section_title),
           cta_section_sub:    pick('card1_body',      DEFAULT_CONTENT.cta_section_sub),
           cta_section_button: pick('card1_cta',       DEFAULT_CONTENT.cta_section_button),
+          // Comparison
+          show_comparison:     (data as any).show_comparison === true,
           // Testimonials — direct column names
           show_testimonials:   (data as any).show_testimonials === true,
           testimonial_1_quote: pick('testimonial_1_quote', DEFAULT_CONTENT.testimonial_1_quote),
@@ -640,6 +662,94 @@ const LandingPage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* ── Comparison section ── */}
+      {content.show_comparison && (() => {
+        const rows: { feature: string; chatgptIcon: '✗' | '—'; chatgptText: string; nestaiText: string }[] = [
+          { feature: 'זיכרון לאורך זמן',     chatgptIcon: '✗', chatgptText: 'מתחיל מאפס בכל שיחה',                nestaiText: 'עוקב לאורך כל התהליך' },
+          { feature: 'סיכום לפגישה',          chatgptIcon: '✗', chatgptText: 'לא קיים',                            nestaiText: 'אוטומטי לפני כל מפגש' },
+          { feature: 'מותאם לטיפול',          chatgptIcon: '✗', chatgptText: 'כלי כללי לכל מטרה',                  nestaiText: 'נבנה בשביל התהליך הטיפולי' },
+          { feature: 'פרטיות והצפנה',        chatgptIcon: '—', chatgptText: 'נתונים עשויים לשמש לאימון',           nestaiText: 'מוצפן, לא נשמר לאימון AI' },
+          { feature: 'מעקב מגמות רגשיות',    chatgptIcon: '✗', chatgptText: 'לא קיים',                            nestaiText: 'גרפים ותובנות לאורך זמן' },
+        ];
+        return (
+          <section className="lp-comparison-section">
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                background: '#fef2f2', color: '#dc2626',
+                border: '1px solid #fecaca',
+                borderRadius: 50, padding: '4px 14px',
+                fontSize: 12, fontWeight: 700,
+                marginBottom: 16, fontFamily: F,
+              }}>
+                למה לא פשוט ChatGPT?
+              </span>
+              <h2 style={{
+                fontSize: 32, fontWeight: 900, color: '#111',
+                margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px',
+              }}>
+                לא כל AI מתאים לתהליך טיפולי
+              </h2>
+              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0, fontFamily: F }}>
+                ההבדל בין כלי כללי לכלי שנבנה בשביל זה
+              </p>
+            </div>
+
+            {/* Table */}
+            <div className="lp-comparison-scroll">
+              <div className="lp-comparison-table">
+                {/* Header row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr' }}>
+                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: F }}>
+                    פיצ'ר
+                  </div>
+                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>
+                    ChatGPT
+                  </div>
+                  <div style={{ padding: '14px 20px', background: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', flexShrink: 0, display: 'inline-block' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', fontFamily: F }}>NestAI</span>
+                  </div>
+                </div>
+
+                {/* Data rows */}
+                {rows.map((row, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', borderTop: '1px solid #f1f5f9' }}>
+                    <div style={{ padding: '16px 20px' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>{row.feature}</span>
+                    </div>
+                    <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: row.chatgptIcon === '—' ? '#cbd5e1' : '#ef4444', flexShrink: 0, lineHeight: '1.45' }}>{row.chatgptIcon}</span>
+                      <span style={{ fontSize: 13, color: '#6b7280', fontFamily: F, lineHeight: 1.5 }}>{row.chatgptText}</span>
+                    </div>
+                    <div style={{ padding: '16px 20px', background: '#fafbff', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#10b981', flexShrink: 0, lineHeight: '1.45' }}>✓</span>
+                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F, lineHeight: 1.5 }}>{row.nestaiText}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+              <button
+                onClick={() => navigate('/app')}
+                style={{
+                  background: '#6366f1', color: '#ffffff', border: 'none',
+                  borderRadius: 22, padding: '13px 32px',
+                  fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                  fontFamily: F,
+                }}
+              >
+                מתחילים לכתוב בחינם
+              </button>
             </div>
           </section>
         );

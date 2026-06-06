@@ -60,6 +60,9 @@ const FIELD_DEFS: FieldDef[] = [
   // ── Footer ───────────────────────────────────────────────────────────────────
   { key: 'footer_text',           label: 'טקסט פוטר',           group: '🦶 פוטר', multiline: true },
 
+  // ── Comparison ───────────────────────────────────────────────────────────────
+  { key: 'show_comparison',       label: 'הצג סקשן השוואה',     group: '⚖️ השוואה', toggle: true },
+
   // ── Testimonials ─────────────────────────────────────────────────────────────
   { key: 'show_testimonials',     label: 'הצג סקשן המלצות',     group: '⭐ המלצות', toggle: true },
   { key: 'testimonial_1_quote',   label: 'המלצה 1 — ציטוט',     group: '⭐ המלצות', multiline: true },
@@ -86,7 +89,20 @@ const LandingContentEditor = () => {
   const { toast } = useToast();
   const [form, setForm] = useState<Record<string, string>>({});
   const [showTestimonials, setShowTestimonials] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // ── Boolean toggle helpers ───────────────────────────────────────────────────
+  const BOOLEAN_KEYS = ['show_testimonials', 'show_comparison'] as const;
+  type BoolKey = typeof BOOLEAN_KEYS[number];
+  const boolState: Record<BoolKey, boolean> = {
+    show_testimonials: showTestimonials,
+    show_comparison: showComparison,
+  };
+  const toggleBool = (key: BoolKey) => {
+    if (key === 'show_testimonials') setShowTestimonials(v => !v);
+    if (key === 'show_comparison')   setShowComparison(v => !v);
+  };
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -101,12 +117,13 @@ const LandingContentEditor = () => {
 
         if (!error && data) {
           const d = data as Record<string, unknown>;
-          // Handle boolean toggle separately
+          // Handle boolean toggles separately
           setShowTestimonials(d.show_testimonials === true);
-          // Stringify all other fields for the text form
+          setShowComparison(d.show_comparison === true);
+          // Stringify all non-boolean fields for the text form
           const stringified: Record<string, string> = {};
           Object.entries(d).forEach(([k, v]) => {
-            if (k !== 'show_testimonials') {
+            if (!BOOLEAN_KEYS.includes(k as BoolKey)) {
               stringified[k] = v == null ? '' : String(v);
             }
           });
@@ -131,6 +148,7 @@ const LandingContentEditor = () => {
           id: 1,
           ...form,
           show_testimonials: showTestimonials,
+          show_comparison:   showComparison,
           updated_at: new Date().toISOString(),
         });
 
@@ -203,18 +221,18 @@ const LandingContentEditor = () => {
                     {field.label}
                   </label>
                   {field.toggle ? (
-                    /* Boolean toggle */
+                    /* Boolean toggle — dispatches via boolState/toggleBool */
                     <button
                       type="button"
-                      onClick={() => setShowTestimonials(v => !v)}
+                      onClick={() => toggleBool(field.key as BoolKey)}
                       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                        showTestimonials ? 'bg-primary' : 'bg-muted'
+                        boolState[field.key as BoolKey] ? 'bg-primary' : 'bg-muted'
                       }`}
-                      aria-checked={showTestimonials}
+                      aria-checked={boolState[field.key as BoolKey]}
                       role="switch"
                     >
                       <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${
-                        showTestimonials ? 'translate-x-5' : 'translate-x-0'
+                        boolState[field.key as BoolKey] ? 'translate-x-5' : 'translate-x-0'
                       }`} />
                     </button>
                   ) : field.multiline ? (
