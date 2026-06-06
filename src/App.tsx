@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SiteContentProvider } from "@/contexts/SiteContentContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
@@ -65,7 +65,7 @@ const App = () => (
               <Route path="/join/:ref" element={<JoinReferral />} />
 
               {/* ── Auth / onboarding ── */}
-              <Route path="/app"          element={<ChoosePathScreen />} />
+              <Route path="/app"          element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/app/auth"     element={<Auth />} />
               <Route path="/app/join"     element={<JoinReferral />} />
               <Route path="/app/install"  element={<InstallScreen />} />

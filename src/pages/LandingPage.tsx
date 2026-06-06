@@ -466,7 +466,7 @@ const LandingPage = () => {
             התחברות
           </button>
           <button
-            onClick={() => navigate('/app')}
+            onClick={() => navigate('/app/auth')}
             style={{ ...btnPrimary, padding: '8px 18px', borderRadius: 20 }}
           >
             {content.nav_cta2_text}
@@ -506,7 +506,7 @@ const LandingPage = () => {
 
           {/* CTA buttons */}
           <div className="lp-hero-btns" style={{ marginBottom: 28 }}>
-            <button onClick={() => navigate('/app')} style={btnPrimary}>
+            <button onClick={() => navigate('/app/auth')} style={btnPrimary}>
               {content.hero_cta1}
             </button>
             <button style={btnOutline}>
@@ -740,7 +740,7 @@ const LandingPage = () => {
             {/* CTA */}
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
               <button
-                onClick={() => navigate('/app')}
+                onClick={() => navigate('/app/auth')}
                 style={{
                   background: '#6366f1', color: '#ffffff', border: 'none',
                   borderRadius: 22, padding: '13px 32px',
@@ -808,7 +808,7 @@ const LandingPage = () => {
           {/* Button left */}
           <button
             className="lp-cta-btn-full"
-            onClick={() => navigate('/app')}
+            onClick={() => navigate('/app/auth')}
             style={{
               background: '#6366f1', color: '#ffffff', border: 'none',
               borderRadius: 22, padding: '14px 32px',
