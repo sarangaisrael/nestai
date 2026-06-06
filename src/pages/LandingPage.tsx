@@ -95,6 +95,20 @@ const CSS = `
     gap: 20px;
   }
 
+  /* ── Features ── */
+  .lp-features-section {
+    padding: 72px 52px;
+    background: #ffffff;
+  }
+  .lp-features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  .lp-features-screen {
+    height: 300px;
+  }
+
   /* ── Pricing ── */
   .lp-pricing-section {
     padding: 72px 52px;
@@ -135,6 +149,9 @@ const CSS = `
     .lp-mockup-wrap { order: 1; }
     .lp-hero-text  { order: 0; }
     .lp-comparison-section { padding: 52px 24px !important; }
+    .lp-features-section   { padding: 52px 24px !important; }
+    .lp-features-grid      { grid-template-columns: 1fr; }
+    .lp-features-screen    { height: 280px !important; }
     .lp-pricing-section    { padding: 52px 24px !important; }
     .lp-pricing-grid       { grid-template-columns: 1fr; }
     .lp-nav { padding: 14px 24px !important; }
@@ -602,6 +619,213 @@ const LandingPage = () => {
         {/* Phone mockup (left in RTL grid) */}
         <div className="lp-mockup-wrap">
           <PhoneMockup />
+        </div>
+      </section>
+
+      {/* ── Features section ── */}
+      <section className="lp-features-section">
+        <div className="lp-features-grid">
+
+          {/* ── Column 01: Chat ── */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#6366f1', letterSpacing: '0.15em', margin: '0 0 8px', fontFamily: F }}>01</p>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: '0 0 8px', fontFamily: F }}>
+              צ'אט שמבין אותך
+            </h3>
+            <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7, margin: '0 0 16px', fontFamily: F }}>
+              מקשיב, שואל, ועוזר לעבד — בלי לשפוט, בלי להמתין לפגישה.
+            </p>
+            <div className="lp-features-screen" style={{
+              borderRadius: 16, border: '0.5px solid #e2e8f0',
+              overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0,
+            }}>
+              {/* Header */}
+              <div style={{
+                background: '#0f172a', padding: '10px 14px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
+              }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'white', fontFamily: F }}>NestAI</span>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1' }} />
+              </div>
+              {/* Chat body */}
+              <div style={{
+                flex: 1, background: '#f8fafc', display: 'flex', flexDirection: 'column',
+                gap: 7, padding: 12, overflow: 'hidden',
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{
+                    background: '#6366f1', color: 'white',
+                    borderRadius: '12px 12px 12px 2px',
+                    padding: '7px 11px', fontSize: 11, alignSelf: 'flex-start',
+                    maxWidth: '82%', fontFamily: F, lineHeight: 1.5,
+                  }}>היה לי יום קשה. הרגשתי לא מוערך.</div>
+                  <span style={{ fontSize: 9, color: '#94a3b8', fontFamily: F, alignSelf: 'flex-start', paddingRight: 4 }}>14:32</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{
+                    background: 'white', color: '#0f172a',
+                    border: '0.5px solid #e2e8f0',
+                    borderRadius: '12px 12px 2px 12px',
+                    padding: '7px 11px', fontSize: 11, alignSelf: 'flex-end',
+                    maxWidth: '82%', fontFamily: F, lineHeight: 1.5,
+                  }}>מה קרה שגרם לך להרגיש ככה?</div>
+                  <span style={{ fontSize: 9, color: '#94a3b8', fontFamily: F, alignSelf: 'flex-end', paddingLeft: 4 }}>14:32</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{
+                    background: '#6366f1', color: 'white',
+                    borderRadius: '12px 12px 12px 2px',
+                    padding: '7px 11px', fontSize: 11, alignSelf: 'flex-start',
+                    maxWidth: '82%', fontFamily: F, lineHeight: 1.5,
+                  }}>הבוס ביקר אותי בפומבי.</div>
+                  <span style={{ fontSize: 9, color: '#94a3b8', fontFamily: F, alignSelf: 'flex-start', paddingRight: 4 }}>14:33</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{
+                    background: 'white', color: '#0f172a',
+                    border: '0.5px solid #e2e8f0',
+                    borderRadius: '12px 12px 2px 12px',
+                    padding: '7px 11px', fontSize: 11, alignSelf: 'flex-end',
+                    maxWidth: '82%', fontFamily: F, lineHeight: 1.5,
+                  }}>שמרתי לסיכום השבועי שלך.</div>
+                  <span style={{ fontSize: 9, color: '#94a3b8', fontFamily: F, alignSelf: 'flex-end', paddingLeft: 4 }}>14:33</span>
+                </div>
+              </div>
+              {/* Input row */}
+              <div style={{
+                background: 'white', borderTop: '0.5px solid #e2e8f0',
+                padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0,
+              }}>
+                <div style={{
+                  flex: 1, background: '#f8fafc', border: '0.5px solid #e2e8f0',
+                  borderRadius: 20, padding: '6px 12px',
+                  fontSize: 10, color: '#94a3b8', fontFamily: F,
+                }}>
+                  כתוב הודעה...
+                </div>
+                <div style={{
+                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                  background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 9V3M6 3L3 6M6 3L9 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Column 02: Weekly summary ── */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#6366f1', letterSpacing: '0.15em', margin: '0 0 8px', fontFamily: F }}>02</p>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: '0 0 8px', fontFamily: F }}>
+              סיכום שבועי אוטומטי
+            </h3>
+            <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7, margin: '0 0 16px', fontFamily: F }}>
+              מגיע לפני כל פגישה — מרוכז, מדויק, מוכן.
+            </p>
+            <div className="lp-features-screen" style={{
+              borderRadius: 16, border: '0.5px solid #e2e8f0',
+              overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0,
+            }}>
+              {/* Header */}
+              <div style={{ background: '#0f172a', padding: '10px 14px', flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'white', fontFamily: F }}>סיכומים שבועיים</span>
+              </div>
+              {/* Body */}
+              <div style={{
+                flex: 1, background: 'white', display: 'flex', flexDirection: 'column',
+                padding: 12, overflow: 'hidden',
+              }}>
+                <p style={{ fontSize: 9, color: '#94a3b8', margin: '0 0 5px', fontFamily: F }}>21.5 — 28.5.2026</p>
+                <p style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', margin: '0 0 6px', fontFamily: F }}>
+                  שבוע עם עומס רגשי בעבודה
+                </p>
+                <p style={{ fontSize: 10, color: '#64748b', lineHeight: 1.6, margin: '0 0 10px', fontFamily: F }}>
+                  עלה פעמיים נושא חוסר הכרה. תחושת הערך העצמי נפגעה. ישנה הפחתה ברמת החרדה.
+                </p>
+                {/* Tags */}
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+                  {['ביקורת בעבודה', 'ערך עצמי', 'חרדה'].map(tag => (
+                    <span key={tag} style={{
+                      background: '#ede9fe', color: '#6d28d9',
+                      fontSize: 9, fontWeight: 700, fontFamily: F,
+                      padding: '3px 8px', borderRadius: 50,
+                    }}>{tag}</span>
+                  ))}
+                </div>
+                {/* Mood bar */}
+                <div style={{
+                  background: '#f8fafc', borderRadius: 10, padding: '8px 10px',
+                  border: '0.5px solid #e2e8f0', marginTop: 'auto',
+                }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, color: '#64748b', margin: '0 0 6px', fontFamily: F }}>
+                    מד הרגשות השבועי
+                  </p>
+                  <div style={{ background: '#e2e8f0', borderRadius: 50, height: 6, overflow: 'hidden' }}>
+                    <div style={{ width: '62%', height: '100%', background: '#6366f1', borderRadius: 50 }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                    <span style={{ fontSize: 8, color: '#94a3b8', fontFamily: F }}>שלילי</span>
+                    <span style={{ fontSize: 8, color: '#94a3b8', fontFamily: F }}>חיובי</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Column 03: Monthly trends ── */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#6366f1', letterSpacing: '0.15em', margin: '0 0 8px', fontFamily: F }}>03</p>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', margin: '0 0 8px', fontFamily: F }}>
+              מגמות חודשיות
+            </h3>
+            <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.7, margin: '0 0 16px', fontFamily: F }}>
+              רואים את ההתקדמות לאורך זמן — ההוכחה שהתהליך עובד.
+            </p>
+            <div className="lp-features-screen" style={{
+              borderRadius: 16, border: '0.5px solid #e2e8f0',
+              overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0,
+            }}>
+              {/* Header */}
+              <div style={{ background: '#0f172a', padding: '10px 14px', flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'white', fontFamily: F }}>סיכום חודשי</span>
+              </div>
+              {/* Body */}
+              <div style={{
+                flex: 1, background: 'white', display: 'flex', flexDirection: 'column',
+                padding: 12, overflow: 'hidden',
+              }}>
+                <p style={{ fontSize: 9, color: '#94a3b8', margin: '0 0 5px', fontFamily: F }}>מאי 2026</p>
+                <p style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', margin: '0 0 6px', fontFamily: F }}>
+                  חודש של שינוי הדרגתי
+                </p>
+                <p style={{ fontSize: 10, color: '#64748b', lineHeight: 1.6, margin: '0 0 auto', fontFamily: F }}>
+                  חרדה ירדה ב-28%. נושא הגבולות עלה 4 פעמים. עלייה ביכולת לזהות רגשות.
+                </p>
+                {/* Trend bars */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
+                  {([
+                    { label: 'חרדה',    pct: 35, color: '#10b981', change: '↓28%' },
+                    { label: 'מצב רוח', pct: 72, color: '#6366f1', change: '↑72%' },
+                    { label: 'עצמאות',  pct: 58, color: '#f59e0b', change: '↑58%' },
+                    { label: 'שינה',    pct: 45, color: '#6366f1', change: '↑45%' },
+                  ] as { label: string; pct: number; color: string; change: string }[]).map(({ label, pct, color, change }) => (
+                    <div key={label}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <span style={{ fontSize: 9, color: '#64748b', fontFamily: F }}>{label}</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color, fontFamily: F }}>{change}</span>
+                      </div>
+                      <div style={{ background: '#f1f5f9', borderRadius: 50, height: 5, overflow: 'hidden' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 50 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
