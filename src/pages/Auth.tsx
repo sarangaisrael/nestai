@@ -1,54 +1,98 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
 import { useToast } from "@/hooks/use-toast";
-import { InstallButton } from "@/components/InstallButton";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ensureUserAccessProfile, getRouteForAccessState } from "@/lib/accessControl";
 import { buildReferralPath } from "@/lib/referrals";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
-import { ArrowRight, Info } from "lucide-react";
+import { FileText, TrendingUp, Sparkles } from "lucide-react";
 
-import logo from "@/assets/nestai-logo-full.png";
+// ── Shared style tokens ───────────────────────────────────────────────────────
+const F = "inherit";
+const C = {
+  purple:    '#534AB7',
+  purplePan: '#4C44B8',
+  bg:        '#F7F5FF',
+  border:    '#AFA9EC',
+  muted:     '#7F77DD',
+  dark:      '#1a1a2e',
+  indigo:    '#a5b4fc',
+};
+const inputStyle: React.CSSProperties = {
+  width: '100%', background: 'white', border: `1px solid ${C.border}`,
+  borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#111',
+  outline: 'none', boxSizing: 'border-box', fontFamily: F,
+};
+const labelStyle: React.CSSProperties = {
+  fontSize: 11, fontWeight: 700, color: C.purple,
+  display: 'block', marginBottom: 4,
+};
+const primaryBtn = (loading?: boolean): React.CSSProperties => ({
+  background: C.purple, color: 'white', border: 'none',
+  borderRadius: 10, padding: '12px 0', width: '100%',
+  fontSize: 14, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
+  opacity: loading ? 0.65 : 1, fontFamily: F, marginTop: 4,
+});
 
+// ── Inline SVGs ───────────────────────────────────────────────────────────────
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C17.658 14.01 17.64 11.815 17.64 9.2z" fill="#4285F4"/>
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+  </svg>
+);
+
+const LockIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+
+// ── CSS ───────────────────────────────────────────────────────────────────────
+const CSS = `
+  @keyframes auth-spin { to { transform: rotate(360deg); } }
+  .auth-right { display: flex !important; }
+  @media (max-width: 768px) {
+    .auth-right { display: none !important; }
+    .auth-left  { padding: 24px !important; }
+  }
+`;
+
+// ─────────────────────────────────────────────────────────────────────────────
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [registrationDone, setRegistrationDone] = useState(false);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isLogin,             setIsLogin]             = useState(true);
+  const [registrationDone,    setRegistrationDone]    = useState(false);
+  const [isForgotPassword,    setIsForgotPassword]    = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
-  const [isReady, setIsReady] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-  
-  const [therapyType, setTherapyType] = useState<string>("");
-  const [summaryFocus, setSummaryFocus] = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
-  
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { toast } = useToast();
+
+  const [fullName,         setFullName]         = useState("");
+  const [email,            setEmail]            = useState("");
+  const [password,         setPassword]         = useState("");
+  const [newPassword,      setNewPassword]      = useState("");
+  const [confirmPassword,  setConfirmPassword]  = useState("");
+  const [loading,          setLoading]          = useState(false);
+  const [isReady,          setIsReady]          = useState(false);
+  const [loginError,       setLoginError]       = useState<string | null>(null);
+  const [acceptedPrivacy,  setAcceptedPrivacy]  = useState(false);
+  const [therapyType,      setTherapyType]      = useState<string>("");
+  const [summaryFocus,     setSummaryFocus]     = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
+
+  const navigate     = useNavigate();
+  const location     = useLocation();
+  const { toast }    = useToast();
   const { t, dir, isRTL } = useLanguage();
-  const searchParams = new URLSearchParams(location.search);
-  const referralCode = searchParams.get("ref")?.trim() ?? "";
-  const requestedNextPath = searchParams.get("next")?.trim() ?? "";
-  const modeParam = searchParams.get("mode")?.trim() ?? "";
+
+  const searchParams       = new URLSearchParams(location.search);
+  const referralCode       = searchParams.get("ref")?.trim()  ?? "";
+  const requestedNextPath  = searchParams.get("next")?.trim() ?? "";
+  const modeParam          = searchParams.get("mode")?.trim() ?? "";
   const hasExplicitAuthMode = modeParam === "patient";
 
+  // ── Auth helpers ────────────────────────────────────────────────────────────
   const getModeDefaultDestination = async (userId: string) => {
     const { data } = await supabase.auth.getUser();
     if (data.user && data.user.id === userId) {
@@ -60,76 +104,34 @@ const Auth = () => {
 
   const getReadableAuthError = (rawMessage?: string) => {
     const normalized = rawMessage?.toLowerCase().trim() ?? "";
-
-    if (normalized.includes("invalid login credentials")) {
-      return isRTL
-        ? "האימייל או הסיסמה אינם נכונים, או שעדיין אין חשבון עם האימייל הזה. אפשר לנסות שוב, להירשם, או לאפס סיסמה."
-        : "The email or password is incorrect, or there isn't an account with this email yet. Try again, sign up, or reset your password.";
-    }
-
-    if (normalized.includes("email not confirmed")) {
-      return isRTL
-        ? "החשבון קיים, אבל כתובת האימייל עדיין לא אומתה. בדקו את תיבת המייל ואשרו את ההרשמה לפני ההתחברות."
-        : "Your account exists, but the email address hasn't been confirmed yet. Please verify it from your inbox before signing in.";
-    }
-
+    if (normalized.includes("invalid login credentials"))
+      return "האימייל או הסיסמה אינם נכונים, או שעדיין אין חשבון עם האימייל הזה.";
+    if (normalized.includes("email not confirmed"))
+      return "כתובת האימייל עדיין לא אומתה — בדקו את תיבת המייל ואשרו את ההרשמה.";
     return rawMessage || t.auth.errorOccurred;
   };
 
-  const getValidatedNextPath = async (userId: string) => {
-    if (!requestedNextPath.startsWith("/")) {
-      return null;
-    }
-
-    return requestedNextPath;
-  };
-
   const getPostAuthDestination = async (userId: string) => {
-    if (referralCode) {
-      return buildReferralPath(referralCode);
-    }
-
-    const validatedNextPath = await getValidatedNextPath(userId);
-    if (validatedNextPath) {
-      return validatedNextPath;
-    }
-
-    if (hasExplicitAuthMode) {
-      return getModeDefaultDestination(userId);
-    }
-
+    if (referralCode) return buildReferralPath(referralCode);
+    if (requestedNextPath.startsWith("/")) return requestedNextPath;
+    if (hasExplicitAuthMode) return getModeDefaultDestination(userId);
     return getDefaultRouteForUser(userId);
   };
 
-  const destinationNotice = {
-    title: isRTL ? "אחרי ההתחברות" : "After login",
-    description: isRTL
-      ? "הכניסה ממסך זה מובילה לאזור המטופלים."
-      : "This screen leads to the patient area.",
-  };
-
-  // Use a ref to track recovery state to avoid stale closure issues
   const isResettingRef = useRef(isResettingPassword);
-  useEffect(() => {
-    isResettingRef.current = isResettingPassword;
-  }, [isResettingPassword]);
+  useEffect(() => { isResettingRef.current = isResettingPassword; }, [isResettingPassword]);
 
   useEffect(() => {
-    // Check hash for recovery token - do this FIRST before anything else
-    const hash = window.location.hash;
+    const hash       = window.location.hash;
     const hashParams = new URLSearchParams(hash.substring(1));
-    const hashType = hashParams.get('type');
-    
-    // Also check for access_token + type=recovery in hash (Supabase format)
-    const accessToken = hashParams.get('access_token');
+    const hashType   = hashParams.get('type');
     const isRecovery = hashType === 'recovery';
-    
-    // Check for error in hash (e.g., expired or already-used link)
-    const hashError = hashParams.get('error_description') || hashParams.get('error');
+    const hashError  = hashParams.get('error_description') || hashParams.get('error');
+
     if (hashError) {
       setLoginError(
         hashError === 'Email link is invalid or has expired'
-          ? (isRTL ? 'קישור האיפוס פג תוקף או כבר נוצל. נסה לשלוח קישור חדש.' : 'Reset link has expired or was already used. Please request a new one.')
+          ? 'קישור האיפוס פג תוקף או כבר נוצל. שלחו קישור חדש.'
           : hashError
       );
       window.history.replaceState(null, '', window.location.pathname);
@@ -143,192 +145,96 @@ const Auth = () => {
       setIsReady(true);
     }
 
-    // Set up auth state listener BEFORE checking session
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsResettingPassword(true);
         isResettingRef.current = true;
         setIsReady(true);
       } else if (event === 'SIGNED_IN') {
-        // Only navigate to dashboard if NOT in password reset flow
         if (!isResettingRef.current) {
           void (async () => {
             try {
               const target = await getPostAuthDestination(session.user.id);
               navigate(target, { replace: true });
-            } catch (err) {
-              console.error("Post-auth redirect error:", err);
-              setIsReady(true);
-            }
+            } catch { setIsReady(true); }
           })();
         } else {
-          // We're in recovery flow - just make sure the page is ready
           setIsReady(true);
         }
       }
     });
 
-    // If we already detected recovery from hash, skip session check
-    if (isRecovery) {
-      return () => subscription.unsubscribe();
-    }
+    if (isRecovery) return () => subscription.unsubscribe();
 
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          if (isResettingRef.current) {
-            setIsReady(true);
-          } else {
-            const target = await getPostAuthDestination(session.user.id);
-            navigate(target, { replace: true });
-          }
-        } else {
-          setIsReady(true);
-        }
-      } catch (err) {
-        console.error("Session check error:", err);
-        setIsReady(true);
-      }
+          if (isResettingRef.current) { setIsReady(true); }
+          else { navigate(await getPostAuthDestination(session.user.id), { replace: true }); }
+        } else { setIsReady(true); }
+      } catch { setIsReady(true); }
     };
-
     checkSession();
-
     return () => subscription.unsubscribe();
   }, [navigate, isRTL, referralCode, requestedNextPath]);
 
-  const toggleFocus = (focus: string) => {
-    setSummaryFocus(prev => 
-      prev.includes(focus) ? prev.filter(f => f !== focus) : [...prev, focus]
-    );
-  };
-
-  const focusLabels: Record<string, Record<string, string>> = {
-    he: { emotions: "רגשות", thoughts: "מחשבות", behaviors: "התנהגויות", changes: "שינויים" },
-    en: { emotions: "Emotions", thoughts: "Thoughts", behaviors: "Behaviors", changes: "Changes" }
-  };
-
-  if (!isReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-      </div>
-    );
-  }
-
-
-
-
+  // ── Form handlers ────────────────────────────────────────────────────────────
   const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setLoginError(null);
-
+    e.preventDefault(); setLoading(true); setLoginError(null);
     if (newPassword !== confirmPassword) {
-      setLoginError(isRTL ? "הסיסמאות לא תואמות" : "Passwords don't match");
-      setLoading(false);
-      return;
+      setLoginError("הסיסמאות לא תואמות"); setLoading(false); return;
     }
     if (newPassword.length < 6) {
-      setLoginError(isRTL ? "הסיסמה חייבת להכיל לפחות 6 תווים" : "Password must be at least 6 characters");
-      setLoading(false);
-      return;
+      setLoginError("הסיסמה חייבת להכיל לפחות 6 תווים"); setLoading(false); return;
     }
-
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) {
-        setLoginError(error.message || t.auth.errorOccurred);
-        setLoading(false);
-        return;
-      }
+      if (error) { setLoginError(error.message); setLoading(false); return; }
       setLoading(false);
-      toast({
-        title: isRTL ? "הסיסמה עודכנה" : "Password updated",
-        description: isRTL ? "הסיסמה החדשה נשמרה בהצלחה" : "Your new password has been saved",
-      });
+      toast({ title: "הסיסמה עודכנה", description: "הסיסמה החדשה נשמרה בהצלחה" });
       await supabase.auth.signOut();
       setIsResettingPassword(false);
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      setLoginError(err?.message || t.errors.somethingWentWrong);
-      setLoading(false);
-    }
+      setNewPassword(""); setConfirmPassword("");
+    } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setLoginError(null);
-
+    e.preventDefault(); setLoading(true); setLoginError(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/app/auth`,
       });
-      if (error) {
-        setLoginError(error.message || t.auth.errorOccurred);
-        setLoading(false);
-        return;
-      }
+      if (error) { setLoginError(error.message); setLoading(false); return; }
       setLoading(false);
-      toast({
-        title: isRTL ? "נשלח בהצלחה" : "Email sent",
-        description: isRTL ? "קישור לאיפוס סיסמה נשלח לכתובת המייל שלך" : "A password reset link has been sent to your email",
-      });
+      toast({ title: "נשלח בהצלחה", description: "קישור לאיפוס סיסמה נשלח לאימייל שלך" });
       setIsForgotPassword(false);
-    } catch (err: any) {
-      setLoginError(err?.message || t.errors.somethingWentWrong);
-      setLoading(false);
-    }
+    } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setLoginError(null);
-
+    e.preventDefault(); setLoading(true); setLoginError(null);
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          setLoginError(getReadableAuthError(error.message));
-          setLoading(false);
-          return;
-        }
+        if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
         setLoading(false);
         toast({ title: t.auth.loginSuccess, description: t.auth.welcomeBack });
       } else {
         if (!acceptedPrivacy) {
-          setLoginError(t.privacy.mustAcceptPrivacy);
-          setLoading(false);
-          return;
+          setLoginError(t.privacy.mustAcceptPrivacy); setLoading(false); return;
         }
         if (summaryFocus.length === 0) {
-          toast({
-            title: t.errors.somethingWentWrong,
-            description: isRTL ? "חובה לבחור לפחות תחום התמקדות אחד" : "You must select at least one focus area",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
+          setLoading(false); return;
         }
-
         const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
+          email, password,
           options: {
             emailRedirectTo: `${window.location.origin}${referralCode ? buildReferralPath(referralCode) : "/app/dashboard"}`,
-            data: {
-              intended_role: "patient",
-            },
+            data: { intended_role: "patient", full_name: fullName },
           },
         });
-        if (error) {
-          setLoginError(getReadableAuthError(error.message));
-          setLoading(false);
-          return;
-        }
+        if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
         if (data.user) {
           await ensureUserAccessProfile(data.user, "patient");
           await supabase.from("user_preferences").upsert({
@@ -340,47 +246,54 @@ const Auth = () => {
         setLoading(false);
         setRegistrationDone(true);
       }
-    } catch (err: any) {
-      setLoginError(err?.message || t.errors.somethingWentWrong);
-      setLoading(false);
-    }
+    } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
   };
 
-  const lang = isRTL ? 'he' : 'en';
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate("/app");
+  const handleGoogleAuth = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/app/dashboard` },
+    });
+    if (error) setLoginError(getReadableAuthError(error.message));
   };
 
-          
+  const switchTab = (login: boolean) => {
+    setIsLogin(login);
+    setLoginError(null);
+    setTherapyType("");
+    setSummaryFocus(["emotions", "thoughts", "behaviors", "changes"]);
+    setAcceptedPrivacy(false);
+    setFullName("");
+  };
 
+  // ── Loading state ────────────────────────────────────────────────────────────
+  if (!isReady) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', border: `2.5px solid ${C.border}`, borderTopColor: C.purple, animation: 'auth-spin 0.8s linear infinite' }} />
+        <style>{CSS}</style>
+      </div>
+    );
+  }
+
+  // ── Registration done ────────────────────────────────────────────────────────
   if (registrationDone) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4" dir="rtl">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <div dir="rtl" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg, padding: '24px' }}>
+        <style>{CSS}</style>
+        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(83,74,183,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-foreground">כמעט סיימנו!</h2>
-            <p className="text-base text-muted-foreground leading-relaxed">
-              שלחנו לך אימייל לאישור ההרשמה.<br />
-              אנא לחץ על הקישור באימייל כדי להפעיל את החשבון שלך.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              לא קיבלת? בדוק את תיקיית הספאם.
-            </p>
-          </div>
-          <button
-            onClick={() => setRegistrationDone(false)}
-            className="text-sm text-primary hover:underline"
-          >
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: C.dark, margin: '0 0 12px' }}>כמעט סיימנו!</h2>
+          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, margin: '0 0 8px' }}>
+            שלחנו לך אימייל לאישור ההרשמה.<br />
+            לחץ על הקישור באימייל כדי להפעיל את החשבון.
+          </p>
+          <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 24px' }}>לא קיבלת? בדוק את תיקיית הספאם.</p>
+          <button onClick={() => setRegistrationDone(false)} style={{ color: C.purple, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
             חזרה להתחברות
           </button>
         </div>
@@ -388,263 +301,244 @@ const Auth = () => {
     );
   }
 
+  // ── Error block ───────────────────────────────────────────────────────────────
+  const ErrorBlock = () => loginError ? (
+    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#dc2626', lineHeight: 1.5 }}>
+      {loginError}
+    </div>
+  ) : null;
+
+  // ── Benefits data ─────────────────────────────────────────────────────────────
+  const benefits = [
+    { Icon: FileText,   title: 'תיעוד בין הפגישות',       sub: 'כותבים מה שעובר עליכם, בלי לשכוח כלום' },
+    { Icon: TrendingUp, title: 'מעקב רגשי לאורך זמן',      sub: 'רואים את ההתקדמות בגרפים ברורים' },
+    { Icon: Sparkles,   title: 'סיכום לפני כל פגישה',      sub: 'מגיעים מוכנים, צוללים ישר לעומק' },
+  ];
+
+  // ── Main render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex" dir={dir}>
-      {/* Hero image side */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <img src="/images/auth-hero.jpg" alt="" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        <div className={`absolute bottom-12 ${isRTL ? 'right-10' : 'left-10'} text-white space-y-2 max-w-md`}>
-          <h2 className="text-3xl font-bold leading-tight">
-            {isRTL ? "התחילו את המסע שלכם" : "Start Your Journey"}
-          </h2>
-          <p className="text-white/80 text-base">
-            {isRTL 
-              ? "מרחב בטוח לכתוב בו מה שעובר, גם ברגעים עמוסים רגשית"
-              : "A safe space to write what's on your mind, even during emotionally challenging moments"
-            }
-          </p>
+    <div dir="rtl" style={{ minHeight: '100vh', display: 'flex' }}>
+      <style>{CSS}</style>
+
+      {/* ── LEFT — form panel ── */}
+      <div
+        className="auth-left"
+        style={{
+          flex: 1, background: C.bg,
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          padding: '40px 48px', overflowY: 'auto',
+        }}
+      >
+        <div style={{ maxWidth: 520, width: '100%', margin: '0 auto' }}>
+
+          {/* ── Reset password ── */}
+          {isResettingPassword ? (
+            <>
+              <div style={{ marginBottom: 28 }}>
+                <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px' }}>סיסמה חדשה</h1>
+                <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>בחרו סיסמה חדשה לחשבון שלכם</p>
+              </div>
+              <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>סיסמה חדשה</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>אימות סיסמה</label>
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
+                </div>
+                <ErrorBlock />
+                <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+                  {loading ? 'שומר...' : 'שמור סיסמה'}
+                </button>
+              </form>
+            </>
+
+          /* ── Forgot password ── */
+          ) : isForgotPassword ? (
+            <>
+              <div style={{ marginBottom: 28 }}>
+                <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px' }}>שכחתי סיסמה</h1>
+                <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>נשלח לך קישור לאיפוס לאימייל שלך</p>
+              </div>
+              <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>אימייל</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required dir="ltr" style={inputStyle} />
+                </div>
+                <ErrorBlock />
+                <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+                  {loading ? 'שולח...' : 'שלח קישור לאיפוס'}
+                </button>
+                <button type="button" onClick={() => { setIsForgotPassword(false); setLoginError(null); }}
+                  style={{ color: C.muted, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', marginTop: 4 }}>
+                  חזרה להתחברות
+                </button>
+              </form>
+            </>
+
+          /* ── Login / Register ── */
+          ) : (
+            <>
+              {/* Tabs */}
+              <div style={{ background: 'white', border: `1px solid ${C.border}`, borderRadius: 10, padding: 4, display: 'flex', gap: 4, marginBottom: 28 }}>
+                {[{ label: 'התחברות', val: true }, { label: 'הרשמה', val: false }].map(tab => (
+                  <button
+                    key={String(tab.val)}
+                    type="button"
+                    onClick={() => switchTab(tab.val)}
+                    style={{
+                      flex: 1, background: isLogin === tab.val ? C.purple : 'transparent',
+                      color: isLogin === tab.val ? 'white' : C.muted,
+                      borderRadius: 7, padding: 8, fontSize: 13, fontWeight: 700,
+                      border: 'none', cursor: 'pointer', fontFamily: F, transition: 'background 0.15s',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Title */}
+              <div style={{ marginBottom: 24 }}>
+                <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px', fontFamily: F }}>
+                  {isLogin ? 'ברוכים השבים' : 'מתחילים את המסע'}
+                </h1>
+                <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>
+                  {isLogin ? 'ממשיכים מאיפה שעצרתם' : 'כמה פרטים קטנים ואתם בפנים'}
+                </p>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Full name — register only */}
+                {!isLogin && (
+                  <div>
+                    <label style={labelStyle}>שם מלא</label>
+                    <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required style={inputStyle} />
+                  </div>
+                )}
+
+                {/* Email */}
+                <div>
+                  <label style={labelStyle}>אימייל</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required dir="ltr" style={inputStyle} />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label style={labelStyle}>סיסמה</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
+                </div>
+
+                {/* Forgot link — login only */}
+                {isLogin && (
+                  <button type="button" onClick={() => { setIsForgotPassword(true); setLoginError(null); }}
+                    style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, alignSelf: 'flex-start' }}>
+                    שכחתי סיסמה
+                  </button>
+                )}
+
+                {/* Privacy consent — register only */}
+                {!isLogin && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <input
+                      type="checkbox" id="privacy-auth"
+                      checked={acceptedPrivacy} onChange={e => setAcceptedPrivacy(e.target.checked)}
+                      style={{ marginTop: 2, accentColor: C.purple, flexShrink: 0, cursor: 'pointer' }}
+                    />
+                    <label htmlFor="privacy-auth" style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, cursor: 'pointer' }}>
+                      קראתי ואני מסכים/ה{' '}
+                      <button type="button" onClick={() => window.open('/app/privacy', '_blank')}
+                        style={{ color: C.purple, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12 }}>
+                        למדיניות הפרטיות
+                      </button>
+                    </label>
+                  </div>
+                )}
+
+                <ErrorBlock />
+
+                <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+                  {loading ? 'טוען...' : isLogin ? 'כניסה' : 'יצירת חשבון בחינם'}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                <span style={{ fontSize: 12, color: '#94a3b8', flexShrink: 0 }}>או</span>
+                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+              </div>
+
+              {/* Google button */}
+              <button
+                type="button"
+                onClick={handleGoogleAuth}
+                style={{
+                  width: '100%', background: 'white', border: `1px solid ${C.border}`,
+                  borderRadius: 10, padding: '11px 0', fontSize: 13,
+                  color: '#374151', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  fontFamily: F,
+                }}
+              >
+                <GoogleIcon />
+                {isLogin ? 'כניסה עם Google' : 'הרשמה עם Google'}
+              </button>
+
+              {/* Trust badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 18, color: C.muted, fontSize: 12 }}>
+                <LockIcon />
+                מאובטח ופרטי — המסע שלכם שמור כאן
+              </div>
+            </>
+          )}
+
         </div>
       </div>
 
-      {/* Form side */}
-        <div className="flex-1 flex flex-col bg-muted/30 relative overflow-y-auto">
-          {/* Top header bar */}
-          <div className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/30" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-            <div className="flex items-center justify-between px-4 h-14">
-              <Button type="button" variant="ghost" size="sm" onClick={handleBack} className="gap-2 text-muted-foreground hover:text-foreground">
-                <ArrowRight className={`h-4 w-4 ${isRTL ? '' : 'rotate-180'}`} />
-                {isRTL ? "חזרה" : "Back"}
-              </Button>
-              <img src={logo} alt="NestAI" className="h-8 w-auto absolute left-1/2 -translate-x-1/2" />
-              <div className="flex gap-2">
-                <LanguageSwitcher />
-                <InstallButton />
-              </div>
-            </div>
-          </div>
-
-          <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 56px)" }} />
-
-          <div className="flex-1 flex items-center justify-center p-6 pt-10">
-
-        <div className="w-full max-w-md space-y-6 animate-slide-up">
-
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">
-              {isRTL ? "התחברות והרשמה" : "Sign In & Sign Up"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {isLogin
-                ? (isRTL ? "התחברו כדי להמשיך במסע שלכם" : "Sign in to continue your journey")
-                : (isRTL ? "צרו חשבון כדי להתחיל" : "Create an account to get started")}
-            </p>
-            <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-start">
-              <div className="mt-0.5 shrink-0 rounded-full bg-background p-1.5 text-muted-foreground">
-                <Info className="h-4 w-4" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">{destinationNotice.title}</p>
-                <p className="text-xs leading-relaxed text-muted-foreground">{destinationNotice.description}</p>
-              </div>
-            </div>
-          </div>
-
-        {isResettingPassword ? (
-          <form onSubmit={handleResetPassword} className="space-y-4 bg-card p-8 rounded-2xl shadow-card border border-border/30">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-foreground">
-                {isRTL ? "בחר סיסמה חדשה" : "Choose a New Password"}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {isRTL ? "הזן סיסמה חדשה לחשבון שלך" : "Enter a new password for your account"}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">
-                {isRTL ? "סיסמה חדשה" : "New Password"}
-              </Label>
-              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={6} className="h-10 text-sm" dir="ltr" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                {isRTL ? "אימות סיסמה" : "Confirm Password"}
-              </Label>
-              <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} className="h-10 text-sm" dir="ltr" />
-            </div>
-
-            <Button type="submit" className="w-full h-11 text-sm font-medium mt-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md" disabled={loading}>
-              {loading ? t.common.loading : (isRTL ? "שמור סיסמה חדשה" : "Save New Password")}
-            </Button>
-
-            {loginError && (
-              <div className="mt-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-center">
-                <p className="text-xs text-destructive font-medium">{loginError}</p>
-              </div>
-            )}
-          </form>
-        ) : isForgotPassword ? (
-          <form onSubmit={handleForgotPassword} className="space-y-4 bg-card p-8 rounded-2xl shadow-card border border-border/30">
-            <div className="text-center mb-4">
-              <h2 className="text-lg font-semibold text-foreground">
-                {isRTL ? "שכחת סיסמה?" : "Forgot Password?"}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {isRTL ? "הזן את כתובת המייל שלך ונשלח לך קישור לאיפוס" : "Enter your email and we'll send you a reset link"}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">{t.common.email}</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-10 text-sm" dir="ltr" />
-            </div>
-
-            <Button type="submit" className="w-full h-11 text-sm font-medium mt-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md" disabled={loading}>
-              {loading ? t.common.loading : (isRTL ? "שלח קישור לאיפוס" : "Send Reset Link")}
-            </Button>
-
-            {loginError && (
-              <div className="mt-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-center">
-                <p className="text-xs text-destructive font-medium">{loginError}</p>
-              </div>
-            )}
-
-            <button type="button" onClick={() => { setIsForgotPassword(false); setLoginError(null); }} className="w-full text-center text-sm text-primary hover:underline transition-colors pt-2">
-              {isRTL ? "חזרה להתחברות" : "Back to login"}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            {/* Email/Password form */}
-            <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-2xl shadow-card border border-border/30">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-foreground">{t.common.email}</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-10 text-sm" dir="ltr" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-foreground">{t.common.password}</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="h-10 text-sm" dir="ltr" />
-              </div>
-
-              {isLogin && (
-                <>
-                  <div className={`flex items-center gap-2 ${isRTL ? '' : 'flex-row-reverse justify-end'}`}>
-                    <Label htmlFor="remember" className="text-sm cursor-pointer text-muted-foreground">
-                      {isRTL ? "זכור אותי" : "Remember me"}
-                    </Label>
-                    <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
-                  </div>
-                  <button type="button" onClick={() => { setIsForgotPassword(true); setLoginError(null); }} className="text-sm text-primary hover:underline transition-colors">
-                    {isRTL ? "שכחתי סיסמה" : "Forgot password?"}
-                  </button>
-                </>
-              )}
-
-              {!isLogin && (
-                <>
-                  {/* Therapy Type */}
-                  <div className="space-y-3 pt-2">
-                    <Label className="text-sm font-medium text-foreground">{t.auth.therapyTypeLabel}</Label>
-                    <RadioGroup value={therapyType} onValueChange={setTherapyType} className="space-y-2">
-                      {[
-                        { value: "cbt", label: t.dashboard.cbt },
-                        { value: "psychodynamic", label: t.dashboard.psychodynamic },
-                        { value: "other", label: isRTL ? "אחר" : "Other" },
-                      ].map(opt => (
-                        <div key={opt.value} className={`flex items-center gap-2 p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all cursor-pointer ${isRTL ? '' : 'flex-row-reverse'}`}>
-                          <Label htmlFor={`signup-${opt.value}`} className={`text-sm cursor-pointer flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>{opt.label}</Label>
-                          <RadioGroupItem value={opt.value} id={`signup-${opt.value}`} />
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Summary Focus */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium text-foreground">{t.auth.summaryFocusLabel}</Label>
-                    <div className="space-y-2">
-                      {["emotions", "thoughts", "behaviors", "changes"].map((value) => (
-                        <div key={value} className={`flex items-center gap-2 p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-all ${isRTL ? '' : 'flex-row-reverse'}`}>
-                          <Label htmlFor={`signup-focus-${value}`} className={`text-sm cursor-pointer flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>{focusLabels[lang][value]}</Label>
-                          <Checkbox id={`signup-focus-${value}`} checked={summaryFocus.includes(value)} onCheckedChange={() => toggleFocus(value)} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Privacy Policy Consent */}
-                  <div className="space-y-3 pt-2">
-                    <div 
-                      className={`flex items-start gap-3 p-3 border rounded-lg transition-all ${acceptedPrivacy ? 'border-primary bg-primary/5' : 'border-border hover:border-primary hover:bg-primary/5'} ${isRTL ? '' : 'flex-row-reverse'}`}
-                    >
-                      <Label className={`text-sm flex-1 select-none ${isRTL ? 'text-right' : 'text-left'}`}>
-                        {t.privacy.acceptPrivacyPolicy}
-                        {' '}
-                        <button
-                          type="button"
-                          className="text-primary hover:underline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            window.open('/app/privacy', '_blank');
-                          }}
-                        >
-                          ({isRTL ? 'קרא עוד' : 'read more'})
-                        </button>
-                      </Label>
-                      <Checkbox
-                        id="privacy-consent"
-                        checked={acceptedPrivacy}
-                        onCheckedChange={(checked) => setAcceptedPrivacy(checked as boolean)}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <Button type="submit" className="w-full h-11 text-sm font-medium mt-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md" disabled={loading}>
-                {loading ? t.common.loading : isLogin ? t.common.login : t.common.signup}
-              </Button>
-
-              {loginError && (
-                <div className="mt-3 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-center">
-                  <p className="text-xs text-destructive font-medium">{loginError}</p>
-                </div>
-              )}
-
-              {(
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setLoginError(null);
-                    setTherapyType("");
-                    setSummaryFocus(["emotions", "thoughts", "behaviors", "changes"]);
-                    setAcceptedPrivacy(false);
-                  }}
-                  className="w-full text-center text-sm text-primary hover:underline transition-colors pt-2"
-                >
-                  {isLogin 
-                    ? (isRTL ? "עדיין אין חשבון? אפשר להירשם כאן" : "Don't have an account? Sign up here")
-                    : (isRTL ? "כבר יש חשבון? אפשר להתחבר" : "Already have an account? Log in here")
-                  }
-                </button>
-              )}
-            </form>
-          </div>
-        )}
-
-        <div className="flex flex-col items-center gap-2 pt-4">
-          <Link to="/app/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            {t.nav.privacy}
-          </Link>
-          <div className="text-xs text-muted-foreground">
-            {t.footer.copyright}
-          </div>
+      {/* ── RIGHT — purple panel ── */}
+      <div
+        className="auth-right"
+        style={{
+          background: C.purplePan, padding: '40px 48px',
+          flexDirection: 'column',
+          width: '42%', minWidth: 340,
+        }}
+      >
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 56 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.indigo, display: 'inline-block' }} />
+          <span style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-0.3px' }}>NestAI</span>
         </div>
+
+        {/* Headline */}
+        <div style={{ marginBottom: 40 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: '0 0 8px', letterSpacing: '-0.5px', lineHeight: 1.3 }}>
+            כלי שנבנה בשביל<br />התהליך הטיפולי שלך
+          </h2>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.6 }}>
+            לא עוד AI כללי — פלטפורמה שמותאמת לבין הפגישות.
+          </p>
         </div>
+
+        {/* Benefits */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {benefits.map((b, i) => (
+            <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{
+                width: 32, height: 32, background: 'rgba(255,255,255,0.12)',
+                borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <b.Icon size={16} color={C.indigo} />
+              </div>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: '0 0 3px' }}>{b.title}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5 }}>{b.sub}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
