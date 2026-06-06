@@ -38,7 +38,6 @@ const Auth = () => {
   
   const [therapyType, setTherapyType] = useState<string>("");
   const [summaryFocus, setSummaryFocus] = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
-  const [therapistCode, setTherapistCode] = useState("");
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -105,11 +104,9 @@ const Auth = () => {
   const destinationNotice = {
     title: isRTL ? "אחרי ההתחברות" : "After login",
     description: isRTL
-      ? "הכניסה ממסך זה מובילה לאזור המטופלים. אפשר להירשם עצמאית או להזין קוד מטפל כדי לקבל גישה דרך המטפל/ת."
-      : "This screen leads to the patient area. You can sign up independently or enter a therapist code to be covered by your therapist.",
+      ? "הכניסה ממסך זה מובילה לאזור המטופלים."
+      : "This screen leads to the patient area.",
   };
-
-  const normalizedTherapistCode = therapistCode.trim();
 
   // Use a ref to track recovery state to avoid stale closure issues
   const isResettingRef = useRef(isResettingPassword);
@@ -317,12 +314,6 @@ const Auth = () => {
           return;
         }
 
-        if (normalizedTherapistCode && !/^\d{6}$/.test(normalizedTherapistCode)) {
-          setLoginError(isRTL ? "קוד מטפל חייב להכיל 6 ספרות" : "Therapist code must contain 6 digits");
-          setLoading(false);
-          return;
-        }
-
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -330,7 +321,6 @@ const Auth = () => {
             emailRedirectTo: `${window.location.origin}${referralCode ? buildReferralPath(referralCode) : "/app/dashboard"}`,
             data: {
               intended_role: "patient",
-              therapist_code: normalizedTherapistCode || null,
             },
           },
         });
@@ -447,7 +437,7 @@ const Auth = () => {
             <p className="text-sm text-muted-foreground">
               {isLogin
                 ? (isRTL ? "התחברו כדי להמשיך במסע שלכם" : "Sign in to continue your journey")
-                : (isRTL ? "צרו חשבון כדי להתחיל — עם או בלי קוד מטפל" : "Create an account to get started — with or without a therapist code")}
+                : (isRTL ? "צרו חשבון כדי להתחיל" : "Create an account to get started")}
             </p>
             <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-start">
               <div className="mt-0.5 shrink-0 rounded-full bg-background p-1.5 text-muted-foreground">
@@ -585,30 +575,6 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  {(
-                    <div className="space-y-2">
-                      <Label htmlFor="therapist-code" className="text-sm font-medium text-foreground">
-                        {isRTL ? "קוד מטפל (אופציונלי)" : "Therapist code (optional)"}
-                      </Label>
-                      <Input
-                        id="therapist-code"
-                        inputMode="numeric"
-                        pattern="[0-9]{6}"
-                        maxLength={6}
-                        value={therapistCode}
-                        onChange={(e) => setTherapistCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        placeholder={isRTL ? "למשל 123456" : "e.g. 123456"}
-                        dir="ltr"
-                        className="h-10 text-sm"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {isRTL
-                          ? "אם המטפל/ת שלך פעיל/ה, הגישה שלך תישאר פתוחה בחינם."
-                          : "If your therapist is active, your access will remain free."}
-                      </p>
-                    </div>
-                  )}
-
                   {/* Privacy Policy Consent */}
                   <div className="space-y-3 pt-2">
                     <div 
@@ -657,7 +623,6 @@ const Auth = () => {
                     setTherapyType("");
                     setSummaryFocus(["emotions", "thoughts", "behaviors", "changes"]);
                     setAcceptedPrivacy(false);
-                    setTherapistCode("");
                   }}
                   className="w-full text-center text-sm text-primary hover:underline transition-colors pt-2"
                 >

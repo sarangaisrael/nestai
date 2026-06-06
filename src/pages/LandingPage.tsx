@@ -254,7 +254,7 @@ type LandingContent = {
 const DEFAULT_CONTENT: LandingContent = {
   nav_cta2_text:      'מתחילים לכתוב בחינם',
   hero_eyebrow:       'מרחב לעיבוד ומעקב של התהליך הטיפולי',
-  hero_eyebrow2:      '100% חינם לתמיד',
+  hero_eyebrow2:      'חינם בתקופת הבטא 🎉',
   hero_line1:         'הטיפול נמשך גם',
   hero_line2:         'בין הפגישות.',
   hero_subtitle:      'תעד את מה שעובר עליך, עקוב אחרי התקדמות, וקבל סיכום שמעצים כל מפגש.',
