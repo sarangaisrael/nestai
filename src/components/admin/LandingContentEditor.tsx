@@ -81,6 +81,9 @@ const FIELD_DEFS: FieldDef[] = [
   { key: 'comparison_row5_chatgpt', label: 'שורה 5 — טקסט ChatGPT',   group: '⚖️ השוואה' },
   { key: 'comparison_row5_nestai',  label: 'שורה 5 — טקסט NestAI',    group: '⚖️ השוואה' },
 
+  // ── Pricing ──────────────────────────────────────────────────────────────────
+  { key: 'show_pricing',          label: 'הצג סקשן תמחור',      group: '💰 תמחור', toggle: true },
+
   // ── Testimonials ─────────────────────────────────────────────────────────────
   { key: 'show_testimonials',     label: 'הצג סקשן המלצות',     group: '⭐ המלצות', toggle: true },
   { key: 'testimonial_1_quote',   label: 'המלצה 1 — ציטוט',     group: '⭐ המלצות', multiline: true },
@@ -108,18 +111,21 @@ const LandingContentEditor = () => {
   const [form, setForm] = useState<Record<string, string>>({});
   const [showTestimonials, setShowTestimonials] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showPricing, setShowPricing] = useState(true);
   const [loading, setLoading] = useState(true);
 
   // ── Boolean toggle helpers ───────────────────────────────────────────────────
-  const BOOLEAN_KEYS = ['show_testimonials', 'show_comparison'] as const;
+  const BOOLEAN_KEYS = ['show_testimonials', 'show_comparison', 'show_pricing'] as const;
   type BoolKey = typeof BOOLEAN_KEYS[number];
   const boolState: Record<BoolKey, boolean> = {
     show_testimonials: showTestimonials,
-    show_comparison: showComparison,
+    show_comparison:   showComparison,
+    show_pricing:      showPricing,
   };
   const toggleBool = (key: BoolKey) => {
     if (key === 'show_testimonials') setShowTestimonials(v => !v);
     if (key === 'show_comparison')   setShowComparison(v => !v);
+    if (key === 'show_pricing')      setShowPricing(v => !v);
   };
   const [saving, setSaving] = useState(false);
 
@@ -138,6 +144,7 @@ const LandingContentEditor = () => {
           // Handle boolean toggles separately
           setShowTestimonials(d.show_testimonials === true);
           setShowComparison(d.show_comparison === true);
+          setShowPricing(d.show_pricing !== false);
           // Stringify all non-boolean fields for the text form
           const stringified: Record<string, string> = {};
           Object.entries(d).forEach(([k, v]) => {
@@ -167,6 +174,7 @@ const LandingContentEditor = () => {
           ...form,
           show_testimonials: showTestimonials,
           show_comparison:   showComparison,
+          show_pricing:      showPricing,
           updated_at: new Date().toISOString(),
         });
 

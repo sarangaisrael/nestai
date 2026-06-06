@@ -95,6 +95,19 @@ const CSS = `
     gap: 20px;
   }
 
+  /* ── Pricing ── */
+  .lp-pricing-section {
+    padding: 72px 52px;
+    background: #f9fafb;
+  }
+  .lp-pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
   @media (max-width: 768px) {
     .lp-testimonials-section { padding: 52px 24px !important; max-width: 100% !important; }
     .lp-testimonials-grid    { grid-template-columns: 1fr; }
@@ -122,6 +135,8 @@ const CSS = `
     .lp-mockup-wrap { order: 1; }
     .lp-hero-text  { order: 0; }
     .lp-comparison-section { padding: 52px 24px !important; }
+    .lp-pricing-section    { padding: 52px 24px !important; }
+    .lp-pricing-grid       { grid-template-columns: 1fr; }
     .lp-nav { padding: 14px 24px !important; }
     .lp-steps-section { padding: 52px 24px !important; }
     .lp-cta-section { margin: 0 16px !important; padding: 40px 24px !important; }
@@ -271,6 +286,8 @@ type LandingContent = {
   comparison_row5_feature: string;
   comparison_row5_chatgpt: string;
   comparison_row5_nestai: string;
+  // Pricing
+  show_pricing: boolean;
   // Testimonials
   show_testimonials: boolean;
   testimonial_1_quote: string;
@@ -329,6 +346,8 @@ const DEFAULT_CONTENT: LandingContent = {
   comparison_row5_feature:  'מעקב מגמות רגשיות',
   comparison_row5_chatgpt:  'לא קיים',
   comparison_row5_nestai:   'גרפים ותובנות לאורך זמן',
+  // Pricing
+  show_pricing:        true,
   // Testimonials
   show_testimonials:   false,
   testimonial_1_quote: 'NestAI שינה לי את כל חוויית הטיפול. אני מגיעה לכל פגישה עם ראש מסודר — במקום לנסות לזכור בזמן אמת מה קרה לי השבוע.',
@@ -452,6 +471,7 @@ const LandingPage = () => {
           comparison_row5_chatgpt:  pick('comparison_row5_chatgpt', DEFAULT_CONTENT.comparison_row5_chatgpt),
           comparison_row5_nestai:   pick('comparison_row5_nestai',  DEFAULT_CONTENT.comparison_row5_nestai),
           // Testimonials — direct column names
+          show_pricing:        (data as any).show_pricing !== false,
           show_testimonials:   (data as any).show_testimonials === true,
           testimonial_1_quote: pick('testimonial_1_quote', DEFAULT_CONTENT.testimonial_1_quote),
           testimonial_1_name:  pick('testimonial_1_name',  DEFAULT_CONTENT.testimonial_1_name),
@@ -839,6 +859,157 @@ const LandingPage = () => {
                 מתחילים לכתוב בחינם
               </button>
             </div>
+          </section>
+        );
+      })()}
+
+      {/* ── Pricing section ── */}
+      {content.show_pricing && (() => {
+        const features = [
+          'גישה מלאה לכל הפיצ\'רים',
+          'תיעוד יומי ללא הגבלה',
+          'סיכום שבועי אוטומטי',
+          'מעקב מגמות רגשיות',
+          'צ\'אט AI בין הפגישות',
+        ];
+        const CheckCircle = () => (
+          <div style={{
+            width: 20, height: 20, background: '#ede9fe', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6L5 9L10 3" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        );
+        const WaSvg = () => (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884zm8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        );
+        const waBtn: React.CSSProperties = {
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          background: '#25D366', color: 'white', border: 'none',
+          borderRadius: 10, padding: '12px 0', width: '100%',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer',
+          textDecoration: 'none', fontFamily: F,
+        };
+        return (
+          <section className="lp-pricing-section">
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                background: '#ede9fe', color: '#6d28d9',
+                border: '1px solid #c4b5fd',
+                borderRadius: 50, padding: '4px 14px',
+                fontSize: 12, fontWeight: 700,
+                marginBottom: 16, fontFamily: F,
+              }}>
+                תמחור
+              </span>
+              <h2 style={{ fontSize: 32, fontWeight: 900, color: '#0f172a', margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px' }}>
+                פשוט. שקוף. משתלם.
+              </h2>
+              <p style={{ fontSize: 14, color: '#64748b', margin: 0, fontFamily: F }}>
+                כל הפיצ׳רים בשתי התוכניות — ההבדל הוא רק משך הגישה.
+              </p>
+            </div>
+
+            {/* 2-card grid */}
+            <div className="lp-pricing-grid">
+              {/* Card 1 — quarterly */}
+              <div style={{
+                border: '1.5px solid #e2e8f0', borderRadius: 22, background: 'white',
+                padding: 30, display: 'flex', flexDirection: 'column', gap: 20,
+              }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>תוכנית רבעונית</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪20</span>
+                    <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>ל-3 חודשים</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>כ-6.6 ש״ח בחודש</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {features.map(f => (
+                    <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircle />
+                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <a
+                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת בתוכנית הרבעונית של NestAI (₪20 ל-3 חודשים)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={waBtn}
+                  >
+                    <WaSvg />
+                    צרו קשר בוואטסאפ
+                  </a>
+                  <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', fontFamily: F }}>
+                    נחזור אליכם תוך 24 שעות
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 2 — yearly (featured) */}
+              <div style={{
+                border: '2px solid #6366f1', borderRadius: 22, background: 'white',
+                padding: 30, display: 'flex', flexDirection: 'column', gap: 20,
+                position: 'relative', overflow: 'hidden',
+              }}>
+                {/* "הכי משתלם" badge */}
+                <div style={{
+                  position: 'absolute', top: 0, right: 0,
+                  background: '#6366f1', color: 'white',
+                  fontSize: 10, fontWeight: 800,
+                  padding: '5px 14px',
+                  borderRadius: '0 0 0 12px',
+                  fontFamily: F,
+                }}>
+                  הכי משתלם
+                </div>
+                <div style={{ paddingTop: 16 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>תוכנית שנתית</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪45</span>
+                    <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>לשנה</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>פחות מ-4 ש״ח בחודש</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {features.map(f => (
+                    <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircle />
+                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <a
+                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת בתוכנית השנתית של NestAI (₪45 לשנה)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={waBtn}
+                  >
+                    <WaSvg />
+                    צרו קשר בוואטסאפ
+                  </a>
+                  <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', fontFamily: F }}>
+                    נחזור אליכם תוך 24 שעות
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer note */}
+            <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', margin: '32px 0 0', lineHeight: 1.8, fontFamily: F }}>
+              המחירים ייכנסו לתוקף בקרוב.<br />
+              משתמשים קיימים יקבלו הודעה מראש.
+            </p>
           </section>
         );
       })()}
