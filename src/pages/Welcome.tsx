@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // ── Shared style tokens (mirrors Auth.tsx) ────────────────────────────────────
@@ -13,8 +12,6 @@ const C = {
 };
 
 const CSS = `
-  @keyframes welcome-spin     { to { transform: rotate(360deg); } }
-  @keyframes welcome-progress { from { width: 0%; } to { width: 100%; } }
   .welcome-right { display: flex !important; }
   @media (max-width: 768px) {
     .welcome-right { display: none !important; }
@@ -24,22 +21,20 @@ const CSS = `
 
 // ── Steps used on the right panel ─────────────────────────────────────────────
 const welcomeSteps = [
-  { title: 'נרשמת בהצלחה',    sub: 'החשבון שלך נוצר',    state: 'done'   as const },
-  { title: 'אימות האימייל',    sub: 'האימייל אומת',        state: 'done'   as const },
-  { title: 'כניסה לאפליקציה', sub: 'המסע מתחיל',           state: 'active' as const },
+  { title: 'נרשמת בהצלחה',    sub: 'החשבון שלך נוצר',     state: 'done'   as const },
+  { title: 'אימות האימייל',    sub: 'אומת בהצלחה',          state: 'done'   as const },
+  { title: 'כניסה לאפליקציה', sub: 'לחץ/י כדי להתחיל',     state: 'active' as const },
 ];
+
+const AppleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+  </svg>
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Welcome = () => {
   const navigate = useNavigate();
-
-  // Auto-redirect after 4 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/app/dashboard", { replace: true });
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, [navigate]);
 
   return (
     <div dir="rtl" style={{ minHeight: '100vh', display: 'flex' }}>
@@ -72,24 +67,52 @@ const Welcome = () => {
           <h1 style={{ fontSize: 24, fontWeight: 900, color: C.dark, margin: '0 0 10px' }}>
             ברוך הבא 🎉
           </h1>
-          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, margin: '0 0 36px', maxWidth: 300 }}>
+          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, margin: '0 0 32px', maxWidth: 300 }}>
             האימייל אומת בהצלחה.<br />המסע הטיפולי שלך מתחיל עכשיו.
           </p>
 
-          {/* Progress bar */}
-          <div style={{ width: '100%', maxWidth: 320 }}>
-            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 10px', textAlign: 'center' }}>
-              עוברים לאפליקציה...
-            </p>
-            <div style={{
-              background: '#e0e7ff', borderRadius: 50, height: 6, overflow: 'hidden',
-            }}>
-              <div style={{
-                height: '100%', background: '#6366f1', borderRadius: 50,
-                animation: 'welcome-progress 4s linear forwards',
-              }} />
-            </div>
+          {/* Login button */}
+          <button
+            type="button"
+            onClick={() => navigate('/app/auth')}
+            style={{
+              background: C.purple, color: 'white', border: 'none',
+              borderRadius: 12, padding: '13px 0',
+              width: '100%', maxWidth: 220,
+              fontSize: 15, fontWeight: 800, cursor: 'pointer',
+              marginBottom: 28,
+            }}
+          >
+            התחברות
+          </button>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: 280, marginBottom: 20 }}>
+            <div style={{ flex: 1, height: 1, background: '#ddd6fe' }} />
+            <span style={{ fontSize: 11, color: '#a0aec0', flexShrink: 0, whiteSpace: 'nowrap' }}>זמין גם במובייל</span>
+            <div style={{ flex: 1, height: 1, background: '#ddd6fe' }} />
           </div>
+
+          {/* App Store button */}
+          <a
+            href="https://apps.apple.com/il/app/nestai-care/id6760186559"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: '#111', color: 'white',
+              borderRadius: 12, padding: '11px 22px',
+              textDecoration: 'none',
+              width: '100%', maxWidth: 220, boxSizing: 'border-box',
+              justifyContent: 'center',
+            }}
+          >
+            <AppleIcon />
+            <div style={{ textAlign: 'right', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 10, opacity: 0.75 }}>הורד באמצעות</div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>App Store</div>
+            </div>
+          </a>
         </div>
       </div>
 
