@@ -1148,12 +1148,11 @@ const LandingPage = () => {
                 padding: 30, display: 'flex', flexDirection: 'column', gap: 20,
               }}>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>תוכנית רבעונית</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>תוכנית חודשית</p>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪20</span>
-                    <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>ל-3 חודשים</span>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪29</span>
+                    <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>לחודש</span>
                   </div>
-                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>כ-6.6 ש״ח בחודש</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {features.map(f => (
@@ -1165,7 +1164,7 @@ const LandingPage = () => {
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <a
-                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת בתוכנית הרבעונית של NestAI (₪20 ל-3 חודשים)"
+                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת במנוי החודשי של NestAI (₪29 לחודש)"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={waBtn}
@@ -1199,10 +1198,10 @@ const LandingPage = () => {
                 <div style={{ paddingTop: 16 }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>תוכנית שנתית</p>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪45</span>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪249</span>
                     <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>לשנה</span>
                   </div>
-                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>פחות מ-4 ש״ח בחודש</p>
+                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>₪20.75 לחודש — חיסכון של חודשיים</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {features.map(f => (
@@ -1214,7 +1213,7 @@ const LandingPage = () => {
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <a
-                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת בתוכנית השנתית של NestAI (₪45 לשנה)"
+                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת במנוי השנתי של NestAI (₪249 לשנה)"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={waBtn}
@@ -1231,8 +1230,7 @@ const LandingPage = () => {
 
             {/* Footer note */}
             <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', margin: '32px 0 0', lineHeight: 1.8, fontFamily: F }}>
-              המחירים ייכנסו לתוקף בקרוב.<br />
-              משתמשים קיימים יקבלו הודעה מראש.
+              פחות מ-5% מעלות פגישה אחת בחודש
             </p>
           </section>
         );
