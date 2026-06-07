@@ -75,6 +75,7 @@ const Auth = () => {
   const [newPassword,      setNewPassword]      = useState("");
   const [confirmPassword,  setConfirmPassword]  = useState("");
   const [loading,          setLoading]          = useState(false);
+  const [resendLoading,    setResendLoading]     = useState(false);
   const [isReady,          setIsReady]          = useState(false);
   const [loginError,       setLoginError]       = useState<string | null>(null);
   const [acceptedPrivacy,  setAcceptedPrivacy]  = useState(false);
@@ -230,7 +231,7 @@ const Auth = () => {
         const { data, error } = await supabase.auth.signUp({
           email, password,
           options: {
-            emailRedirectTo: `${window.location.origin}${referralCode ? buildReferralPath(referralCode) : "/app/dashboard"}`,
+            emailRedirectTo: `${window.location.origin}/welcome`,
             data: { intended_role: "patient", full_name: fullName },
           },
         });
@@ -257,6 +258,17 @@ const Auth = () => {
     if (error) setLoginError(getReadableAuthError(error.message));
   };
 
+  const handleResend = async () => {
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    setResendLoading(false);
+    if (error) {
+      toast({ title: 'שגיאה בשליחה', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'נשלח מחדש', description: 'קישור האימות נשלח שוב לאימייל שלך' });
+    }
+  };
+
   const switchTab = (login: boolean) => {
     setIsLogin(login);
     setLoginError(null);
@@ -276,26 +288,124 @@ const Auth = () => {
     );
   }
 
-  // ── Registration done ────────────────────────────────────────────────────────
+  // ── Registration done (email verification pending) ───────────────────────────
   if (registrationDone) {
+    const regSteps = [
+      { title: 'נרשמת בהצלחה',    sub: 'החשבון שלך נוצר',       state: 'done'     as const },
+      { title: 'אימות האימייל',    sub: 'ממתינים לאישור שלך',    state: 'active'   as const },
+      { title: 'כניסה לאפליקציה', sub: 'המסע מתחיל',             state: 'inactive' as const },
+    ];
     return (
-      <div dir="rtl" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg, padding: '24px' }}>
+      <div dir="rtl" style={{ minHeight: '100vh', display: 'flex' }}>
         <style>{CSS}</style>
-        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(83,74,183,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.purple} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
+
+        {/* ── LEFT ── */}
+        <div
+          className="auth-left"
+          style={{
+            flex: 1, background: C.bg,
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            padding: '40px 48px', overflowY: 'auto',
+          }}
+        >
+          <div style={{ maxWidth: 400, width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            {/* Mail icon */}
+            <div style={{
+              width: 64, height: 64, background: '#ede9fe', borderRadius: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, flexShrink: 0,
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+
+            <h1 style={{ fontSize: 22, fontWeight: 900, color: C.dark, margin: '0 0 8px' }}>
+              בדקו את תיבת הדואר
+            </h1>
+            <p style={{ fontSize: 14, color: C.muted, margin: '0 0 14px', lineHeight: 1.6 }}>
+              שלחנו קישור אימות לכתובת:
+            </p>
+
+            {/* Email badge */}
+            <div style={{
+              background: 'white', border: `1px solid ${C.border}`, borderRadius: 10,
+              padding: '8px 18px', fontSize: 13, color: C.dark, marginBottom: 22, fontWeight: 600,
+            }}>
+              {email}
+            </div>
+
+            {/* Resend note */}
+            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.8, margin: 0 }}>
+              לא קיבלת?{' '}
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{ color: '#6366f1', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, padding: 0 }}
+              >
+                {resendLoading ? 'שולח...' : 'שלח שוב'}
+              </button>
+              {' '}| בדוק גם בתיקיית הספאם
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setRegistrationDone(false)}
+              style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', marginTop: 28, textDecoration: 'underline' }}
+            >
+              חזרה להתחברות
+            </button>
           </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: C.dark, margin: '0 0 12px' }}>כמעט סיימנו!</h2>
-          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, margin: '0 0 8px' }}>
-            שלחנו לך אימייל לאישור ההרשמה.<br />
-            לחץ על הקישור באימייל כדי להפעיל את החשבון.
-          </p>
-          <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 24px' }}>לא קיבלת? בדוק את תיקיית הספאם.</p>
-          <button onClick={() => setRegistrationDone(false)} style={{ color: C.purple, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-            חזרה להתחברות
-          </button>
+        </div>
+
+        {/* ── RIGHT ── */}
+        <div
+          className="auth-right"
+          style={{
+            background: C.purplePan, padding: '40px 48px',
+            flexDirection: 'column',
+            width: '42%', minWidth: 340,
+          }}
+        >
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 56 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.indigo, display: 'inline-block' }} />
+            <span style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-0.3px' }}>NestAI</span>
+          </div>
+
+          {/* Steps */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            {regSteps.map((step, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex', gap: 14, alignItems: 'flex-start',
+                  opacity: step.state === 'inactive' ? 0.4 : 1,
+                }}
+              >
+                {/* Indicator */}
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  background: step.state === 'done' ? '#6366f1' : 'transparent',
+                  border: step.state === 'done' ? 'none' : '1.5px solid rgba(255,255,255,0.7)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {step.state === 'done' ? (
+                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>0{i + 1}</span>
+                  )}
+                </div>
+                {/* Text */}
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: '0 0 3px' }}>{step.title}</p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5 }}>{step.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

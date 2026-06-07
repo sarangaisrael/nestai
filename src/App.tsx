@@ -36,6 +36,7 @@ const ChoosePathScreen   = lazy(() => import("./pages/ChoosePathScreen"));
 const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
 const Blog               = lazy(() => import("./pages/Blog"));
 const BlogPost           = lazy(() => import("./pages/BlogPost"));
+const Welcome            = lazy(() => import("./pages/Welcome"));
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/join/:ref" element={<JoinReferral />} />
 
               {/* ── Auth / onboarding ── */}
+              <Route path="/welcome"      element={<Welcome />} />
               <Route path="/app"          element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/app/auth"     element={<Auth />} />
               <Route path="/app/join"     element={<JoinReferral />} />

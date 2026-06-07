@@ -1,104 +1,143 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import nestLogo from "@/assets/nestai-logo-full.png";
-import { useLanguage } from "@/contexts/LanguageContext";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
-import AddToHomePrompt from "@/components/AddToHomePrompt";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
+// ── Shared style tokens (mirrors Auth.tsx) ────────────────────────────────────
+const C = {
+  purple:    '#534AB7',
+  purplePan: '#4C44B8',
+  bg:        '#F7F5FF',
+  border:    '#AFA9EC',
+  muted:     '#7F77DD',
+  dark:      '#1a1a2e',
+  indigo:    '#a5b4fc',
+};
+
+const CSS = `
+  @keyframes welcome-spin     { to { transform: rotate(360deg); } }
+  @keyframes welcome-progress { from { width: 0%; } to { width: 100%; } }
+  .welcome-right { display: flex !important; }
+  @media (max-width: 768px) {
+    .welcome-right { display: none !important; }
+    .welcome-left  { padding: 24px !important; }
+  }
+`;
+
+// ── Steps used on the right panel ─────────────────────────────────────────────
+const welcomeSteps = [
+  { title: 'נרשמת בהצלחה',    sub: 'החשבון שלך נוצר',    state: 'done'   as const },
+  { title: 'אימות האימייל',    sub: 'האימייל אומת',        state: 'done'   as const },
+  { title: 'כניסה לאפליקציה', sub: 'המסע מתחיל',           state: 'active' as const },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 const Welcome = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const { t, dir } = useLanguage();
 
+  // Auto-redirect after 4 seconds
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/app/dashboard", { replace: true });
-      } else {
-        setIsLoading(false);
-      }
-    };
-    checkAuth();
+    const timer = setTimeout(() => {
+      navigate("/app/dashboard", { replace: true });
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [navigate]);
 
-  const handleStart = () => {
-    navigate("/app/onboarding");
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6">
-        <img 
-          src={nestLogo} 
-          alt="NestAI"
-          className="w-32 h-32 object-contain animate-pulse"
-        />
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div 
-      className="min-h-[100dvh] bg-background flex flex-col items-center justify-between px-6 py-12"
-      dir={dir}
-    >
-      {/* Add to Home Screen Prompt */}
-      <AddToHomePrompt />
-      
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher />
+    <div dir="rtl" style={{ minHeight: '100vh', display: 'flex' }}>
+      <style>{CSS}</style>
+
+      {/* ── LEFT ── */}
+      <div
+        className="welcome-left"
+        style={{
+          flex: 1, background: C.bg,
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          padding: '40px 48px', overflowY: 'auto',
+        }}
+      >
+        <div style={{
+          maxWidth: 400, width: '100%', margin: '0 auto',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+        }}>
+          {/* Green check icon */}
+          <div style={{
+            width: 72, height: 72, background: '#d1fae5', borderRadius: 22,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 28, flexShrink: 0,
+          }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </div>
+
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: C.dark, margin: '0 0 10px' }}>
+            ברוך הבא 🎉
+          </h1>
+          <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, margin: '0 0 36px', maxWidth: 300 }}>
+            האימייל אומת בהצלחה.<br />המסע הטיפולי שלך מתחיל עכשיו.
+          </p>
+
+          {/* Progress bar */}
+          <div style={{ width: '100%', maxWidth: 320 }}>
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 10px', textAlign: 'center' }}>
+              עוברים לאפליקציה...
+            </p>
+            <div style={{
+              background: '#e0e7ff', borderRadius: 50, height: 6, overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', background: '#6366f1', borderRadius: 50,
+                animation: 'welcome-progress 4s linear forwards',
+              }} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-col items-center gap-6 w-full max-w-md flex-1 justify-center">
+      {/* ── RIGHT ── */}
+      <div
+        className="welcome-right"
+        style={{
+          background: C.purplePan, padding: '40px 48px',
+          flexDirection: 'column',
+          width: '42%', minWidth: 340,
+        }}
+      >
         {/* Logo */}
-        <img 
-          src={nestLogo} 
-          alt="NestAI"
-          className="w-52 h-52 object-contain"
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 56 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.indigo, display: 'inline-block' }} />
+          <span style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-0.3px' }}>NestAI</span>
+        </div>
 
-        {/* Title */}
-        <h1 className="text-2xl font-semibold text-foreground text-center mt-4">
-          {t.welcome.title}
-        </h1>
-
-        {/* Description text */}
-        <p className="text-base text-foreground/70 text-center leading-relaxed max-w-xs whitespace-pre-line">
-          {t.welcome.description}
-        </p>
-      </div>
-
-      {/* Button area */}
-      <div className="w-full max-w-md space-y-4">
-        <Button
-          onClick={handleStart}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground py-5 rounded-full shadow-lg transition-colors w-full"
-          size="lg"
-        >
-          {t.welcome.getStarted}
-        </Button>
-
-        {/* Secondary link */}
-        <p className="text-sm text-foreground/60 text-center">
-          {t.welcome.alreadyRegistered}{" "}
-          <Link 
-            to="/app/auth" 
-            className="text-primary hover:underline font-medium"
-          >
-            {t.welcome.login}
-          </Link>
-        </p>
-      </div>
-
-      {/* Footer */}
-      <div className="text-xs text-foreground/40 mt-6">
-        {t.footer.copyright}
+        {/* Steps */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {welcomeSteps.map((step, i) => (
+            <div
+              key={i}
+              style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}
+            >
+              {/* Indicator */}
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                background: step.state === 'done' ? '#6366f1' : 'transparent',
+                border: step.state === 'done' ? 'none' : '1.5px solid rgba(255,255,255,0.7)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {step.state === 'done' ? (
+                  <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>0{i + 1}</span>
+                )}
+              </div>
+              {/* Text */}
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: '0 0 3px' }}>{step.title}</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5 }}>{step.sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
