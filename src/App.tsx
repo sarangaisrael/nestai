@@ -37,6 +37,7 @@ const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
 const Blog               = lazy(() => import("./pages/Blog"));
 const BlogPost           = lazy(() => import("./pages/BlogPost"));
 const Welcome            = lazy(() => import("./pages/Welcome"));
+const Register           = lazy(() => import("./pages/Register"));
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => (
 
               {/* ── Auth / onboarding ── */}
               <Route path="/welcome"      element={<Welcome />} />
+              <Route path="/register"     element={<Register />} />
               <Route path="/privacy"      element={<Privacy />} />
               <Route path="/app"          element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/app/auth"     element={<Auth />} />

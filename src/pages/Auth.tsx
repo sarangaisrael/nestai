@@ -7,6 +7,7 @@ import { ensureUserAccessProfile, getRouteForAccessState } from "@/lib/accessCon
 import { buildReferralPath } from "@/lib/referrals";
 import { getDefaultRouteForUser } from "@/lib/userRoles";
 import { FileText, TrendingUp, Sparkles } from "lucide-react";
+// Login-only page — registration is at /register (src/pages/Register.tsx).
 
 // ── Shared style tokens ───────────────────────────────────────────────────────
 const F = "inherit";
@@ -64,26 +65,21 @@ const CSS = `
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Auth = () => {
-  const [isLogin,             setIsLogin]             = useState(true);
-  const [registrationDone,    setRegistrationDone]    = useState(false);
   const [isForgotPassword,    setIsForgotPassword]    = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-  const [email,            setEmail]            = useState("");
-  const [password,         setPassword]         = useState("");
-  const [newPassword,      setNewPassword]      = useState("");
-  const [confirmPassword,  setConfirmPassword]  = useState("");
-  const [loading,          setLoading]          = useState(false);
-  const [resendLoading,    setResendLoading]     = useState(false);
-  const [isReady,          setIsReady]          = useState(false);
-  const [loginError,       setLoginError]       = useState<string | null>(null);
-  const [therapyType,      setTherapyType]      = useState<string>("");
-  const [summaryFocus,     setSummaryFocus]     = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
+  const [email,           setEmail]           = useState("");
+  const [password,        setPassword]        = useState("");
+  const [newPassword,     setNewPassword]     = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading,         setLoading]         = useState(false);
+  const [isReady,         setIsReady]         = useState(false);
+  const [loginError,      setLoginError]      = useState<string | null>(null);
 
   const navigate     = useNavigate();
   const location     = useLocation();
   const { toast }    = useToast();
-  const { t, dir, isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
   const searchParams       = new URLSearchParams(location.search);
   const referralCode       = searchParams.get("ref")?.trim()  ?? "";
@@ -214,34 +210,9 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setLoginError(null);
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
-        setLoading(false);
-        toast({ title: t.auth.loginSuccess, description: t.auth.welcomeBack });
-      } else {
-        if (summaryFocus.length === 0) {
-          setLoading(false); return;
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email, password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/welcome`,
-            data: { intended_role: "patient" },
-          },
-        });
-        if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
-        if (data.user) {
-          await ensureUserAccessProfile(data.user, "patient");
-          await supabase.from("user_preferences").upsert({
-            user_id: data.user.id,
-            therapy_type: therapyType || null,
-            summary_focus: summaryFocus,
-          }, { onConflict: 'user_id' });
-        }
-        setLoading(false);
-        setRegistrationDone(true);
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
+      setLoading(false);
     } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
   };
 
@@ -253,153 +224,12 @@ const Auth = () => {
     if (error) setLoginError(getReadableAuthError(error.message));
   };
 
-  const handleResend = async () => {
-    setResendLoading(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email });
-    setResendLoading(false);
-    if (error) {
-      toast({ title: 'שגיאה בשליחה', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'נשלח מחדש', description: 'קישור האימות נשלח שוב לאימייל שלך' });
-    }
-  };
-
-  const switchTab = (login: boolean) => {
-    setIsLogin(login);
-    setLoginError(null);
-    setTherapyType("");
-    setSummaryFocus(["emotions", "thoughts", "behaviors", "changes"]);
-  };
-
   // ── Loading state ────────────────────────────────────────────────────────────
   if (!isReady) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bg }}>
         <div style={{ width: 28, height: 28, borderRadius: '50%', border: `2.5px solid ${C.border}`, borderTopColor: C.purple, animation: 'auth-spin 0.8s linear infinite' }} />
         <style>{CSS}</style>
-      </div>
-    );
-  }
-
-  // ── Registration done (email verification pending) ───────────────────────────
-  if (registrationDone) {
-    const regSteps = [
-      { title: 'נרשמת בהצלחה',    sub: 'החשבון שלך נוצר',       state: 'done'     as const },
-      { title: 'אימות האימייל',    sub: 'ממתינים לאישור שלך',    state: 'active'   as const },
-      { title: 'כניסה לאפליקציה', sub: 'המסע מתחיל',             state: 'inactive' as const },
-    ];
-    return (
-      <div dir="rtl" style={{ minHeight: '100vh', display: 'flex' }}>
-        <style>{CSS}</style>
-
-        {/* ── LEFT ── */}
-        <div
-          className="auth-left"
-          style={{
-            flex: 1, background: C.bg,
-            display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            padding: '40px 48px', overflowY: 'auto',
-          }}
-        >
-          <div style={{ maxWidth: 400, width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            {/* Mail icon */}
-            <div style={{
-              width: 64, height: 64, background: '#ede9fe', borderRadius: 20,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, flexShrink: 0,
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-            </div>
-
-            <h1 style={{ fontSize: 22, fontWeight: 900, color: C.dark, margin: '0 0 8px' }}>
-              בדקו את תיבת הדואר
-            </h1>
-            <p style={{ fontSize: 14, color: C.muted, margin: '0 0 14px', lineHeight: 1.6 }}>
-              שלחנו קישור אימות לכתובת:
-            </p>
-
-            {/* Email badge */}
-            <div style={{
-              background: 'white', border: `1px solid ${C.border}`, borderRadius: 10,
-              padding: '8px 18px', fontSize: 13, color: C.dark, marginBottom: 22, fontWeight: 600,
-            }}>
-              {email}
-            </div>
-
-            {/* Resend note */}
-            <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.8, margin: 0 }}>
-              לא קיבלת?{' '}
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendLoading}
-                style={{ color: '#6366f1', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, padding: 0 }}
-              >
-                {resendLoading ? 'שולח...' : 'שלח שוב'}
-              </button>
-              {' '}| בדוק גם בתיקיית הספאם
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setRegistrationDone(false)}
-              style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', marginTop: 28, textDecoration: 'underline' }}
-            >
-              חזרה להתחברות
-            </button>
-          </div>
-        </div>
-
-        {/* ── RIGHT ── */}
-        <div
-          className="auth-right"
-          style={{
-            background: C.purplePan, padding: '40px 48px',
-            flexDirection: 'column',
-            width: '42%', minWidth: 340,
-          }}
-        >
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 56 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.indigo, display: 'inline-block' }} />
-            <span style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-0.3px' }}>NestAI</span>
-          </div>
-
-          {/* Steps */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-            {regSteps.map((step, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex', gap: 14, alignItems: 'flex-start',
-                  opacity: step.state === 'inactive' ? 0.4 : 1,
-                }}
-              >
-                {/* Indicator */}
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                  background: step.state === 'done' ? '#6366f1' : 'transparent',
-                  border: step.state === 'done' ? 'none' : '1.5px solid rgba(255,255,255,0.7)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {step.state === 'done' ? (
-                    <svg width="14" height="14" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  ) : (
-                    <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>0{i + 1}</span>
-                  )}
-                </div>
-                {/* Text */}
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'white', margin: '0 0 3px' }}>{step.title}</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.5 }}>{step.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     );
   }
@@ -480,35 +310,16 @@ const Auth = () => {
               </form>
             </>
 
-          /* ── Login / Register ── */
+          /* ── Login ── */
           ) : (
             <>
-              {/* Tabs */}
-              <div style={{ background: 'white', border: `1px solid ${C.border}`, borderRadius: 10, padding: 4, display: 'flex', gap: 4, marginBottom: 28 }}>
-                {[{ label: 'התחברות', val: true }, { label: 'הרשמה', val: false }].map(tab => (
-                  <button
-                    key={String(tab.val)}
-                    type="button"
-                    onClick={() => switchTab(tab.val)}
-                    style={{
-                      flex: 1, background: isLogin === tab.val ? C.purple : 'transparent',
-                      color: isLogin === tab.val ? 'white' : C.muted,
-                      borderRadius: 7, padding: 8, fontSize: 13, fontWeight: 700,
-                      border: 'none', cursor: 'pointer', fontFamily: F, transition: 'background 0.15s',
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
               {/* Title */}
               <div style={{ marginBottom: 24 }}>
                 <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px', fontFamily: F }}>
-                  {isLogin ? 'ברוכים השבים' : 'מתחילים את המסע'}
+                  ברוכים השבים
                 </h1>
                 <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>
-                  {isLogin ? 'ממשיכים מאיפה שעצרתם' : 'כמה פרטים קטנים ואתם בפנים'}
+                  ממשיכים מאיפה שעצרתם
                 </p>
               </div>
 
@@ -526,18 +337,16 @@ const Auth = () => {
                   <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
                 </div>
 
-                {/* Forgot link — login only */}
-                {isLogin && (
-                  <button type="button" onClick={() => { setIsForgotPassword(true); setLoginError(null); }}
-                    style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, alignSelf: 'flex-start' }}>
-                    שכחתי סיסמה
-                  </button>
-                )}
+                {/* Forgot link */}
+                <button type="button" onClick={() => { setIsForgotPassword(true); setLoginError(null); }}
+                  style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, alignSelf: 'flex-start' }}>
+                  שכחתי סיסמה
+                </button>
 
                 <ErrorBlock />
 
                 <button type="submit" disabled={loading} style={primaryBtn(loading)}>
-                  {loading ? 'טוען...' : isLogin ? 'כניסה' : 'יצירת חשבון בחינם'}
+                  {loading ? 'טוען...' : 'כניסה'}
                 </button>
               </form>
 
@@ -561,7 +370,7 @@ const Auth = () => {
                 }}
               >
                 <GoogleIcon />
-                {isLogin ? 'כניסה עם Google' : 'הרשמה עם Google'}
+                כניסה עם Google
               </button>
 
               {/* Trust badge */}
