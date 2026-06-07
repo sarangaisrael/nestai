@@ -69,7 +69,6 @@ const Auth = () => {
   const [isForgotPassword,    setIsForgotPassword]    = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-  const [fullName,         setFullName]         = useState("");
   const [email,            setEmail]            = useState("");
   const [password,         setPassword]         = useState("");
   const [newPassword,      setNewPassword]      = useState("");
@@ -78,7 +77,6 @@ const Auth = () => {
   const [resendLoading,    setResendLoading]     = useState(false);
   const [isReady,          setIsReady]          = useState(false);
   const [loginError,       setLoginError]       = useState<string | null>(null);
-  const [acceptedPrivacy,  setAcceptedPrivacy]  = useState(false);
   const [therapyType,      setTherapyType]      = useState<string>("");
   const [summaryFocus,     setSummaryFocus]     = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
 
@@ -222,9 +220,6 @@ const Auth = () => {
         setLoading(false);
         toast({ title: t.auth.loginSuccess, description: t.auth.welcomeBack });
       } else {
-        if (!acceptedPrivacy) {
-          setLoginError(t.privacy.mustAcceptPrivacy); setLoading(false); return;
-        }
         if (summaryFocus.length === 0) {
           setLoading(false); return;
         }
@@ -232,7 +227,7 @@ const Auth = () => {
           email, password,
           options: {
             emailRedirectTo: `${window.location.origin}/welcome`,
-            data: { intended_role: "patient", full_name: fullName },
+            data: { intended_role: "patient" },
           },
         });
         if (error) { setLoginError(getReadableAuthError(error.message)); setLoading(false); return; }
@@ -253,7 +248,7 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/app/dashboard` },
+      options: { redirectTo: `${window.location.origin}/welcome` },
     });
     if (error) setLoginError(getReadableAuthError(error.message));
   };
@@ -274,8 +269,6 @@ const Auth = () => {
     setLoginError(null);
     setTherapyType("");
     setSummaryFocus(["emotions", "thoughts", "behaviors", "changes"]);
-    setAcceptedPrivacy(false);
-    setFullName("");
   };
 
   // ── Loading state ────────────────────────────────────────────────────────────
@@ -521,14 +514,6 @@ const Auth = () => {
 
               {/* Form */}
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Full name — register only */}
-                {!isLogin && (
-                  <div>
-                    <label style={labelStyle}>שם מלא</label>
-                    <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required style={inputStyle} />
-                  </div>
-                )}
-
                 {/* Email */}
                 <div>
                   <label style={labelStyle}>אימייל</label>
@@ -547,24 +532,6 @@ const Auth = () => {
                     style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, alignSelf: 'flex-start' }}>
                     שכחתי סיסמה
                   </button>
-                )}
-
-                {/* Privacy consent — register only */}
-                {!isLogin && (
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                    <input
-                      type="checkbox" id="privacy-auth"
-                      checked={acceptedPrivacy} onChange={e => setAcceptedPrivacy(e.target.checked)}
-                      style={{ marginTop: 2, accentColor: C.purple, flexShrink: 0, cursor: 'pointer' }}
-                    />
-                    <label htmlFor="privacy-auth" style={{ fontSize: 12, color: C.muted, lineHeight: 1.5, cursor: 'pointer' }}>
-                      קראתי ואני מסכים/ה{' '}
-                      <button type="button" onClick={() => window.open('/app/privacy', '_blank')}
-                        style={{ color: C.purple, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12 }}>
-                        למדיניות הפרטיות
-                      </button>
-                    </label>
-                  </div>
                 )}
 
                 <ErrorBlock />
@@ -602,6 +569,20 @@ const Auth = () => {
                 <LockIcon />
                 מאובטח ופרטי — המסע שלכם שמור כאן
               </div>
+
+              {/* Terms / privacy note */}
+              <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', lineHeight: 1.8, margin: '10px 0 0' }}>
+                על ידי המשך, את/ה מסכים/ה ל
+                <button type="button" onClick={() => window.open('/privacy', '_blank')}
+                  style={{ color: C.muted, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, padding: '0 2px' }}>
+                  תנאי שימוש
+                </button>
+                ו
+                <button type="button" onClick={() => window.open('/privacy', '_blank')}
+                  style={{ color: C.muted, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, padding: '0 2px' }}>
+                  מדיניות פרטיות
+                </button>
+              </p>
             </>
           )}
 

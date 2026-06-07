@@ -67,6 +67,7 @@ const App = () => (
 
               {/* ── Auth / onboarding ── */}
               <Route path="/welcome"      element={<Welcome />} />
+              <Route path="/privacy"      element={<Privacy />} />
               <Route path="/app"          element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/app/auth"     element={<Auth />} />
               <Route path="/app/join"     element={<JoinReferral />} />
