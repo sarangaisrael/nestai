@@ -622,6 +622,40 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* ── Steps section ── */}
+      <section className="lp-steps-section" style={{ background: '#f9fafb', padding: '72px 52px' }}>
+        {/* Header */}
+        <div className="lp-steps-header">
+          <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
+            {content.steps_title}
+          </h2>
+          <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
+            {content.steps_subtitle}
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="lp-steps-grid">
+          {[
+            { num: '01', title: content.step1_title, body: content.step1_body },
+            { num: '02', title: content.step2_title, body: content.step2_body },
+            { num: '03', title: content.step3_title, body: content.step3_body },
+          ].map(step => (
+            <div key={step.num} className="lp-step-card">
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 16px', letterSpacing: '0.05em' }}>
+                {step.num}
+              </p>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 10px', fontFamily: F }}>
+                {step.title}
+              </h3>
+              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>
+                {step.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── Features section ── */}
       <section className="lp-features-section">
         <div className="lp-features-grid">
@@ -829,6 +863,94 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* ── Comparison section ── */}
+      {content.show_comparison && (() => {
+        const rows: { feature: string; chatgptIcon: '✗' | '—'; chatgptText: string; nestaiText: string }[] = [
+          { feature: content.comparison_row1_feature, chatgptIcon: '✗', chatgptText: content.comparison_row1_chatgpt, nestaiText: content.comparison_row1_nestai },
+          { feature: content.comparison_row2_feature, chatgptIcon: '✗', chatgptText: content.comparison_row2_chatgpt, nestaiText: content.comparison_row2_nestai },
+          { feature: content.comparison_row3_feature, chatgptIcon: '✗', chatgptText: content.comparison_row3_chatgpt, nestaiText: content.comparison_row3_nestai },
+          { feature: content.comparison_row4_feature, chatgptIcon: '—', chatgptText: content.comparison_row4_chatgpt, nestaiText: content.comparison_row4_nestai },
+          { feature: content.comparison_row5_feature, chatgptIcon: '✗', chatgptText: content.comparison_row5_chatgpt, nestaiText: content.comparison_row5_nestai },
+        ];
+        return (
+          <section className="lp-comparison-section">
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                background: '#fef2f2', color: '#dc2626',
+                border: '1px solid #fecaca',
+                borderRadius: 50, padding: '4px 14px',
+                fontSize: 12, fontWeight: 700,
+                marginBottom: 16, fontFamily: F,
+              }}>
+                {content.comparison_tag}
+              </span>
+              <h2 style={{
+                fontSize: 32, fontWeight: 900, color: '#111',
+                margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px',
+              }}>
+                {content.comparison_title}
+              </h2>
+              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0, fontFamily: F }}>
+                {content.comparison_subtitle}
+              </p>
+            </div>
+
+            {/* Table */}
+            <div className="lp-comparison-scroll">
+              <div className="lp-comparison-table">
+                {/* Header row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr' }}>
+                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: F }}>
+                    תכונה
+                  </div>
+                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>
+                    ChatGPT
+                  </div>
+                  <div style={{ padding: '14px 20px', background: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', flexShrink: 0, display: 'inline-block' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', fontFamily: F }}>NestAI</span>
+                  </div>
+                </div>
+
+                {/* Data rows */}
+                {rows.map((row, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', borderTop: '1px solid #f1f5f9' }}>
+                    <div style={{ padding: '16px 20px' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>{row.feature}</span>
+                    </div>
+                    <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: row.chatgptIcon === '—' ? '#cbd5e1' : '#ef4444', flexShrink: 0, lineHeight: '1.45' }}>{row.chatgptIcon}</span>
+                      <span style={{ fontSize: 13, color: '#6b7280', fontFamily: F, lineHeight: 1.5 }}>{row.chatgptText}</span>
+                    </div>
+                    <div style={{ padding: '16px 20px', background: '#fafbff', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#10b981', flexShrink: 0, lineHeight: '1.45' }}>✓</span>
+                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F, lineHeight: 1.5 }}>{row.nestaiText}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+              <button
+                onClick={() => navigate('/app/auth')}
+                style={{
+                  background: '#6366f1', color: '#ffffff', border: 'none',
+                  borderRadius: 22, padding: '13px 32px',
+                  fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                  fontFamily: F,
+                }}
+              >
+                מתחילים לכתוב בחינם
+              </button>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* ── Testimonials section ── */}
       {content.show_testimonials && (() => {
         const cards = [
@@ -960,128 +1082,6 @@ const LandingPage = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          </section>
-        );
-      })()}
-
-      {/* ── Steps section ── */}
-      <section className="lp-steps-section" style={{ background: '#f9fafb', padding: '72px 52px' }}>
-        {/* Header */}
-        <div className="lp-steps-header">
-          <h2 style={{ fontSize: 36, fontWeight: 900, color: '#111', letterSpacing: '-1.5px', margin: 0, fontFamily: F }}>
-            {content.steps_title}
-          </h2>
-          <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-            {content.steps_subtitle}
-          </p>
-        </div>
-
-        {/* Cards */}
-        <div className="lp-steps-grid">
-          {[
-            { num: '01', title: content.step1_title, body: content.step1_body },
-            { num: '02', title: content.step2_title, body: content.step2_body },
-            { num: '03', title: content.step3_title, body: content.step3_body },
-          ].map(step => (
-            <div key={step.num} className="lp-step-card">
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', margin: '0 0 16px', letterSpacing: '0.05em' }}>
-                {step.num}
-              </p>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: '#111', margin: '0 0 10px', fontFamily: F }}>
-                {step.title}
-              </h3>
-              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.65, margin: 0 }}>
-                {step.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Comparison section ── */}
-      {content.show_comparison && (() => {
-        const rows: { feature: string; chatgptIcon: '✗' | '—'; chatgptText: string; nestaiText: string }[] = [
-          { feature: content.comparison_row1_feature, chatgptIcon: '✗', chatgptText: content.comparison_row1_chatgpt, nestaiText: content.comparison_row1_nestai },
-          { feature: content.comparison_row2_feature, chatgptIcon: '✗', chatgptText: content.comparison_row2_chatgpt, nestaiText: content.comparison_row2_nestai },
-          { feature: content.comparison_row3_feature, chatgptIcon: '✗', chatgptText: content.comparison_row3_chatgpt, nestaiText: content.comparison_row3_nestai },
-          { feature: content.comparison_row4_feature, chatgptIcon: '—', chatgptText: content.comparison_row4_chatgpt, nestaiText: content.comparison_row4_nestai },
-          { feature: content.comparison_row5_feature, chatgptIcon: '✗', chatgptText: content.comparison_row5_chatgpt, nestaiText: content.comparison_row5_nestai },
-        ];
-        return (
-          <section className="lp-comparison-section">
-            {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: 48 }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center',
-                background: '#fef2f2', color: '#dc2626',
-                border: '1px solid #fecaca',
-                borderRadius: 50, padding: '4px 14px',
-                fontSize: 12, fontWeight: 700,
-                marginBottom: 16, fontFamily: F,
-              }}>
-                {content.comparison_tag}
-              </span>
-              <h2 style={{
-                fontSize: 32, fontWeight: 900, color: '#111',
-                margin: '0 0 8px', fontFamily: F, letterSpacing: '-1px',
-              }}>
-                {content.comparison_title}
-              </h2>
-              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0, fontFamily: F }}>
-                {content.comparison_subtitle}
-              </p>
-            </div>
-
-            {/* Table */}
-            <div className="lp-comparison-scroll">
-              <div className="lp-comparison-table">
-                {/* Header row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr' }}>
-                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: F }}>
-                    תכונה
-                  </div>
-                  <div style={{ padding: '14px 20px', background: '#f8fafc', fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>
-                    ChatGPT
-                  </div>
-                  <div style={{ padding: '14px 20px', background: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', flexShrink: 0, display: 'inline-block' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', fontFamily: F }}>NestAI</span>
-                  </div>
-                </div>
-
-                {/* Data rows */}
-                {rows.map((row, i) => (
-                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', borderTop: '1px solid #f1f5f9' }}>
-                    <div style={{ padding: '16px 20px' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', fontFamily: F }}>{row.feature}</span>
-                    </div>
-                    <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: row.chatgptIcon === '—' ? '#cbd5e1' : '#ef4444', flexShrink: 0, lineHeight: '1.45' }}>{row.chatgptIcon}</span>
-                      <span style={{ fontSize: 13, color: '#6b7280', fontFamily: F, lineHeight: 1.5 }}>{row.chatgptText}</span>
-                    </div>
-                    <div style={{ padding: '16px 20px', background: '#fafbff', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: '#10b981', flexShrink: 0, lineHeight: '1.45' }}>✓</span>
-                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F, lineHeight: 1.5 }}>{row.nestaiText}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
-              <button
-                onClick={() => navigate('/app/auth')}
-                style={{
-                  background: '#6366f1', color: '#ffffff', border: 'none',
-                  borderRadius: 22, padding: '13px 32px',
-                  fontSize: 14, fontWeight: 800, cursor: 'pointer',
-                  fontFamily: F,
-                }}
-              >
-                מתחילים לכתוב בחינם
-              </button>
             </div>
           </section>
         );
