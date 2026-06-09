@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePWAInstallPrompt } from "@/contexts/PWAInstallContext";
 
 // ── Shared style tokens ───────────────────────────────────────────────────────
 const C = {
@@ -55,6 +56,7 @@ const Welcome = () => {
   const navigate = useNavigate();
   const [answer,  setAnswer]  = useState<TraumaAnswer>(null);
   const [saving,  setSaving]  = useState(false);
+  const { triggerInstall } = usePWAInstallPrompt();
 
   const handleContinue = async () => {
     setSaving(true);
@@ -194,15 +196,15 @@ const Welcome = () => {
                 <div style={{ fontSize: 13, fontWeight: 700 }}>App Store</div>
               </div>
             </a>
-            <a
-              href="https://www.nestai.care"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={triggerInstall}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', gap: 8,
                 background: '#111', color: 'white', borderRadius: 12,
-                padding: '10px 14px', textDecoration: 'none', justifyContent: 'center',
-                boxSizing: 'border-box',
+                padding: '10px 14px', border: 'none', cursor: 'pointer',
+                justifyContent: 'center', boxSizing: 'border-box',
+                fontFamily: 'inherit',
               }}
             >
               <AndroidIcon />
@@ -210,7 +212,7 @@ const Welcome = () => {
                 <div style={{ fontSize: 9, opacity: 0.75 }}>הורד באמצעות</div>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>Android (PWA)</div>
               </div>
-            </a>
+            </button>
           </div>
         </div>
       </div>

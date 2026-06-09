@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SiteContentProvider } from "@/contexts/SiteContentContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { AppDirectivesProvider } from "@/components/AppDirectivesProvider";
+import { PWAInstallProvider } from "@/contexts/PWAInstallContext";
 import AppLayout from "@/components/AppLayout";
 
 // Lazy load all pages
@@ -49,6 +50,7 @@ const LoadingSpinner = () => (
 );
 
 const App = () => (
+  <PWAInstallProvider>
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <SiteContentProvider>
@@ -107,6 +109,7 @@ const App = () => (
       </SiteContentProvider>
     </LanguageProvider>
   </QueryClientProvider>
+  </PWAInstallProvider>
 );
 
 export default App;
