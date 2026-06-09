@@ -32,6 +32,12 @@ const AppleIcon = () => (
   </svg>
 );
 
+const AndroidIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zm-2.5-1C2.67 17 2 17.67 2 18.5v5c0 .83.67 1.5 1.5 1.5S5 24.33 5 23.5v-5C5 17.67 4.33 17 3.5 17zm17 0c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5zm-4.97-14.58l1.06-1.06c.19-.19.19-.51 0-.7-.19-.19-.51-.19-.7 0l-1.2 1.2C13.96 1.3 13.02 1 12 1c-1.03 0-1.96.3-2.74.87L8.07.66c-.19-.19-.51-.19-.7 0-.19.19-.19.51 0 .7l1.06 1.06C7.62 3.29 7 4.57 7 6h10c0-1.43-.62-2.71-1.47-3.58zM10 4H9V3h1v1zm5 0h-1V3h1v1z"/>
+  </svg>
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 const Welcome = () => {
   const navigate = useNavigate();
@@ -93,26 +99,53 @@ const Welcome = () => {
             <div style={{ flex: 1, height: 1, background: '#ddd6fe' }} />
           </div>
 
-          {/* App Store button */}
-          <a
-            href="https://apps.apple.com/il/app/nestai-care/id6760186559"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              background: '#111', color: 'white',
-              borderRadius: 12, padding: '11px 22px',
-              textDecoration: 'none',
-              width: '100%', maxWidth: 220, boxSizing: 'border-box',
-              justifyContent: 'center',
-            }}
-          >
-            <AppleIcon />
-            <div style={{ textAlign: 'right', lineHeight: 1.3 }}>
-              <div style={{ fontSize: 10, opacity: 0.75 }}>הורד באמצעות</div>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>App Store</div>
-            </div>
-          </a>
+          {/* Download buttons row */}
+          <div style={{ display: 'flex', gap: 8, width: '100%', maxWidth: 340 }}>
+            {/* App Store */}
+            <a
+              href="https://apps.apple.com/il/app/nestai-care/id6760186559"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                background: '#111', color: 'white',
+                borderRadius: 12, padding: '11px 14px',
+                textDecoration: 'none', justifyContent: 'center',
+                boxSizing: 'border-box',
+              }}
+            >
+              <AppleIcon />
+              <div style={{ textAlign: 'right', lineHeight: 1.3 }}>
+                <div style={{ fontSize: 9, opacity: 0.75 }}>הורד באמצעות</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>App Store</div>
+              </div>
+            </a>
+
+            {/* Android PWA */}
+            <a
+              href="https://www.nestai.care"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1, display: 'flex', alignItems: 'center', gap: 8,
+                background: '#111', color: 'white',
+                borderRadius: 12, padding: '11px 14px',
+                textDecoration: 'none', justifyContent: 'center',
+                boxSizing: 'border-box',
+              }}
+            >
+              <AndroidIcon />
+              <div style={{ textAlign: 'right', lineHeight: 1.3 }}>
+                <div style={{ fontSize: 9, opacity: 0.75 }}>הורד באמצעות</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>Android (PWA)</div>
+              </div>
+            </a>
+          </div>
+
+          {/* PWA install hint */}
+          <p style={{ fontSize: 10, color: '#a0aec0', margin: '8px 0 0', textAlign: 'center', lineHeight: 1.6 }}>
+            פתח בדפדפן Chrome ולחץ &#x27;הוסף למסך הבית&#x27;
+          </p>
         </div>
       </div>
 
