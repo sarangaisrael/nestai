@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff } from "lucide-react";
+import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff, Camera } from "lucide-react";
 import logo from "@/assets/nestai-logo-full.png";
 import chatAvatar from "@/assets/chat-avatar.png";
 import { useUnviewedSummary } from "@/hooks/useUnviewedSummary";
@@ -28,9 +28,11 @@ const Index = () => {
   
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const [isListening,   setIsListening]   = useState(false);
+  const [isScanning,    setIsScanning]    = useState(false);
+  const recognitionRef        = useRef<any>(null);
   const inputBeforeRecordingRef = useRef<string>("");
+  const fileInputRef          = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -203,6 +205,45 @@ const Index = () => {
     recognition.start();
   };
 
+  // ── Notebook / image scanning ─────────────────────────────────────────────────
+  const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!e.target) return;
+    // Reset so the same file can be picked again
+    (e.target as HTMLInputElement).value = "";
+    if (!file) return;
+
+    setIsScanning(true);
+    try {
+      // Convert to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Strip the data:image/...;base64, prefix
+          resolve(result.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke("extract-image-text", {
+        body: { base64, mimeType: file.type },
+      });
+
+      if (error || !data?.text) throw new Error(error?.message ?? "empty response");
+
+      setInput(prev => prev ? `${prev}\n${data.text}` : data.text);
+      // Focus textarea so the user can immediately edit / send
+      setTimeout(() => textareaRef.current?.focus(), 50);
+    } catch (err) {
+      console.error("[handleImageScan]", err);
+      toast({ title: "לא הצלחנו לקרוא את הטקסט, נסה שוב", variant: "destructive" });
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const handleLogout = async (e?: React.MouseEvent) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     try {
@@ -292,6 +333,24 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Hidden file input for image scanning */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleImageScan}
+      />
+
+      {/* OCR processing banner */}
+      {isScanning && (
+        <div className="bg-primary/10 border-t border-primary/20 px-4 py-2 flex items-center justify-center gap-2 text-sm text-primary font-medium">
+          <span className="h-3 w-3 rounded-full border-2 border-primary/40 border-t-primary animate-spin block shrink-0" />
+          מעבד את הטקסט...
+        </div>
+      )}
+
       {/* Input */}
       <div ref={inputContainerRef} className="bg-card border-t border-border px-3 py-2.5 md:px-4 md:py-3 shrink-0 shadow-sm safe-bottom">
         <div className="max-w-2xl mx-auto flex gap-2 w-full items-end">
@@ -330,6 +389,21 @@ const Index = () => {
               />
             )}
           </div>
+          {/* Camera / scan button */}
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            disabled={isScanning}
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 h-10 w-10 md:h-11 md:w-11"
+            title="סריקת מחברת"
+          >
+            {isScanning
+              ? <span className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-primary animate-spin block" />
+              : <Camera className="h-5 w-5" />}
+          </Button>
+
           <Button onClick={handleSend} disabled={loading || !input.trim()} size="icon" className="shrink-0 h-10 w-10 md:h-11 md:w-11">
             →
           </Button>
