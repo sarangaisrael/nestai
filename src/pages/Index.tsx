@@ -207,34 +207,42 @@ const Index = () => {
 
   // ── Notebook / image scanning ─────────────────────────────────────────────────
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Grab the file first, then reset the input so the same file can be re-selected later
     const file = e.target.files?.[0];
-    if (!e.target) return;
-    // Reset so the same file can be picked again
-    (e.target as HTMLInputElement).value = "";
-    if (!file) return;
+    try { e.target.value = ""; } catch { /* IE/old WebKit can throw on value reset */ }
+
+    if (!file) return; // picker was cancelled
 
     setIsScanning(true);
     try {
-      // Convert to base64
+      // Determine MIME type — some mobile browsers leave type empty for camera shots
+      const mimeType = file.type || "image/jpeg";
+
+      // Convert to base64 (strip the "data:image/...;base64," prefix)
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const result = reader.result as string;
-          // Strip the data:image/...;base64, prefix
-          resolve(result.split(",")[1]);
+          try {
+            const result = reader.result as string;
+            const parts = result.split(",");
+            if (parts.length < 2) throw new Error("Unexpected FileReader result format");
+            resolve(parts[1]);
+          } catch (err) {
+            reject(err);
+          }
         };
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error("FileReader failed"));
         reader.readAsDataURL(file);
       });
 
       const { data, error } = await supabase.functions.invoke("extract-image-text", {
-        body: { base64, mimeType: file.type },
+        body: { base64, mimeType },
       });
 
-      if (error || !data?.text) throw new Error(error?.message ?? "empty response");
+      if (error) throw new Error(error.message ?? "Edge function error");
+      if (!data?.text) throw new Error("Empty response from OCR");
 
       setInput(prev => prev ? `${prev}\n${data.text}` : data.text);
-      // Focus textarea so the user can immediately edit / send
       setTimeout(() => textareaRef.current?.focus(), 50);
     } catch (err) {
       console.error("[handleImageScan]", err);
@@ -333,13 +341,12 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Hidden file input for image scanning */}
+      {/* Hidden file input for image scanning — no capture attr so the full picker opens on all browsers */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
-        className="hidden"
+        style={{ display: 'none' }}
         onChange={handleImageScan}
       />
 
@@ -395,7 +402,9 @@ const Index = () => {
             size="icon"
             variant="ghost"
             disabled={isScanning}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.click();
+            }}
             className="shrink-0 h-10 w-10 md:h-11 md:w-11"
             title="סריקת מחברת"
           >
