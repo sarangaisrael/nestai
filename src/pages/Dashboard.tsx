@@ -102,6 +102,7 @@ const Dashboard = () => {
   const { toast }                       = useToast();
   const [showMoodPrompt, setShowMoodPrompt] = useState(false);
   const [accessState, setAccessState]   = useState<AccessState | null>(null);
+  const [hasTrauma,   setHasTrauma]     = useState<boolean | null>(null);
 
   const fromReminder = searchParams.get("from") === "daily-reminder";
 
@@ -157,6 +158,13 @@ const Dashboard = () => {
           .eq("user_id", session.user.id)
           .maybeSingle();
         if (profile?.first_name) setFirstName(profile.first_name);
+
+        const { data: prefs } = await supabase
+          .from("user_preferences")
+          .select("has_trauma")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (prefs) setHasTrauma(prefs.has_trauma ?? null);
 
         // Compute consecutive-day writing streak
         const { data: msgDates } = await supabase
@@ -317,6 +325,10 @@ const Dashboard = () => {
         <div className="dash-cards">
           <HeroJournalCard />
           <SleepCard />
+          {/* TODO: trauma card — shown when hasTrauma === true */}
+          {hasTrauma === true && (
+            <div style={{ height: 0 }} />
+          )}
           <ActionGrid />
           <ToolboxCarousel />
         </div>
