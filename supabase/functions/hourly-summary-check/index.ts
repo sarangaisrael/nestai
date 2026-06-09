@@ -248,6 +248,15 @@ async function generateAndSendSummary(
         }).join('\n')}`
       : "";
 
+    // Fetch trauma logs for the week
+    const { data: traumaLogs } = await supabase
+      .from("trauma_logs")
+      .select("date, safety_level, had_trigger, trigger_description, body_locations")
+      .eq("user_id", userId)
+      .gte("date", weekStartDate)
+      .lte("date", nowDate)
+      .order("date", { ascending: true });
+
     // Format sleep data for the prompt
     const qualityLabels: Record<number, string> = { 1: "גרוע", 2: "לא טוב", 3: "בסדר", 4: "טוב", 5: "מעולה" };
     const sleepText = sleepLogs && sleepLogs.length > 0
@@ -256,6 +265,23 @@ async function generateAndSendSummary(
           const hrs   = s.sleep_hours != null ? `${s.sleep_hours} שעות` : "";
           const qual  = s.sleep_quality != null ? `, איכות ${qualityLabels[s.sleep_quality] ?? s.sleep_quality}/5` : "";
           return `${dateStr}: ישן/ה ${hrs}${qual}`;
+        }).join("\n")}`
+      : "";
+
+    // Format trauma data for the prompt
+    const traumaText = traumaLogs && traumaLogs.length > 0
+      ? `\n\n=== נתוני טראומה השבוע (${traumaLogs.length} רשומות) ===\n${traumaLogs.map((t: any) => {
+          const dateStr = new Date(t.date).toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "numeric" });
+          const safety  = t.safety_level != null ? `רמת בטיחות ${t.safety_level}/5` : "";
+          const trigger = t.had_trigger != null
+            ? t.had_trigger
+              ? `טריגר: כן${t.trigger_description ? ` (${t.trigger_description})` : ""}`
+              : "טריגר: לא"
+            : "";
+          const body    = Array.isArray(t.body_locations) && t.body_locations.length > 0
+            ? `מיקום בגוף: ${t.body_locations.join(", ")}`
+            : "";
+          return [dateStr, safety, trigger, body].filter(Boolean).join(" | ");
         }).join("\n")}`
       : "";
     
@@ -315,6 +341,8 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
 
 אם קיימות רשומות תודות מהשבוע, שלב אותן בסיכום בצורה חמה וטבעית — כדגש חיובי על מה שהיה טוב השבוע.
 
+אם קיימים נתוני טראומה מהשבוע (רמות בטיחות, טריגרים, מיקומים בגוף), שלב אותם בסיכום בעדינות ובאמפתיה — התמקדות בדפוסים שעלו, שינויים ברמות הבטיחות לאורך השבוע, וטריגרים שחזרו. שמור על שפה מכילה ותומכת.
+
 בסוף הסיכום, להוסיף משפט קצר אחד שמזכיר שהסיכום הוא רק כלי רפלקטיבי ואינו מחליף טיפול מקצועי.
 
 אורך: בינוני - לא קצר מדי ולא ארוך מדי.`;
@@ -329,7 +357,7 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}${gratitudeText}${sleepText}` },
+          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}${gratitudeText}${sleepText}${traumaText}` },
         ],
       }),
     });

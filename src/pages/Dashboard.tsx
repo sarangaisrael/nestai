@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
-import SleepCard from "@/components/dashboard/SleepCard";
+import SleepCard from "@/components/dashboard/SleepCard"
+import TraumaCard from "@/components/dashboard/TraumaCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
@@ -325,10 +326,7 @@ const Dashboard = () => {
         <div className="dash-cards">
           <HeroJournalCard />
           <SleepCard />
-          {/* TODO: trauma card — shown when hasTrauma === true */}
-          {hasTrauma === true && (
-            <div style={{ height: 0 }} />
-          )}
+          <TraumaCard />
           <ActionGrid />
           <ToolboxCarousel />
         </div>
