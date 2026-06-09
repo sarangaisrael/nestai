@@ -341,11 +341,11 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Hidden file input for image scanning — no capture attr so the full picker opens on all browsers */}
+      {/* Hidden file input — explicit extensions force gallery-only picker on iOS (no camera option) */}
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept=".jpg,.jpeg,.png,.gif,.webp,.heic"
         style={{ display: 'none' }}
         onChange={handleImageScan}
       />
@@ -420,9 +420,6 @@ const Index = () => {
         <div className="text-center text-xs text-muted-foreground pt-2 md:pt-3">
           {t.footer.copyright}
         </div>
-        <p style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center', margin: '4px 0 0', lineHeight: 1.4 }}>
-          לצילום — צלם קודם ואז בחר מהאלבום 📷
-        </p>
       </div>
       
     </div>
