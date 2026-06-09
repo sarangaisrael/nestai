@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
+import SleepCard from "@/components/dashboard/SleepCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
 import BottomTabBar from "@/components/dashboard/BottomTabBar";
@@ -315,6 +316,7 @@ const Dashboard = () => {
         {/* ── Main cards ── */}
         <div className="dash-cards">
           <HeroJournalCard />
+          <SleepCard />
           <ActionGrid />
           <ToolboxCarousel />
         </div>

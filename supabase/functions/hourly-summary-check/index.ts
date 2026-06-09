@@ -156,6 +156,17 @@ async function generateAndSendSummary(
       .lte("created_at", now.toISOString())
       .order("created_at", { ascending: true });
 
+    // Fetch sleep logs for the week
+    const weekStartDate = weekStart.toISOString().slice(0, 10);
+    const nowDate       = now.toISOString().slice(0, 10);
+    const { data: sleepLogs } = await supabase
+      .from("sleep_logs")
+      .select("date, sleep_time, wake_time, sleep_hours, sleep_quality")
+      .eq("user_id", userId)
+      .gte("date", weekStartDate)
+      .lte("date", nowDate)
+      .order("date", { ascending: true });
+
     // Get encryption key
     const encryptionKey = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
 
@@ -236,6 +247,17 @@ async function generateAndSendSummary(
           return `${date}: ${moodMap[m.mood] || m.mood}`;
         }).join('\n')}`
       : "";
+
+    // Format sleep data for the prompt
+    const qualityLabels: Record<number, string> = { 1: "גרוע", 2: "לא טוב", 3: "בסדר", 4: "טוב", 5: "מעולה" };
+    const sleepText = sleepLogs && sleepLogs.length > 0
+      ? `\n\n=== נתוני שינה השבוע (${sleepLogs.length} לילות) ===\n${sleepLogs.map((s: any) => {
+          const dateStr = new Date(s.date).toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "numeric" });
+          const hrs   = s.sleep_hours != null ? `${s.sleep_hours} שעות` : "";
+          const qual  = s.sleep_quality != null ? `, איכות ${qualityLabels[s.sleep_quality] ?? s.sleep_quality}/5` : "";
+          return `${dateStr}: ישן/ה ${hrs}${qual}`;
+        }).join("\n")}`
+      : "";
     
     console.log(`Processing ${decryptedUserMessages.length} messages for user ${userId}, total length: ${allMessages.length}, moods: ${moodEntries?.length || 0}`);
 
@@ -307,7 +329,7 @@ ${therapyRecommendations.length > 0 ? '8. פסקה קצרה בשם "נושאים
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}${gratitudeText}` },
+          { role: "user", content: `אפשר לסכם את היומן הבא:\n\n${allMessages}${therapyRecsText}${moodSummaryText}${gratitudeText}${sleepText}` },
         ],
       }),
     });
