@@ -239,13 +239,31 @@ const Index = () => {
         body: { base64, mimeType },
       });
 
-      if (error) throw new Error(error.message ?? "Edge function error");
-      if (!data?.text) throw new Error("Empty response from OCR");
+      // Log everything so the actual failure is visible in the console
+      console.log("[handleImageScan] response data:", data);
+      console.log("[handleImageScan] response error:", error);
+
+      if (error) {
+        console.error("[handleImageScan] function error:", error.message, error);
+        throw new Error(error.message ?? "Edge function error");
+      }
+
+      // data.error means the edge function returned 200 but with an application-level error
+      if (data?.error) {
+        console.error("[handleImageScan] application error:", data.error, data.details ?? "");
+        throw new Error(data.error);
+      }
+
+      // Gemini succeeded but found no text — show a softer message
+      if (data?.text === "" || data?.text == null) {
+        toast({ title: "לא זוהה טקסט בתמונה", description: "נסה תמונה ברורה יותר או עם טקסט כתוב" });
+        return;
+      }
 
       setInput(prev => prev ? `${prev}\n${data.text}` : data.text);
       setTimeout(() => textareaRef.current?.focus(), 50);
     } catch (err) {
-      console.error("[handleImageScan]", err);
+      console.error("[handleImageScan] caught:", err);
       toast({ title: "לא הצלחנו לקרוא את הטקסט, נסה שוב", variant: "destructive" });
     } finally {
       setIsScanning(false);
