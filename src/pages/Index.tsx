@@ -420,6 +420,9 @@ const Index = () => {
         <div className="text-center text-xs text-muted-foreground pt-2 md:pt-3">
           {t.footer.copyright}
         </div>
+        <p style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center', margin: '4px 0 0', lineHeight: 1.4 }}>
+          לצילום — צלם קודם ואז בחר מהאלבום 📷
+        </p>
       </div>
       
     </div>
