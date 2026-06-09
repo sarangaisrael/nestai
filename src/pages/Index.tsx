@@ -30,6 +30,7 @@ const Index = () => {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const inputBeforeRecordingRef = useRef<string>("");
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -174,9 +175,12 @@ const Index = () => {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast({ title: "לא נתמך", description: "הדפדפן לא תומך בזיהוי קולי", variant: "destructive" });
+      toast({ title: "הדפדפן שלך לא תומך בהקלטה קולית", variant: "destructive" });
       return;
     }
+
+    // Snapshot whatever was typed before recording starts
+    inputBeforeRecordingRef.current = input;
 
     const recognition = new SpeechRecognition();
     recognition.lang = "he-IL";
@@ -185,14 +189,15 @@ const Index = () => {
     recognitionRef.current = recognition;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    recognition.onend   = () => setIsListening(false);
     recognition.onerror = () => setIsListening(false);
 
     recognition.onresult = (event: any) => {
       const transcript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
+        .map((r: any) => r[0].transcript)
         .join("");
-      setInput(transcript);
+      const base = inputBeforeRecordingRef.current;
+      setInput(base ? `${base} ${transcript}` : transcript);
     };
 
     recognition.start();
@@ -306,15 +311,25 @@ const Index = () => {
               }
             }} 
           />
-          <Button
-            onClick={toggleVoiceRecognition}
-            size="icon"
-            variant={isListening ? "destructive" : "ghost"}
-            className={`shrink-0 h-10 w-10 md:h-11 md:w-11 ${isListening ? "animate-pulse" : ""}`}
-            type="button"
-          >
-            {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
+          <div className="relative shrink-0">
+            <Button
+              onClick={toggleVoiceRecognition}
+              size="icon"
+              variant={isListening ? "destructive" : "ghost"}
+              className="h-10 w-10 md:h-11 md:w-11"
+              type="button"
+              title={isListening ? "עצור הקלטה" : "הקלטה קולית"}
+            >
+              {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            </Button>
+            {/* Pulsing red dot — visible only while recording */}
+            {isListening && (
+              <span
+                className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background animate-pulse"
+                style={{ transform: 'translate(30%, -30%)' }}
+              />
+            )}
+          </div>
           <Button onClick={handleSend} disabled={loading || !input.trim()} size="icon" className="shrink-0 h-10 w-10 md:h-11 md:w-11">
             →
           </Button>
