@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ensureUserAccessProfile, getRouteForAccessState } from "@/lib/accessControl";
 import { buildReferralPath } from "@/lib/referrals";
@@ -65,20 +64,17 @@ const CSS = `
 
 // ─────────────────────────────────────────────────────────────────────────────
 const Auth = () => {
-  const [isForgotPassword,    setIsForgotPassword]    = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotSent,       setForgotSent]       = useState(false);
 
-  const [email,           setEmail]           = useState("");
-  const [password,        setPassword]        = useState("");
-  const [newPassword,     setNewPassword]     = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading,         setLoading]         = useState(false);
-  const [isReady,         setIsReady]         = useState(false);
-  const [loginError,      setLoginError]      = useState<string | null>(null);
+  const [email,      setEmail]      = useState("");
+  const [password,   setPassword]   = useState("");
+  const [loading,    setLoading]    = useState(false);
+  const [isReady,    setIsReady]    = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const navigate     = useNavigate();
   const location     = useLocation();
-  const { toast }    = useToast();
   const { t, isRTL } = useLanguage();
 
   const searchParams       = new URLSearchParams(location.search);
@@ -113,61 +109,26 @@ const Auth = () => {
     return getDefaultRouteForUser(userId);
   };
 
-  const isResettingRef = useRef(isResettingPassword);
-  useEffect(() => { isResettingRef.current = isResettingPassword; }, [isResettingPassword]);
-
   useEffect(() => {
-    const hash       = window.location.hash;
-    const hashParams = new URLSearchParams(hash.substring(1));
-    const hashType   = hashParams.get('type');
-    const isRecovery = hashType === 'recovery';
-    const hashError  = hashParams.get('error_description') || hashParams.get('error');
-
-    if (hashError) {
-      setLoginError(
-        hashError === 'Email link is invalid or has expired'
-          ? 'קישור האיפוס פג תוקף או כבר נוצל. שלחו קישור חדש.'
-          : hashError
-      );
-      window.history.replaceState(null, '', window.location.pathname);
-      setIsReady(true);
-      return;
-    }
-
-    if (isRecovery) {
-      setIsResettingPassword(true);
-      isResettingRef.current = true;
-      setIsReady(true);
-    }
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsResettingPassword(true);
-        isResettingRef.current = true;
-        setIsReady(true);
-      } else if (event === 'SIGNED_IN') {
-        if (!isResettingRef.current) {
-          void (async () => {
-            try {
-              const target = await getPostAuthDestination(session.user.id);
-              navigate(target, { replace: true });
-            } catch { setIsReady(true); }
-          })();
-        } else {
-          setIsReady(true);
-        }
+      if (event === 'SIGNED_IN' && session) {
+        void (async () => {
+          try {
+            const target = await getPostAuthDestination(session.user.id);
+            navigate(target, { replace: true });
+          } catch { setIsReady(true); }
+        })();
       }
     });
-
-    if (isRecovery) return () => subscription.unsubscribe();
 
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          if (isResettingRef.current) { setIsReady(true); }
-          else { navigate(await getPostAuthDestination(session.user.id), { replace: true }); }
-        } else { setIsReady(true); }
+          navigate(await getPostAuthDestination(session.user.id), { replace: true });
+        } else {
+          setIsReady(true);
+        }
       } catch { setIsReady(true); }
     };
     checkSession();
@@ -175,36 +136,21 @@ const Auth = () => {
   }, [navigate, isRTL, referralCode, requestedNextPath]);
 
   // ── Form handlers ────────────────────────────────────────────────────────────
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setLoginError(null);
-    if (newPassword !== confirmPassword) {
-      setLoginError("הסיסמאות לא תואמות"); setLoading(false); return;
-    }
-    if (newPassword.length < 6) {
-      setLoginError("הסיסמה חייבת להכיל לפחות 6 תווים"); setLoading(false); return;
-    }
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) { setLoginError(error.message); setLoading(false); return; }
-      setLoading(false);
-      toast({ title: "הסיסמה עודכנה", description: "הסיסמה החדשה נשמרה בהצלחה" });
-      await supabase.auth.signOut();
-      setIsResettingPassword(false);
-      setNewPassword(""); setConfirmPassword("");
-    } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setLoginError(null);
+    e.preventDefault();
+    setLoading(true);
+    setLoginError(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/app/auth`,
+        redirectTo: 'https://www.nestai.care/reset-password',
       });
       if (error) { setLoginError(error.message); setLoading(false); return; }
+      setForgotSent(true);
+    } catch (err: any) {
+      setLoginError(err?.message || t.errors.somethingWentWrong);
+    } finally {
       setLoading(false);
-      toast({ title: "נשלח בהצלחה", description: "קישור לאיפוס סיסמה נשלח לאימייל שלך" });
-      setIsForgotPassword(false);
-    } catch (err: any) { setLoginError(err?.message || t.errors.somethingWentWrong); setLoading(false); }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -264,50 +210,61 @@ const Auth = () => {
       >
         <div style={{ maxWidth: 520, width: '100%', margin: '0 auto' }}>
 
-          {/* ── Reset password ── */}
-          {isResettingPassword ? (
-            <>
-              <div style={{ marginBottom: 28 }}>
-                <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px' }}>סיסמה חדשה</h1>
-                <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>בחרו סיסמה חדשה לחשבון שלכם</p>
-              </div>
-              <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <label style={labelStyle}>סיסמה חדשה</label>
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
-                </div>
-                <div>
-                  <label style={labelStyle}>אימות סיסמה</label>
-                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
-                </div>
-                <ErrorBlock />
-                <button type="submit" disabled={loading} style={primaryBtn(loading)}>
-                  {loading ? 'שומר...' : 'שמור סיסמה'}
-                </button>
-              </form>
-            </>
-
-          /* ── Forgot password ── */
-          ) : isForgotPassword ? (
+          {/* ── Forgot password ── */}
+          {isForgotPassword ? (
             <>
               <div style={{ marginBottom: 28 }}>
                 <h1 style={{ fontSize: 21, fontWeight: 800, color: C.dark, margin: '0 0 4px' }}>שכחתי סיסמה</h1>
                 <p style={{ fontSize: 13, fontWeight: 500, color: C.muted, margin: 0 }}>נשלח לך קישור לאיפוס לאימייל שלך</p>
               </div>
-              <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <label style={labelStyle}>אימייל</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required dir="ltr" style={inputStyle} />
+
+              {forgotSent ? (
+                /* ── Confirmation message ── */
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center', padding: '12px 0' }}>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: '50%',
+                    background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: C.dark, margin: 0 }}>
+                    שלחנו לך קישור לאיפוס סיסמה לאימייל
+                  </p>
+                  <p style={{ fontSize: 12, color: C.muted, margin: 0, lineHeight: 1.6 }}>
+                    בדקו את תיבת הדואר הנכנס (וגם את ספאם).<br />
+                    הקישור תקף ל-60 דקות.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgotPassword(false); setForgotSent(false); setLoginError(null); }}
+                    style={{ color: C.muted, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}
+                  >
+                    חזרה להתחברות
+                  </button>
                 </div>
-                <ErrorBlock />
-                <button type="submit" disabled={loading} style={primaryBtn(loading)}>
-                  {loading ? 'שולח...' : 'שלח קישור לאיפוס'}
-                </button>
-                <button type="button" onClick={() => { setIsForgotPassword(false); setLoginError(null); }}
-                  style={{ color: C.muted, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', marginTop: 4 }}>
-                  חזרה להתחברות
-                </button>
-              </form>
+              ) : (
+                /* ── Email form ── */
+                <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label style={labelStyle}>אימייל</label>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} required dir="ltr" style={inputStyle} />
+                  </div>
+                  <ErrorBlock />
+                  <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+                    {loading ? 'שולח...' : 'שלח קישור לאיפוס'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgotPassword(false); setLoginError(null); }}
+                    style={{ color: C.muted, fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center', marginTop: 4 }}
+                  >
+                    חזרה להתחברות
+                  </button>
+                </form>
+              )}
             </>
 
           /* ── Login ── */
@@ -331,17 +288,20 @@ const Auth = () => {
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)} required dir="ltr" style={inputStyle} />
                 </div>
 
-                {/* Password */}
+                {/* Password + forgot link */}
                 <div>
-                  <label style={labelStyle}>סיסמה</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>סיסמה</label>
+                    <button
+                      type="button"
+                      onClick={() => { setIsForgotPassword(true); setLoginError(null); }}
+                      style={{ color: C.muted, fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: F }}
+                    >
+                      שכחת סיסמה?
+                    </button>
+                  </div>
                   <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} dir="ltr" style={inputStyle} />
                 </div>
-
-                {/* Forgot link */}
-                <button type="button" onClick={() => { setIsForgotPassword(true); setLoginError(null); }}
-                  style={{ color: C.muted, fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, alignSelf: 'flex-start' }}>
-                  שכחתי סיסמה
-                </button>
 
                 <ErrorBlock />
 
