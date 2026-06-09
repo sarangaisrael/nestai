@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff, Camera } from "lucide-react";
+import { BookOpen, LogOut, Settings, Sparkles, User, Calendar, Mail, Mic, MicOff } from "lucide-react";
 import logo from "@/assets/nestai-logo-full.png";
 import chatAvatar from "@/assets/chat-avatar.png";
 import { useUnviewedSummary } from "@/hooks/useUnviewedSummary";
@@ -29,10 +29,8 @@ const Index = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isListening,   setIsListening]   = useState(false);
-  const [isScanning,    setIsScanning]    = useState(false);
-  const recognitionRef        = useRef<any>(null);
+  const recognitionRef          = useRef<any>(null);
   const inputBeforeRecordingRef = useRef<string>("");
-  const fileInputRef          = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -205,71 +203,6 @@ const Index = () => {
     recognition.start();
   };
 
-  // ── Notebook / image scanning ─────────────────────────────────────────────────
-  const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Grab the file first, then reset the input so the same file can be re-selected later
-    const file = e.target.files?.[0];
-    try { e.target.value = ""; } catch { /* IE/old WebKit can throw on value reset */ }
-
-    if (!file) return; // picker was cancelled
-
-    setIsScanning(true);
-    try {
-      // Determine MIME type — some mobile browsers leave type empty for camera shots
-      const mimeType = file.type || "image/jpeg";
-
-      // Convert to base64 (strip the "data:image/...;base64," prefix)
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const result = reader.result as string;
-            const parts = result.split(",");
-            if (parts.length < 2) throw new Error("Unexpected FileReader result format");
-            resolve(parts[1]);
-          } catch (err) {
-            reject(err);
-          }
-        };
-        reader.onerror = () => reject(new Error("FileReader failed"));
-        reader.readAsDataURL(file);
-      });
-
-      const { data, error } = await supabase.functions.invoke("extract-image-text", {
-        body: { base64, mimeType },
-      });
-
-      // Log everything so the actual failure is visible in the console
-      console.log("[handleImageScan] response data:", data);
-      console.log("[handleImageScan] response error:", error);
-
-      if (error) {
-        console.error("[handleImageScan] function error:", error.message, error);
-        throw new Error(error.message ?? "Edge function error");
-      }
-
-      // data.error means the edge function returned 200 but with an application-level error
-      if (data?.error) {
-        console.error("[handleImageScan] application error:", data.error, data.details ?? "");
-        throw new Error(data.error);
-      }
-
-      // Gemini succeeded but found no text — show a softer message
-      if (data?.text === "" || data?.text == null) {
-        toast({ title: "לא זוהה טקסט בתמונה", description: "נסה תמונה ברורה יותר או עם טקסט כתוב" });
-        return;
-      }
-
-      setInput(prev => prev ? `${prev}\n${data.text}` : data.text);
-      setTimeout(() => textareaRef.current?.focus(), 50);
-    } catch (err) {
-      console.error("[handleImageScan] caught:", err);
-      toast({ title: "לא הצלחנו לקרוא את הטקסט, נסה שוב", variant: "destructive" });
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
   const handleLogout = async (e?: React.MouseEvent) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     try {
@@ -359,23 +292,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Hidden file input — explicit extensions force gallery-only picker on iOS (no camera option) */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".jpg,.jpeg,.png,.gif,.webp,.heic"
-        style={{ display: 'none' }}
-        onChange={handleImageScan}
-      />
-
-      {/* OCR processing banner */}
-      {isScanning && (
-        <div className="bg-primary/10 border-t border-primary/20 px-4 py-2 flex items-center justify-center gap-2 text-sm text-primary font-medium">
-          <span className="h-3 w-3 rounded-full border-2 border-primary/40 border-t-primary animate-spin block shrink-0" />
-          מעבד את הטקסט...
-        </div>
-      )}
-
       {/* Input */}
       <div ref={inputContainerRef} className="bg-card border-t border-border px-3 py-2.5 md:px-4 md:py-3 shrink-0 shadow-sm safe-bottom">
         <div className="max-w-2xl mx-auto flex gap-2 w-full items-end">
@@ -414,23 +330,6 @@ const Index = () => {
               />
             )}
           </div>
-          {/* Camera / scan button */}
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            disabled={isScanning}
-            onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.click();
-            }}
-            className="shrink-0 h-10 w-10 md:h-11 md:w-11"
-            title="סריקת מחברת"
-          >
-            {isScanning
-              ? <span className="h-4 w-4 rounded-full border-2 border-muted-foreground border-t-primary animate-spin block" />
-              : <Camera className="h-5 w-5" />}
-          </Button>
-
           <Button onClick={handleSend} disabled={loading || !input.trim()} size="icon" className="shrink-0 h-10 w-10 md:h-11 md:w-11">
             →
           </Button>
