@@ -228,7 +228,9 @@ const Welcome = () => {
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 56 }}>
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.indigo, display: 'inline-block' }} />
-          <span style={{ fontSize: 15, fontWeight: 900, color: 'white', letterSpacing: '-0.3px' }}>NestAI</span>
+          <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 19, color: '#fff' }}>
+            Nest<span style={{ color: '#818cf8' }}>AI</span>
+          </span>
         </div>
 
         {/* Steps */}

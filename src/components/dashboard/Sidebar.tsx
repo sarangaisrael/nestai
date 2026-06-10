@@ -71,7 +71,9 @@ const Sidebar = () => {
       {/* Brand */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px', marginBottom: 24 }}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 500, color: '#0f172a' }}>NestAI.care</span>
+        <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 16, color: '#0f172a' }}>
+          Nest<span style={{ color: '#6366f1' }}>AI</span><span style={{ fontSize: 12, fontFamily: "'Heebo', sans-serif", fontWeight: 400 }}>.care</span>
+        </span>
       </div>
 
       {/* Nav section */}

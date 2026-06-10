@@ -122,7 +122,9 @@ const AppHeader = () => {
             }}
           >
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6', flexShrink: 0 }} />
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily: 'inherit' }}>NestAI.care</span>
+            <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 17, color: '#0f172a' }}>
+              Nest<span style={{ color: '#6366f1' }}>AI</span><span style={{ fontSize: 13, fontFamily: "'Heebo', sans-serif", fontWeight: 400 }}>.care</span>
+            </span>
           </button>
 
           {/* Left: profile icon with full dropdown (last child = visual left in RTL) */}

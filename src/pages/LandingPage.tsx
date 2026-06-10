@@ -188,7 +188,7 @@ const PhoneMockup = () => (
           <div key={i} style={{ width: 24, height: 24, borderRadius: 7, background: bg }} />
         ))}
       </div>
-      <span style={{ fontSize: 13, fontWeight: 900, color: '#111' }}>NestAI</span>
+      <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 14, color: '#111' }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
     </div>
 
     {/* Write card */}
@@ -550,7 +550,7 @@ const LandingPage = () => {
           onClick={() => navigate('/')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: F }}
         >
-          <span style={{ fontSize: 17, fontWeight: 900, color: '#111', letterSpacing: '-0.5px' }}>NestAI</span>
+          <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 22, color: '#111' }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
         </button>
         {/* Left: auth links (second in DOM = left side in RTL flex) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -682,7 +682,7 @@ const LandingPage = () => {
                 background: '#0f172a', padding: '10px 14px',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
               }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'white', fontFamily: F }}>NestAI</span>
+                <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 13, color: '#fff' }}>Nest<span style={{ color: '#818cf8' }}>AI</span></span>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1' }} />
               </div>
               {/* Chat body */}
@@ -914,7 +914,7 @@ const LandingPage = () => {
                   </div>
                   <div style={{ padding: '14px 20px', background: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', flexShrink: 0, display: 'inline-block' }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff', fontFamily: F }}>NestAI</span>
+                    <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 14, color: '#fff' }}>Nest<span style={{ color: '#818cf8' }}>AI</span></span>
                   </div>
                 </div>
 

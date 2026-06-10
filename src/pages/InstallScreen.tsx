@@ -74,7 +74,7 @@ const InstallScreen = () => {
             </div>
             
             {/* App name */}
-            <span className="text-lg font-medium text-foreground">NestAI</span>
+            <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 20 }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
             
             {/* Description */}
             <p className="text-sm text-muted-foreground text-center">

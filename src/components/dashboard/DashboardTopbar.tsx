@@ -185,8 +185,8 @@ const DashboardTopbar = () => {
           onClick={() => navigate("/app/dashboard")}
           style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: F }}
         >
-          <span style={{ fontSize: 17, fontWeight: 900, color: "#111827", letterSpacing: "-0.5px" }}>
-            NestAI
+          <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 18, color: '#111827' }}>
+            Nest<span style={{ color: '#6366f1' }}>AI</span>
           </span>
         </button>
 

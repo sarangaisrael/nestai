@@ -152,7 +152,7 @@ const HeroSection = ({ onShowIOSOverlay }: HeroSectionProps) => {
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                         <Smartphone className="w-4 h-4 text-primary" />
                       </div>
-                      <span className="text-sm font-semibold text-foreground">NestAI</span>
+                      <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 14 }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
                     </div>
 
                     {/* Mock messages */}
