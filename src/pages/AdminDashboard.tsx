@@ -246,7 +246,14 @@ const AdminDashboard = () => {
 
   // ── Subscriptions management ──
   const [subSearch, setSubSearch] = useState("");
-  const [subRows, setSubRows] = useState<{ user_id: string; email: string; plan: string; is_active: boolean; expires_at: string }[]>([]);
+  const [subRows, setSubRows] = useState<{
+    user_id: string;
+    email: string;
+    created_at: string;          // user registration date
+    plan: string | null;
+    is_active: boolean;
+    expires_at: string | null;   // = current_period_end
+  }[]>([]);
   const [updatingSubUserId, setUpdatingSubUserId] = useState<string | null>(null);
   const [loadingSubs, setLoadingSubs] = useState(false);
 
@@ -284,6 +291,8 @@ const AdminDashboard = () => {
     // Update user count after users loaded
     setStats(prev => ({ ...prev, users: usersResult?.length ?? 0 }));
     setLoadingData(false);
+    // Load subscriptions with the fresh users list (state may not be updated yet)
+    if (usersResult) await loadSubscriptions(usersResult);
   };
 
   const loadBlogPosts = async () => {
@@ -745,40 +754,54 @@ const AdminDashboard = () => {
   };
 
   /* ── Subscriptions ── */
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = async (usersList?: AdminUser[]) => {
     setLoadingSubs(true);
     try {
+      // Use provided list (from loadAllData) or fall back to current state
+      const baseUsers = usersList ?? users;
+
       const { data: subs } = await supabase
         .from("subscriptions")
-        .select("user_id, plan, is_active, expires_at")
-        .order("expires_at", { ascending: false })
-        .limit(200);
+        .select("user_id, plan, is_active, expires_at");
 
-      if (!subs) { setLoadingSubs(false); return; }
+      const subsMap: Record<string, { plan: string; is_active: boolean; expires_at: string }> = {};
+      (subs ?? []).forEach((s: any) => { subsMap[s.user_id] = s; });
 
-      // Enrich with email from users list (already loaded)
-      const enriched = subs.map((s: any) => ({
-        user_id: s.user_id,
-        email: users.find((u) => u.user_id === s.user_id)?.email ?? s.user_id,
-        plan: s.plan,
-        is_active: s.is_active,
-        expires_at: s.expires_at,
+      // One row per user, sorted newest registration first
+      const sorted = [...baseUsers].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setSubRows(sorted.map((u) => {
+        const sub = subsMap[u.user_id];
+        return {
+          user_id: u.user_id,
+          email: u.email,
+          created_at: u.created_at,
+          plan: sub?.plan ?? null,
+          is_active: sub?.is_active ?? false,
+          expires_at: sub?.expires_at ?? null,
+        };
       }));
-      setSubRows(enriched);
     } catch (e: any) {
       toast({ title: "שגיאה בטעינת מנויים", description: e?.message, variant: "destructive" });
     }
     setLoadingSubs(false);
   };
 
-  const handleUpdateSubscription = async (userId: string, plan: string) => {
+  const handleUpdateSubscription = async (
+    userId: string,
+    plan: "monthly" | "yearly" | "cancelled"
+  ) => {
     setUpdatingSubUserId(userId);
     try {
-      await (supabase as any).rpc("admin_set_user_subscription", {
+      const { error } = await (supabase as any).rpc("admin_set_user_subscription", {
         p_user_id: userId,
         p_plan: plan,
       });
-      toast({ title: `✓ מנוי עודכן ל-${plan}` });
+      if (error) throw error;
+      const label = plan === "monthly" ? "חודשי" : plan === "yearly" ? "שנתי" : "בוטל";
+      toast({ title: `✓ מנוי עודכן — ${label}` });
       await loadSubscriptions();
     } catch (error: any) {
       toast({ title: "שגיאה בעדכון מנוי", description: error?.message, variant: "destructive" });
@@ -929,14 +952,13 @@ const AdminDashboard = () => {
             <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm"><Bell className="h-4 w-4" />ניהול התראות</TabsTrigger>
             <TabsTrigger value="design" className="gap-1.5 text-xs sm:text-sm"><Palette className="h-4 w-4" />עיצוב ונראות</TabsTrigger>
             <TabsTrigger value="security" className="gap-1.5 text-xs sm:text-sm"><Shield className="h-4 w-4" />אבטחה</TabsTrigger>
-            <TabsTrigger value="billing" className="gap-1.5 text-xs sm:text-sm"><Clock className="h-4 w-4" />גישה ותשלום</TabsTrigger>
             <TabsTrigger value="therapists" className="gap-1.5 text-xs sm:text-sm"><Stethoscope className="h-4 w-4" />אישור מטפלים</TabsTrigger>
             <TabsTrigger value="insights" className="gap-1.5 text-xs sm:text-sm"><BarChart3 className="h-4 w-4" />Content Insights</TabsTrigger>
             <TabsTrigger value="feedback" className="gap-1.5 text-xs sm:text-sm"><MessageSquare className="h-4 w-4" />משוב משתמשים</TabsTrigger>
             <TabsTrigger value="leads" className="gap-1.5 text-xs sm:text-sm"><Phone className="h-4 w-4" />לידים מקצועיים</TabsTrigger>
             <TabsTrigger value="landing-new" className="gap-1.5 text-xs sm:text-sm"><Globe className="h-4 w-4" />עמוד נחיתה</TabsTrigger>
             <TabsTrigger value="blog" className="gap-1.5 text-xs sm:text-sm"><BookOpen className="h-4 w-4" />בלוג</TabsTrigger>
-            <TabsTrigger value="subscriptions" onClick={loadSubscriptions} className="gap-1.5 text-xs sm:text-sm"><CreditCard className="h-4 w-4" />מנויים</TabsTrigger>
+            <TabsTrigger value="subscriptions" className="gap-1.5 text-xs sm:text-sm"><CreditCard className="h-4 w-4" />מנויים</TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1 — Landing Page ═══════ */}
@@ -1037,154 +1059,31 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="billing" className="space-y-6">
-            <Card className="p-6 space-y-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />ניהול גישה, ניסיון ותשלום ידני
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    שליטה במצב הגישה של מטפלים ומטופלים, כולל ניסיון 30 יום ובקשות תשלום ידניות.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">פרופילי גישה {accessRows.length}</span>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">בקשות פתוחות {pendingPaymentRequestCount}</span>
-                </div>
-              </div>
-
-              <div className="relative max-w-sm">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="חיפוש לפי מזהה משתמש, קוד מטפל או סטטוס..."
-                  value={accessSearch}
-                  onChange={(e) => setAccessSearch(e.target.value)}
-                  className="pr-10 text-sm"
-                />
-              </div>
-
-              <div className="overflow-x-auto border border-border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">משתמש</TableHead>
-                      <TableHead className="text-right">תפקיד</TableHead>
-                      <TableHead className="text-right">סטטוס תשלום</TableHead>
-                      <TableHead className="text-right">סיום ניסיון</TableHead>
-                      <TableHead className="text-right">קוד מטפל</TableHead>
-                      <TableHead className="text-right">מטפל מקושר</TableHead>
-                      <TableHead className="text-right">פעולות</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredAccessRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">אין נתונים להצגה</TableCell></TableRow>
-                    ) : filteredAccessRows.map((row) => {
-                      const isUpdating = updatingAccessUserId === row.user_id;
-                      return (
-                        <TableRow key={row.user_id}>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium text-foreground">{users.find(u => u.user_id === row.user_id)?.email || row.user_id}</p>
-                              <p className="text-[11px] text-muted-foreground">נרשם ב-{formatDate(row.registration_date)}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm">{row.role === "therapist" ? "מטפל/ת" : "מטופל/ת"}</TableCell>
-                          <TableCell>
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${row.payment_status === "active" ? "bg-secondary/15 text-secondary" : row.payment_status === "locked" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
-                              {row.payment_status === "active" ? "פעיל" : row.payment_status === "locked" ? "נעול" : "ניסיון"}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{formatDate(row.trial_ends_at)}</TableCell>
-                          <TableCell className="text-sm font-mono">{row.therapist_code || "—"}</TableCell>
-                          <TableCell className="text-sm font-mono">{row.linked_therapist_id || "—"}</TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-2">
-                              <Button size="sm" disabled={isUpdating} onClick={() => handleSetUserPaymentStatus(row.user_id, "active")}>הפעל</Button>
-                              <Button size="sm" variant="outline" disabled={isUpdating} onClick={() => handleSetUserPaymentStatus(row.user_id, "trial")}>החזר לניסיון</Button>
-                              <Button size="sm" variant="outline" disabled={isUpdating} onClick={() => handleSetUserPaymentStatus(row.user_id, "locked")}>נעל</Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-
-            <Card className="p-6 space-y-5">
-              <div>
-                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <Send className="h-5 w-5 text-primary" />בקשות תשלום ידניות
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">פניות שנשלחו מתוך מסך הנעילה לתשלום ב-PayBox / Bit.</p>
-              </div>
-
-              <div className="overflow-x-auto border border-border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-right">משתמש</TableHead>
-                      <TableHead className="text-right">איש קשר</TableHead>
-                      <TableHead className="text-right">סכום</TableHead>
-                      <TableHead className="text-right">סטטוס</TableHead>
-                      <TableHead className="text-right">הודעה</TableHead>
-                      <TableHead className="text-right">נשלח</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paymentRequests.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">אין בקשות תשלום עדיין</TableCell></TableRow>
-                    ) : paymentRequests.map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-foreground">{request.user_id}</p>
-                            <p className="text-[11px] text-muted-foreground">{request.role === "therapist" ? "מטפל/ת" : "מטופל/ת"}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="text-sm">{request.contact_name || "—"}</p>
-                            <p className="text-xs text-muted-foreground" dir="ltr">{request.contact_email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-sm">₪{request.amount_ils}</TableCell>
-                        <TableCell>
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${request.status === "approved" ? "bg-secondary/15 text-secondary" : request.status === "rejected" ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
-                            {request.status === "approved" ? "אושר" : request.status === "rejected" ? "נדחה" : "ממתין"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="max-w-[280px] text-sm text-muted-foreground">{request.message || "—"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatDate(request.created_at)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* ═══════ TAB — Subscriptions ═══════ */}
+          {/* ═══════ TAB — מנויים ═══════ */}
           <TabsContent value="subscriptions" className="space-y-6">
             <Card className="p-6 space-y-5">
+              {/* Header */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-primary" />ניהול מנויים
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1">
-                    חפש משתמש לפי אימייל, צפה במנוי הנוכחי ועדכן תוכנית.
+                    כל המשתמשים מסודרים לפי תאריך הרשמה (חדש ראשון). עדכן מנוי בלחיצה.
                   </p>
                 </div>
-                <Button size="sm" variant="outline" onClick={loadSubscriptions} disabled={loadingSubs}>
-                  {loadingSubs ? <Loader2 className="h-3.5 w-3.5 animate-spin ml-1" /> : null}
-                  רענן
-                </Button>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                    סה״כ {subRows.length} משתמשים
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => loadSubscriptions()} disabled={loadingSubs}>
+                    {loadingSubs ? <Loader2 className="h-3.5 w-3.5 animate-spin ml-1" /> : null}
+                    רענן
+                  </Button>
+                </div>
               </div>
 
+              {/* Search */}
               <div className="relative max-w-sm">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -1196,103 +1095,132 @@ const AdminDashboard = () => {
                 />
               </div>
 
+              {/* Table */}
               <div className="overflow-x-auto border border-border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-right">משתמש</TableHead>
-                      <TableHead className="text-right">תוכנית</TableHead>
+                      <TableHead className="text-right">אימייל</TableHead>
+                      <TableHead className="text-right">תאריך הרשמה</TableHead>
                       <TableHead className="text-right">סטטוס</TableHead>
-                      <TableHead className="text-right">תוקף עד</TableHead>
+                      <TableHead className="text-right">ימים נותרים</TableHead>
+                      <TableHead className="text-right">תוקף מנוי</TableHead>
                       <TableHead className="text-right">פעולות</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loadingSubs ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-8">
+                        <TableCell colSpan={6} className="text-center py-10">
                           <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
                         </TableCell>
                       </TableRow>
-                    ) : subRows.filter((r) =>
+                    ) : (() => {
+                      const filtered = subRows.filter((r) =>
                         !subSearch.trim() ||
                         r.email.toLowerCase().includes(subSearch.toLowerCase())
-                      ).length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                          {subSearch ? "לא נמצאו תוצאות" : "לחץ רענן כדי לטעון מנויים"}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      subRows
-                        .filter((r) =>
-                          !subSearch.trim() ||
-                          r.email.toLowerCase().includes(subSearch.toLowerCase())
-                        )
-                        .map((row) => {
-                          const isUpdating = updatingSubUserId === row.user_id;
-                          const expires = new Date(row.expires_at);
-                          const isExpired = !row.is_active || expires < new Date();
-                          const planLabel = row.plan === "trial" ? "ניסיון" : row.plan === "monthly" ? "חודשי" : row.plan === "yearly" ? "שנתי" : row.plan === "cancelled" ? "בוטל" : row.plan;
-                          return (
-                            <TableRow key={row.user_id}>
-                              <TableCell>
-                                <p className="text-sm font-medium text-foreground" dir="ltr">{row.email}</p>
-                              </TableCell>
-                              <TableCell>
-                                <span className="text-sm">{planLabel}</span>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                                  isExpired
-                                    ? "bg-destructive/10 text-destructive"
-                                    : "bg-secondary/15 text-secondary"
-                                }`}>
-                                  {isExpired ? "פג תוקף" : "פעיל"}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {formatDate(row.expires_at)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex flex-wrap gap-2">
-                                  <Button
-                                    size="sm"
-                                    disabled={isUpdating}
-                                    onClick={() => handleUpdateSubscription(row.user_id, "monthly")}
-                                  >
-                                    חודשי
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={isUpdating}
-                                    onClick={() => handleUpdateSubscription(row.user_id, "yearly")}
-                                  >
-                                    שנתי
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={isUpdating}
-                                    onClick={() => handleUpdateSubscription(row.user_id, "trial")}
-                                  >
-                                    ניסיון
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    disabled={isUpdating}
-                                    onClick={() => handleUpdateSubscription(row.user_id, "cancelled")}
-                                  >
-                                    בטל
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                    )}
+                      );
+                      if (filtered.length === 0) {
+                        return (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                              {subSearch ? "לא נמצאו תוצאות" : "אין נתונים להצגה"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }
+                      return filtered.map((row) => {
+                        const isUpdating = updatingSubUserId === row.user_id;
+                        const now = new Date();
+                        const expires = row.expires_at ? new Date(row.expires_at) : null;
+                        const msLeft = expires ? expires.getTime() - now.getTime() : 0;
+                        const daysLeft = expires ? Math.max(0, Math.ceil(msLeft / 86400000)) : 0;
+                        const isActive = row.is_active && !!expires && expires > now;
+
+                        // Status label + colour
+                        let statusLabel = "ללא מנוי";
+                        let statusClass = "bg-muted text-muted-foreground";
+                        if (row.plan === "trial" && isActive) {
+                          statusLabel = "ניסיון";
+                          statusClass = "bg-primary/10 text-primary";
+                        } else if (row.plan === "trial" && !isActive) {
+                          statusLabel = "ניסיון פג";
+                          statusClass = "bg-destructive/10 text-destructive";
+                        } else if ((row.plan === "monthly" || row.plan === "yearly") && isActive) {
+                          statusLabel = row.plan === "monthly" ? "חודשי פעיל" : "שנתי פעיל";
+                          statusClass = "bg-secondary/15 text-secondary";
+                        } else if (row.plan === "cancelled") {
+                          statusLabel = "בוטל";
+                          statusClass = "bg-destructive/10 text-destructive";
+                        } else if (!isActive && row.plan) {
+                          statusLabel = "פג תוקף";
+                          statusClass = "bg-destructive/10 text-destructive";
+                        }
+
+                        return (
+                          <TableRow key={row.user_id}>
+                            {/* Email */}
+                            <TableCell>
+                              <p className="text-sm font-medium text-foreground" dir="ltr">{row.email}</p>
+                            </TableCell>
+
+                            {/* Registration date */}
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              {formatDate(row.created_at)}
+                            </TableCell>
+
+                            {/* Status badge */}
+                            <TableCell>
+                              <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>
+                                {statusLabel}
+                              </span>
+                            </TableCell>
+
+                            {/* Days remaining */}
+                            <TableCell className="text-sm text-muted-foreground">
+                              {isActive ? `${daysLeft} ימים` : "—"}
+                            </TableCell>
+
+                            {/* current_period_end */}
+                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                              {row.expires_at ? formatDate(row.expires_at) : "—"}
+                            </TableCell>
+
+                            {/* Actions */}
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1.5">
+                                <Button
+                                  size="sm"
+                                  disabled={isUpdating}
+                                  onClick={() => handleUpdateSubscription(row.user_id, "monthly")}
+                                  className="text-xs h-7 px-2.5"
+                                >
+                                  {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : "הפעל חודשי"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={isUpdating}
+                                  onClick={() => handleUpdateSubscription(row.user_id, "yearly")}
+                                  className="text-xs h-7 px-2.5"
+                                >
+                                  הפעל שנתי
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  disabled={isUpdating}
+                                  onClick={() => handleUpdateSubscription(row.user_id, "cancelled")}
+                                  className="text-xs h-7 px-2.5"
+                                >
+                                  בטל
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      });
+                    })()}
                   </TableBody>
                 </Table>
               </div>
