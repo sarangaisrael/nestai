@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=414">
+<title>Summary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 414px;
+    min-height: 896px;
+    background: #f8fafc;
+    font-family: 'Heebo', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* status bar */
+  .status-bar {
+    width: 100%;
+    height: 50px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 0;
+    position: relative;
+  }
+  .status-time { font-size: 15px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
+  .dynamic-island {
+    position: absolute; left: 50%; top: 12px;
+    transform: translateX(-50%);
+    width: 120px; height: 34px;
+    background: #000; border-radius: 20px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+
+  /* topbar */
+  .topbar {
+    background: #ffffff;
+    border-bottom: 0.5px solid #f1f5f9;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: relative;
+  }
+  .topbar-title {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 16px; font-weight: 800; color: #0f172a;
+  }
+  .back-btn {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: #f3f4f6; border: 0.5px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-copy-btn {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: #f3f4f6; border: 0.5px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* body */
+  .body { padding: 0 20px 90px; }
+
+  /* week nav */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 14px;
+  }
+  .week-nav-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #f3f4f6; border: 0.5px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .week-range {
+    font-size: 13px; font-weight: 700; color: #374151;
+    text-align: center;
+  }
+  .week-sub { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 2px; }
+
+  /* summary card */
+  .summary-card {
+    background: white;
+    border-radius: 16px;
+    border: 0.5px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .summary-card-header {
+    background: linear-gradient(135deg, #3730a3 0%, #4338ca 100%);
+    padding: 20px 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-header-glow {
+    position: absolute; top: -30px; right: -30px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(165,180,252,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .summary-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px; padding: 3px 10px; margin-bottom: 10px;
+  }
+  .summary-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #a5b4fc; }
+  .summary-badge-text { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.1em; text-transform: uppercase; }
+  .summary-header-title { font-size: 17px; font-weight: 800; color: white; line-height: 1.4; }
+  .summary-header-dates { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+
+  .summary-body { padding: 20px; }
+  .summary-text {
+    font-size: 14px;
+    line-height: 1.85;
+    color: #374151;
+    font-weight: 400;
+  }
+  .summary-text p { margin-bottom: 14px; }
+  .summary-text p:last-child { margin-bottom: 0; }
+
+  /* emotion strip */
+  .emotion-strip {
+    background: white;
+    border-radius: 16px;
+    border: 0.5px solid #e2e8f0;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .emotion-strip-title { font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 14px; }
+  .emotion-bars { display: flex; flex-direction: column; gap: 10px; }
+  .emotion-row { display: flex; align-items: center; gap: 10px; }
+  .emotion-label { font-size: 11px; font-weight: 600; color: #374151; width: 56px; text-align: right; flex-shrink: 0; }
+  .emotion-bar-bg { flex: 1; background: #f3f4f6; border-radius: 4px; height: 8px; overflow: hidden; }
+  .emotion-bar-fill { height: 100%; border-radius: 4px; }
+  .emotion-pct { font-size: 10px; color: #94a3b8; width: 26px; text-align: left; font-weight: 600; }
+
+  /* session prep */
+  .session-prep {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef9c3 100%);
+    border-radius: 16px;
+    border: 1.5px solid #fde68a;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .prep-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .prep-emoji { font-size: 20px; }
+  .prep-title { font-size: 14px; font-weight: 800; color: #92400e; }
+  .prep-sub { font-size: 11px; color: #b45309; }
+  .prep-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(253,230,138,0.6);
+  }
+  .prep-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .prep-bullet {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #f59e0b; margin-top: 5px; flex-shrink: 0;
+  }
+  .prep-item-text { font-size: 13px; color: #78350f; line-height: 1.5; font-weight: 500; }
+
+  /* bottom bar */
+  .bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #ffffff; border-top: 0.5px solid #e5e7eb;
+    height: 82px;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px;
+    z-index: 50; width: 414px;
+  }
+  .tab-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 22px; }
+  .tab-label { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <span class="status-time">09:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+      <rect x="0" y="7" width="3" height="5" rx="1" fill="#0f172a"/>
+      <rect x="4" y="5" width="3" height="7" rx="1" fill="#0f172a"/>
+      <rect x="8" y="3" width="3" height="9" rx="1" fill="#0f172a"/>
+      <rect x="12" y="1" width="3" height="11" rx="1" fill="#0f172a"/>
+    </svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+      <path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12s-1.25-.56-1.25-1.25S7.31 9.5 8 9.5z" fill="#0f172a"/>
+      <path d="M4.5 7.5a5 5 0 0 1 7 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M1.5 4.5a9 9 0 0 1 13 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    </svg>
+    <svg width="28" height="13" viewBox="0 0 28 13" fill="none">
+      <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke="#0f172a" stroke-opacity="0.35"/>
+      <rect x="2" y="2" width="18" height="9" rx="2" fill="#0f172a"/>
+      <path d="M25 4.5v4a2 2 0 0 0 0-4z" fill="#0f172a" fill-opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="back-btn">
+    <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="#374151" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.5 1.5L1.5 7.5L7.5 13.5"/>
+    </svg>
+  </div>
+  <div class="topbar-title">סיכום שבועי</div>
+  <div class="topbar-copy-btn">
+    <svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="#374151" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="4" width="9" height="11" rx="2"/>
+      <path d="M1 12V2.5A1.5 1.5 0 0 1 2.5 1H10"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="body">
+
+  <!-- Week nav -->
+  <div class="week-nav">
+    <div class="week-nav-btn">
+      <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="#374151" stroke-width="1.8" stroke-linecap="round">
+        <path d="M7.5 1.5L1.5 7.5L7.5 13.5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="week-range">2–8 ביוני 2025</div>
+      <div class="week-sub">שבוע 23 · 1 מתוך 3 סיכומים</div>
+    </div>
+    <div class="week-nav-btn" style="opacity:0.3;">
+      <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="#374151" stroke-width="1.8" stroke-linecap="round">
+        <path d="M1.5 13.5L7.5 7.5L1.5 1.5"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Summary card -->
+  <div class="summary-card">
+    <div class="summary-card-header">
+      <div class="summary-header-glow"></div>
+      <div class="summary-badge">
+        <div class="summary-badge-dot"></div>
+        <span class="summary-badge-text">WEEKLY SUMMARY</span>
+      </div>
+      <div class="summary-header-title">סיכום השבוע שלך</div>
+      <div class="summary-header-dates">2–8 ביוני 2025 · נוצר ב-8.6.25</div>
+    </div>
+    <div class="summary-body">
+      <div class="summary-text">
+        <p>השבוע התאפיין באווירה של שינוי וחיפוש. כתבת רבות על הצורך במרחב אישי ועל הרגשה שהציפיות סביבך גבוהות מדי. הייתה נוכחות חזקה של רגש עייפות — לא רק פיזית, אלא עייפות רגשית מהמאמץ המתמיד להיות "בסדר".</p>
+        <p>בתחום הקשרים, עלו מספר נושאים סביב תקשורת עם בן/בת הזוג. ניכר שיש רצון כן לקרבה, אך קושי בביטוי הצרכים האמיתיים. הדגשת פעמיים את המילה "עייפה לבד" — זהו דפוס שכדאי להעלות בטיפול.</p>
+        <p>צדדים חיוביים: ביום רביעי היה רגע של אושר אמיתי בזמן הטיול בטבע, ורשמת אותו בקשב מיוחד — זה מעיד על יכולת הכלה טובה. כדאי לשאול — מה אפשר לייצר יותר רגעים כאלה בשבוע הבא?</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emotion strip -->
+  <div class="emotion-strip">
+    <div class="emotion-strip-title">⚡ מגמות רגשיות השבוע</div>
+    <div class="emotion-bars">
+      <div class="emotion-row">
+        <span class="emotion-label">עייפות</span>
+        <div class="emotion-bar-bg"><div class="emotion-bar-fill" style="width:72%;background:#818cf8;"></div></div>
+        <span class="emotion-pct">72%</span>
+      </div>
+      <div class="emotion-row">
+        <span class="emotion-label">חרדה</span>
+        <div class="emotion-bar-bg"><div class="emotion-bar-fill" style="width:55%;background:#f472b6;"></div></div>
+        <span class="emotion-pct">55%</span>
+      </div>
+      <div class="emotion-row">
+        <span class="emotion-label">שמחה</span>
+        <div class="emotion-bar-bg"><div class="emotion-bar-fill" style="width:41%;background:#34d399;"></div></div>
+        <span class="emotion-pct">41%</span>
+      </div>
+      <div class="emotion-row">
+        <span class="emotion-label">רוגע</span>
+        <div class="emotion-bar-bg"><div class="emotion-bar-fill" style="width:28%;background:#60a5fa;"></div></div>
+        <span class="emotion-pct">28%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session prep -->
+  <div class="session-prep">
+    <div class="prep-header">
+      <span class="prep-emoji">🎯</span>
+      <div>
+        <div class="prep-title">הכנה לפגישה הבאה</div>
+        <div class="prep-sub">נושאים שעלו השבוע לדיון</div>
+      </div>
+    </div>
+    <div class="prep-item">
+      <div class="prep-bullet"></div>
+      <div class="prep-item-text">הדפוס של עייפות רגשית ו"להיות בסדר" מול הסביבה</div>
+    </div>
+    <div class="prep-item">
+      <div class="prep-bullet"></div>
+      <div class="prep-item-text">קשיים בביטוי צרכים אמיתיים במערכת הזוגית</div>
+    </div>
+    <div class="prep-item">
+      <div class="prep-bullet"></div>
+      <div class="prep-item-text">מה מאפשר רגעי אושר אמיתי — ואיך להרחיב אותם</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom tab bar -->
+<div class="bottom-bar">
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="tab-label" style="color:#9ca3af;font-weight:400;">ראשי</span>
+  </div>
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span class="tab-label" style="color:#d97706;font-weight:700;">יומן</span>
+  </div>
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="tab-label" style="color:#9ca3af;font-weight:400;">הגדרות</span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -27,7 +27,7 @@ import {
   Music, Users, Search, ToggleLeft,
   MessageSquare, FileText, Bell, BarChart3,
   Copy, Send, Clock, Phone, Stethoscope, UserCheck, UserX,
-  BookOpen, Eye, EyeOff,
+  BookOpen, Eye, EyeOff, CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
 import ContentInsights from "@/components/admin/ContentInsights";
@@ -243,6 +243,12 @@ const AdminDashboard = () => {
   const [dailyReminderEnabled, setDailyReminderEnabled] = useState(true);
   const [dailyReminderTime, setDailyReminderTime] = useState("20:00");
   const [savingNotifSettings, setSavingNotifSettings] = useState(false);
+
+  // ── Subscriptions management ──
+  const [subSearch, setSubSearch] = useState("");
+  const [subRows, setSubRows] = useState<{ user_id: string; email: string; plan: string; is_active: boolean; expires_at: string }[]>([]);
+  const [updatingSubUserId, setUpdatingSubUserId] = useState<string | null>(null);
+  const [loadingSubs, setLoadingSubs] = useState(false);
 
   // ── Professional Leads ──
   const [professionalLeads, setProfessionalLeads] = useState<{ id: string; email: string; phone: string | null; created_at: string }[]>([]);
@@ -738,6 +744,49 @@ const AdminDashboard = () => {
     }
   };
 
+  /* ── Subscriptions ── */
+  const loadSubscriptions = async () => {
+    setLoadingSubs(true);
+    try {
+      const { data: subs } = await supabase
+        .from("subscriptions")
+        .select("user_id, plan, is_active, expires_at")
+        .order("expires_at", { ascending: false })
+        .limit(200);
+
+      if (!subs) { setLoadingSubs(false); return; }
+
+      // Enrich with email from users list (already loaded)
+      const enriched = subs.map((s: any) => ({
+        user_id: s.user_id,
+        email: users.find((u) => u.user_id === s.user_id)?.email ?? s.user_id,
+        plan: s.plan,
+        is_active: s.is_active,
+        expires_at: s.expires_at,
+      }));
+      setSubRows(enriched);
+    } catch (e: any) {
+      toast({ title: "שגיאה בטעינת מנויים", description: e?.message, variant: "destructive" });
+    }
+    setLoadingSubs(false);
+  };
+
+  const handleUpdateSubscription = async (userId: string, plan: string) => {
+    setUpdatingSubUserId(userId);
+    try {
+      await (supabase as any).rpc("admin_set_user_subscription", {
+        p_user_id: userId,
+        p_plan: plan,
+      });
+      toast({ title: `✓ מנוי עודכן ל-${plan}` });
+      await loadSubscriptions();
+    } catch (error: any) {
+      toast({ title: "שגיאה בעדכון מנוי", description: error?.message, variant: "destructive" });
+    } finally {
+      setUpdatingSubUserId(null);
+    }
+  };
+
   /* ── Notifications ── */
   const handleSendPushNow = async () => {
     if (!pushMessage.trim()) return;
@@ -887,6 +936,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="leads" className="gap-1.5 text-xs sm:text-sm"><Phone className="h-4 w-4" />לידים מקצועיים</TabsTrigger>
             <TabsTrigger value="landing-new" className="gap-1.5 text-xs sm:text-sm"><Globe className="h-4 w-4" />עמוד נחיתה</TabsTrigger>
             <TabsTrigger value="blog" className="gap-1.5 text-xs sm:text-sm"><BookOpen className="h-4 w-4" />בלוג</TabsTrigger>
+            <TabsTrigger value="subscriptions" onClick={loadSubscriptions} className="gap-1.5 text-xs sm:text-sm"><CreditCard className="h-4 w-4" />מנויים</TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1 — Landing Page ═══════ */}
@@ -1111,6 +1161,138 @@ const AdminDashboard = () => {
                         <TableCell className="text-sm text-muted-foreground">{formatDate(request.created_at)}</TableCell>
                       </TableRow>
                     ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* ═══════ TAB — Subscriptions ═══════ */}
+          <TabsContent value="subscriptions" className="space-y-6">
+            <Card className="p-6 space-y-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-primary" />ניהול מנויים
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    חפש משתמש לפי אימייל, צפה במנוי הנוכחי ועדכן תוכנית.
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={loadSubscriptions} disabled={loadingSubs}>
+                  {loadingSubs ? <Loader2 className="h-3.5 w-3.5 animate-spin ml-1" /> : null}
+                  רענן
+                </Button>
+              </div>
+
+              <div className="relative max-w-sm">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="חיפוש לפי אימייל..."
+                  value={subSearch}
+                  onChange={(e) => setSubSearch(e.target.value)}
+                  className="pr-10 text-sm"
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="overflow-x-auto border border-border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">משתמש</TableHead>
+                      <TableHead className="text-right">תוכנית</TableHead>
+                      <TableHead className="text-right">סטטוס</TableHead>
+                      <TableHead className="text-right">תוקף עד</TableHead>
+                      <TableHead className="text-right">פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingSubs ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8">
+                          <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
+                        </TableCell>
+                      </TableRow>
+                    ) : subRows.filter((r) =>
+                        !subSearch.trim() ||
+                        r.email.toLowerCase().includes(subSearch.toLowerCase())
+                      ).length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          {subSearch ? "לא נמצאו תוצאות" : "לחץ רענן כדי לטעון מנויים"}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      subRows
+                        .filter((r) =>
+                          !subSearch.trim() ||
+                          r.email.toLowerCase().includes(subSearch.toLowerCase())
+                        )
+                        .map((row) => {
+                          const isUpdating = updatingSubUserId === row.user_id;
+                          const expires = new Date(row.expires_at);
+                          const isExpired = !row.is_active || expires < new Date();
+                          const planLabel = row.plan === "trial" ? "ניסיון" : row.plan === "monthly" ? "חודשי" : row.plan === "yearly" ? "שנתי" : row.plan === "cancelled" ? "בוטל" : row.plan;
+                          return (
+                            <TableRow key={row.user_id}>
+                              <TableCell>
+                                <p className="text-sm font-medium text-foreground" dir="ltr">{row.email}</p>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm">{planLabel}</span>
+                              </TableCell>
+                              <TableCell>
+                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                                  isExpired
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-secondary/15 text-secondary"
+                                }`}>
+                                  {isExpired ? "פג תוקף" : "פעיל"}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {formatDate(row.expires_at)}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-2">
+                                  <Button
+                                    size="sm"
+                                    disabled={isUpdating}
+                                    onClick={() => handleUpdateSubscription(row.user_id, "monthly")}
+                                  >
+                                    חודשי
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={isUpdating}
+                                    onClick={() => handleUpdateSubscription(row.user_id, "yearly")}
+                                  >
+                                    שנתי
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={isUpdating}
+                                    onClick={() => handleUpdateSubscription(row.user_id, "trial")}
+                                  >
+                                    ניסיון
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={isUpdating}
+                                    onClick={() => handleUpdateSubscription(row.user_id, "cancelled")}
+                                  >
+                                    בטל
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                    )}
                   </TableBody>
                 </Table>
               </div>

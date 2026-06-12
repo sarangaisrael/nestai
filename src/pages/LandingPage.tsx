@@ -116,9 +116,9 @@ const CSS = `
   }
   .lp-pricing-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
-    max-width: 680px;
+    max-width: 960px;
     margin: 0 auto;
   }
 
@@ -153,7 +153,7 @@ const CSS = `
     .lp-features-grid      { grid-template-columns: 1fr; }
     .lp-features-screen    { height: 280px !important; }
     .lp-pricing-section    { padding: 52px 24px !important; }
-    .lp-pricing-grid       { grid-template-columns: 1fr; }
+    .lp-pricing-grid       { grid-template-columns: 1fr; max-width: 100%; }
     .lp-nav { padding: 14px 24px !important; }
     .lp-steps-section { padding: 52px 24px !important; }
     .lp-cta-section { margin: 0 16px !important; padding: 40px 24px !important; }
@@ -1140,13 +1140,53 @@ const LandingPage = () => {
                 פשוט. שקוף. משתלם.
               </h2>
               <p style={{ fontSize: 14, color: '#64748b', margin: 0, fontFamily: F }}>
-                כל הפיצ׳רים בשתי התוכניות — ההבדל הוא רק משך הגישה.
+                התחל בחינם, שדרג כשתרצה — כל הפיצ׳רים בכל התוכניות.
               </p>
             </div>
 
-            {/* 2-card grid */}
+            {/* 3-card grid */}
             <div className="lp-pricing-grid">
-              {/* Card 1 — quarterly */}
+              {/* Card 0 — free trial */}
+              <div style={{
+                border: '1.5px solid #e2e8f0', borderRadius: 22, background: 'white',
+                padding: 30, display: 'flex', flexDirection: 'column', gap: 20,
+              }}>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', margin: '0 0 10px', fontFamily: F }}>ניסיון חינמי</p>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 2 }}>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#0f172a', fontFamily: F, lineHeight: 1 }}>₪0</span>
+                    <span style={{ fontSize: 13, color: '#94a3b8', fontFamily: F }}>לחודש</span>
+                  </div>
+                  <p style={{ fontSize: 11, color: '#6366f1', margin: 0, fontFamily: F }}>14 יום — ללא צורך בכרטיס אשראי</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {features.map(f => (
+                    <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircle />
+                      <span style={{ fontSize: 13, color: '#374151', fontFamily: F }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <a
+                    href="/register"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      background: '#6366f1', color: 'white', border: 'none',
+                      borderRadius: 10, padding: '12px 0', width: '100%',
+                      fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      textDecoration: 'none', fontFamily: F,
+                    }}
+                  >
+                    התחל ניסיון חינמי
+                  </a>
+                  <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', fontFamily: F }}>
+                    ללא התחייבות
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 1 — monthly */}
               <div style={{
                 border: '1.5px solid #e2e8f0', borderRadius: 22, background: 'white',
                 padding: 30, display: 'flex', flexDirection: 'column', gap: 20,

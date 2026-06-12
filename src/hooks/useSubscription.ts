@@ -1,78 +1,95 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-interface SubscriptionStatus {
-  subscribed: boolean;
-  tier: 'free' | 'basic' | 'premium';
-  subscription_status?: string;
-  paypal_email?: string | null;
-  trial_end_date?: string | null;
-  is_trial?: boolean;
-  current_period_end?: string | null;
+export interface SubscriptionState {
+  isActive: boolean;
+  plan: "trial" | "monthly" | "yearly" | "cancelled" | null;
+  daysLeft: number;
+  isExpired: boolean;
+  loading: boolean;
 }
 
-export function useSubscription() {
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchSubscription = useCallback(async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setSubscriptionStatus({ subscribed: false, tier: 'free', is_trial: false });
-        setLoading(false);
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_status, subscription_tier, trial_end_date, paypal_email')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (!profile) {
-        setSubscriptionStatus({ subscribed: false, tier: 'free', is_trial: false });
-        setLoading(false);
-        return;
-      }
-
-      const isActive = profile.subscription_status === 'active';
-
-      setSubscriptionStatus({
-        subscribed: isActive,
-        tier: isActive ? (profile.subscription_tier as 'free' | 'basic' | 'premium') : 'free',
-        subscription_status: profile.subscription_status,
-        paypal_email: profile.paypal_email,
-        trial_end_date: null,
-        is_trial: false,
-      });
-    } catch (err) {
-      console.error('Error checking subscription:', err);
-      setError(err as Error);
-      setSubscriptionStatus({ subscribed: false, tier: 'free', is_trial: false });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+export const useSubscription = (): SubscriptionState => {
+  const [state, setState] = useState<SubscriptionState>({
+    isActive: true,
+    plan: "trial",
+    daysLeft: 14,
+    isExpired: false,
+    loading: true,
+  });
 
   useEffect(() => {
-    fetchSubscription();
-  }, [fetchSubscription]);
+    let cancelled = false;
 
-  const isSubscribed = subscriptionStatus?.subscribed ?? false;
-  const tier = subscriptionStatus?.tier ?? 'free';
-  const isTrial = subscriptionStatus?.is_trial ?? false;
-  const trialEndsAt = subscriptionStatus?.trial_end_date ?? null;
+    const load = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-  return {
-    subscription: subscriptionStatus,
-    loading,
-    error,
-    isSubscribed,
-    tier,
-    isTrial,
-    trialEndsAt,
-    refetch: fetchSubscription,
-  };
-}
+        if (!session) {
+          if (!cancelled)
+            setState({
+              isActive: false,
+              plan: null,
+              daysLeft: 0,
+              isExpired: true,
+              loading: false,
+            });
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("subscriptions")
+          .select("plan, is_active, expires_at")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (error || !data) {
+          // No row yet (new user, trigger may not have fired) — treat as fresh trial
+          setState({
+            isActive: true,
+            plan: "trial",
+            daysLeft: 14,
+            isExpired: false,
+            loading: false,
+          });
+          return;
+        }
+
+        const now = new Date();
+        const expires = new Date(data.expires_at);
+        const msLeft = expires.getTime() - now.getTime();
+        const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+        const isActive = data.is_active === true && expires > now;
+
+        setState({
+          isActive,
+          plan: data.plan as SubscriptionState["plan"],
+          daysLeft,
+          isExpired: !isActive,
+          loading: false,
+        });
+      } catch {
+        // Network failure — default to active so we never incorrectly lock users out
+        if (!cancelled)
+          setState({
+            isActive: true,
+            plan: "trial",
+            daysLeft: 14,
+            isExpired: false,
+            loading: false,
+          });
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return state;
+};

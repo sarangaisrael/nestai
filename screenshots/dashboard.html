@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=414">
+<title>Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 414px;
+    min-height: 896px;
+    background: #fafafa;
+    font-family: 'Heebo', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    width: 100%;
+    height: 50px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 0;
+    position: relative;
+  }
+  .status-time {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+  }
+  .status-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dynamic-island {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: #ffffff;
+    border-bottom: 0.5px solid #f1f5f9;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: relative;
+  }
+  .topbar-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Righteous', sans-serif;
+    font-size: 19px;
+    color: #111827;
+  }
+  .topbar-logo .ai { color: #6366f1; }
+  .topbar-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    border: 0.5px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Scrollable body ── */
+  .body {
+    padding: 0 20px 90px;
+  }
+
+  /* ── Greeting ── */
+  .greeting {
+    padding: 20px 0 12px;
+  }
+  .greeting-label {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+  .greeting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .greeting-name {
+    font-size: 26px;
+    font-weight: 900;
+    color: #0f172a;
+    letter-spacing: -1px;
+  }
+  .streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #c2410c;
+  }
+
+  /* ── Cards ── */
+  .cards { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+
+  /* ── Hero journal card ── */
+  .hero-card {
+    background: #3730a3;
+    border-radius: 16px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-glow-tr {
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(165,180,252,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-glow-bl {
+    position: absolute;
+    bottom: -50px; left: -30px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(30,27,75,0.4) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 3px 10px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .hero-pill-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #a5b4fc;
+    flex-shrink: 0;
+  }
+  .hero-pill-text {
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .hero-question {
+    font-size: 17px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 16px;
+    line-height: 1.45;
+    letter-spacing: -0.3px;
+    position: relative;
+  }
+  .hero-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .hero-input {
+    flex: 1;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 11px 14px;
+  }
+  .hero-input-placeholder {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    font-weight: 400;
+  }
+  .hero-send-btn {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: #1e1b4b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Sleep card ── */
+  .sleep-card {
+    background: white;
+    border-radius: 14px;
+    border: 1.5px solid #bfdbfe;
+    padding: 16px 18px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sleep-glow {
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(191,219,254,0.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .card-header-emoji { font-size: 18px; }
+  .card-header-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .card-header-sub {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .card-badge {
+    border-radius: 50px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .sleep-badge { background: #dbeafe; color: #1d4ed8; }
+  .select-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .select-group { flex: 1; }
+  .select-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+  .select-box {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #374151;
+    font-family: 'Heebo', sans-serif;
+    appearance: none;
+    text-align: right;
+  }
+  .hours-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #ede9fe;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #5b21b6;
+    margin-bottom: 12px;
+  }
+  .quality-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .quality-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: 1.5px solid #dbeafe;
+    background: #f0f9ff;
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .quality-btn.active {
+    border-color: #93c5fd;
+    background: #dbeafe;
+  }
+  .save-btn {
+    width: 100%;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 0;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: 'Heebo', sans-serif;
+    cursor: pointer;
+  }
+
+  /* ── Action grid ── */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .action-tile {
+    border-radius: 14px;
+    padding: 12px 12px 12px;
+    position: relative;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+  }
+  .tile-badge {
+    position: absolute;
+    top: 8px; left: 8px;
+    border-radius: 50px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .tile-emoji {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 18px;
+  }
+  .tile-text { margin-top: 26px; }
+  .tile-title { font-size: 12px; font-weight: 800; margin-bottom: 2px; letter-spacing: -0.2px; }
+  .tile-sub { font-size: 10px; font-weight: 500; opacity: 0.85; }
+
+  /* ── Toolbox strip ── */
+  .toolbox-strip {
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+  }
+  .toolbox-card {
+    flex-shrink: 0;
+    border-radius: 14px;
+    padding: 14px 16px;
+    width: 140px;
+  }
+  .toolbox-icon-bg {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px;
+  }
+  .toolbox-title { font-size: 12px; font-weight: 800; margin-bottom: 2px; }
+  .toolbox-sub { font-size: 10px; font-weight: 500; opacity: 0.75; }
+
+  /* ── Bottom tab bar ── */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #ffffff;
+    border-top: 0.5px solid #e5e7eb;
+    height: 82px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 10px;
+    z-index: 50;
+    width: 414px;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 22px;
+    cursor: pointer;
+  }
+  .tab-label { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<!-- Status bar -->
+<div class="status-bar">
+  <span class="status-time">09:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-icons">
+    <!-- signal bars -->
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+      <rect x="0" y="7" width="3" height="5" rx="1" fill="#0f172a"/>
+      <rect x="4" y="5" width="3" height="7" rx="1" fill="#0f172a"/>
+      <rect x="8" y="3" width="3" height="9" rx="1" fill="#0f172a"/>
+      <rect x="12" y="1" width="3" height="11" rx="1" fill="#0f172a"/>
+    </svg>
+    <!-- wifi -->
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+      <path d="M8 9.5C8.69 9.5 9.25 10.06 9.25 10.75S8.69 12 8 12s-1.25-.56-1.25-1.25S7.31 9.5 8 9.5z" fill="#0f172a"/>
+      <path d="M4.5 7.5a5 5 0 0 1 7 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M1.5 4.5a9 9 0 0 1 13 0" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    </svg>
+    <!-- battery -->
+    <svg width="28" height="13" viewBox="0 0 28 13" fill="none">
+      <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke="#0f172a" stroke-opacity="0.35"/>
+      <rect x="2" y="2" width="18" height="9" rx="2" fill="#0f172a"/>
+      <path d="M25 4.5v4a2 2 0 0 0 0-4z" fill="#0f172a" fill-opacity="0.4"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <!-- hamburger -->
+  <div class="topbar-btn">
+    <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+      <line x1="0" y1="1" x2="14" y2="1" stroke="#374151" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="0" y1="5.5" x2="14" y2="5.5" stroke="#374151" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="0" y1="10" x2="14" y2="10" stroke="#374151" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="topbar-logo">Nest<span class="ai">AI</span></div>
+  <!-- chat icon -->
+  <div class="topbar-btn">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="body">
+
+  <!-- Greeting -->
+  <div class="greeting">
+    <div class="greeting-label">בוקר טוב,</div>
+    <div class="greeting-row">
+      <div class="greeting-name">שרה 👋</div>
+      <div class="streak-badge">🔥 5 ימים ברצף</div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards">
+
+    <!-- Hero journal card -->
+    <div class="hero-card">
+      <div class="hero-glow-tr"></div>
+      <div class="hero-glow-bl"></div>
+      <div class="hero-pill">
+        <div class="hero-pill-dot"></div>
+        <span class="hero-pill-text">JOURNAL</span>
+      </div>
+      <p class="hero-question">מה עובר עליך עכשיו?<br>כתוב חופשי, אין שיפוט.</p>
+      <div class="hero-input-row">
+        <div class="hero-input">
+          <span class="hero-input-placeholder">התחל לכתוב כאן...</span>
+        </div>
+        <div class="hero-send-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 14V4M9 4L4.5 8.5M9 4L13.5 8.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sleep card -->
+    <div class="sleep-card">
+      <div class="sleep-glow"></div>
+      <div class="card-header">
+        <span class="card-header-emoji">🌙</span>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="card-header-title">מעקב שינה</span>
+            <span class="card-badge sleep-badge">יומי</span>
+          </div>
+          <div class="card-header-sub">איך ישנת הלילה?</div>
+        </div>
+        <div class="hours-pill">⏱ 7.5 שע׳</div>
+      </div>
+      <div class="select-row">
+        <div class="select-group">
+          <div class="select-label">שכבתי לישון</div>
+          <div class="select-box">23:00</div>
+        </div>
+        <div class="select-group">
+          <div class="select-label">קמתי</div>
+          <div class="select-box">06:30</div>
+        </div>
+      </div>
+      <div class="select-label" style="margin-bottom:8px">איכות השינה</div>
+      <div class="quality-row">
+        <div class="quality-btn">😴</div>
+        <div class="quality-btn">😕</div>
+        <div class="quality-btn">😐</div>
+        <div class="quality-btn active">🙂</div>
+        <div class="quality-btn">😊</div>
+      </div>
+      <button class="save-btn">שמור ✓</button>
+    </div>
+
+    <!-- Action grid -->
+    <div class="action-grid">
+      <div class="action-tile" style="background:#fffbeb;border:1.5px solid #fde68a;">
+        <span class="tile-badge" style="background:#fde68a;color:#92400e;">חדש</span>
+        <span class="tile-emoji">📋</span>
+        <div class="tile-text">
+          <div class="tile-title" style="color:#92400e;">סיכומים שבועיים</div>
+          <div class="tile-sub" style="color:#b45309;">קבלו תובנות</div>
+        </div>
+      </div>
+      <div class="action-tile" style="background:#ecfdf5;border:1.5px solid #6ee7b7;">
+        <span class="tile-badge" style="background:#6ee7b7;color:#065f46;">12</span>
+        <span class="tile-emoji">📖</span>
+        <div class="tile-text">
+          <div class="tile-title" style="color:#065f46;">היומן שלי</div>
+          <div class="tile-sub" style="color:#059669;">הרשומות שלך</div>
+        </div>
+      </div>
+      <div class="action-tile" style="background:#faf5ff;border:1.5px solid #c4b5fd;">
+        <span class="tile-emoji">✨</span>
+        <div class="tile-text">
+          <div class="tile-title" style="color:#5b21b6;">כלי טיפוליים</div>
+          <div class="tile-sub" style="color:#7c3aed;">נשימה ומדיטציה</div>
+        </div>
+      </div>
+      <div class="action-tile" style="background:#eff6ff;border:1.5px solid #93c5fd;">
+        <span class="tile-badge" style="background:#93c5fd;color:#1e40af;">↑</span>
+        <span class="tile-emoji">📈</span>
+        <div class="tile-text">
+          <div class="tile-title" style="color:#1e40af;">מגמות חודשיות</div>
+          <div class="tile-sub" style="color:#3b82f6;">ניתוח רגשות</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbox strip -->
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:0.08em;margin-bottom:10px;text-transform:uppercase;">ארגז הכלים</div>
+      <div class="toolbox-strip">
+        <div class="toolbox-card" style="background:#fffbeb;border:1.5px solid #fde68a;">
+          <div class="toolbox-icon-bg" style="background:#fef9c3;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="toolbox-title" style="color:#92400e;">הפגישה הבאה</div>
+          <div class="toolbox-sub" style="color:#b45309;">יום ד׳ 17:00</div>
+        </div>
+        <div class="toolbox-card" style="background:#ecfdf5;border:1.5px solid #6ee7b7;">
+          <div class="toolbox-icon-bg" style="background:#d1fae5;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#065f46" stroke-width="2"><path d="M12 2C8 2 5 5 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </div>
+          <div class="toolbox-title" style="color:#065f46;">נשימה 4-7-8</div>
+          <div class="toolbox-sub" style="color:#059669;">3 דקות רגיעה</div>
+        </div>
+        <div class="toolbox-card" style="background:#faf5ff;border:1.5px solid #c4b5fd;">
+          <div class="toolbox-icon-bg" style="background:#ede9fe;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="toolbox-title" style="color:#5b21b6;">תובנה של היום</div>
+          <div class="toolbox-sub" style="color:#7c3aed;">לחצו לגלות</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cards -->
+</div><!-- /body -->
+
+<!-- Bottom tab bar -->
+<div class="bottom-bar">
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="tab-label" style="color:#d97706;font-weight:700;">ראשי</span>
+  </div>
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span class="tab-label" style="color:#9ca3af;font-weight:400;">יומן</span>
+  </div>
+  <div class="tab-item">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="tab-label" style="color:#9ca3af;font-weight:400;">הגדרות</span>
+  </div>
+</div>
+
+</body>
+</html>

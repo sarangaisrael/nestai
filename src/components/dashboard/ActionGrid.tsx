@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const ActionGrid = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [journalCount, setJournalCount] = useState<number | null>(null);
   const [hasSummary, setHasSummary]     = useState(false);
+  const { isExpired }                   = useSubscription();
 
   useEffect(() => {
     const load = async () => {
@@ -39,7 +41,7 @@ const ActionGrid = () => {
   const tiles = [
     {
       label:    t.dashboard.weeklySummaries,
-      subtitle: t.dashboard.weeklySummariesSub,
+      subtitle: isExpired ? "🔒 " + t.dashboard.weeklySummariesSub : t.dashboard.weeklySummariesSub,
       emoji:    "📋",
       path:     "/app/summary",
       bg:       "#fffbeb",
@@ -49,12 +51,13 @@ const ActionGrid = () => {
       badge:    hasSummary ? "חדש" : null,
       badgeBg:  "#fde68a",
       badgeColor: "#92400e",
+      locked:   isExpired,
     },
     {
       label:    t.dashboard.myJournal,
-      subtitle: t.dashboard.myJournalSub,
+      subtitle: isExpired ? "🔒 " + t.dashboard.myJournalSub : t.dashboard.myJournalSub,
       emoji:    "📖",
-      path:     "/app/journal",
+      path:     "/app/chat",
       bg:       "#ecfdf5",
       border:   "#6ee7b7",
       titleColor: "#065f46",
@@ -62,6 +65,7 @@ const ActionGrid = () => {
       badge:    journalCount !== null ? `${journalCount}` : null,
       badgeBg:  "#6ee7b7",
       badgeColor: "#065f46",
+      locked:   isExpired,
     },
     {
       label:    t.dashboard.therapyTools,
@@ -75,6 +79,7 @@ const ActionGrid = () => {
       badge:    null,
       badgeBg:  "",
       badgeColor: "",
+      locked:   false,
     },
     {
       label:    t.dashboard.monthlyTrends,
@@ -88,6 +93,7 @@ const ActionGrid = () => {
       badge:    "↑",
       badgeBg:  "#93c5fd",
       badgeColor: "#1e40af",
+      locked:   false,
     },
   ];
 
@@ -120,6 +126,7 @@ interface Tile {
   label: string; subtitle: string; emoji: string; path: string;
   bg: string; border: string; titleColor: string; subColor: string;
   badge: string | null; badgeBg: string; badgeColor: string;
+  locked?: boolean;
 }
 
 const TileButton = ({ tile, onClick }: { tile: Tile; onClick: () => void }) => {
@@ -144,6 +151,7 @@ const TileButton = ({ tile, onClick }: { tile: Tile; onClick: () => void }) => {
         transition:     "transform 0.18s ease, box-shadow 0.18s ease",
         boxShadow:      hovered ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
         fontFamily:     "'Heebo', sans-serif",
+        opacity:        tile.locked ? 0.6 : 1,
       }}
     >
       {/* Badge — top-left (visual left = start in RTL) */}
