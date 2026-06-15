@@ -46,6 +46,20 @@ interface AdminUser {
 interface SystemMessage { id: string; title: string; body: string; created_at: string; }
 interface FeatureToggleRow { id: string; key: string; label: string; enabled: boolean; category: string; config: Record<string, any>; }
 interface MeditationRow { id: string; title: string; description: string; media_url: string; media_type: string; tags: string[]; published: boolean; sort_order: number; }
+interface MeditationVideoRow {
+  id: string;
+  title: string;
+  instructor: string | null;
+  duration_minutes: number | null;
+  category: string | null;
+  video_url: string | null;
+  thumbnail_emoji: string;
+  thumbnail_gradient: string;
+  is_featured: boolean;
+  is_new: boolean;
+  is_active: boolean;
+  sort_order: number;
+}
 interface TherapistRegistrationRow {
   id: string;
   user_id: string | null;
@@ -197,6 +211,24 @@ const AdminDashboard = () => {
   const [editMedUrl, setEditMedUrl] = useState("");
   const [editMedType, setEditMedType] = useState<"youtube" | "audio">("youtube");
   const [editMedTags, setEditMedTags] = useState("");
+
+  // ── Meditation Videos (new table) ──
+  const [videosList, setVideosList]           = useState<MeditationVideoRow[]>([]);
+  const [loadingVideos, setLoadingVideos]     = useState(false);
+  const [showNewVideo, setShowNewVideo]       = useState(false);
+  const [editingVideoId, setEditingVideoId]   = useState<string | null>(null);
+  // shared form fields (used for both new + edit)
+  const [vTitle, setVTitle]                   = useState("");
+  const [vInstructor, setVInstructor]         = useState("");
+  const [vDuration, setVDuration]             = useState("");
+  const [vCategory, setVCategory]             = useState("");
+  const [vUrl, setVUrl]                       = useState("");
+  const [vEmoji, setVEmoji]                   = useState("🧘");
+  const [vGradient, setVGradient]             = useState("linear-gradient(135deg,#ede9fe,#f5f3ff)");
+  const [vFeatured, setVFeatured]             = useState(false);
+  const [vIsNew, setVIsNew]                   = useState(false);
+  const [vSortOrder, setVSortOrder]           = useState("0");
+  const [savingVideo, setSavingVideo]         = useState(false);
 
   // ── Content: Feature toggles ──
   const [toggles, setToggles] = useState<FeatureToggleRow[]>([]);
@@ -570,6 +602,113 @@ const AdminDashboard = () => {
   const handleDeleteMeditation = async (id: string) => {
     try { const { error } = await supabase.from("meditations").delete().eq("id", id); if (error) throw error; toast({ title: "✓ נמחק" }); loadMeditations(); }
     catch { toast({ title: "שגיאה", variant: "destructive" }); }
+  };
+
+  /* ── Meditation Videos (new table) ── */
+  const loadVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const { data, error } = await supabase
+        .from("meditation_videos")
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (!error && data) setVideosList(data as MeditationVideoRow[]);
+    } catch { /* silent */ }
+    setLoadingVideos(false);
+  };
+
+  const resetVideoForm = () => {
+    setVTitle(""); setVInstructor(""); setVDuration("");
+    setVCategory(""); setVUrl(""); setVEmoji("🧘");
+    setVGradient("linear-gradient(135deg,#ede9fe,#f5f3ff)");
+    setVFeatured(false); setVIsNew(false); setVSortOrder("0");
+    setEditingVideoId(null); setShowNewVideo(false);
+  };
+
+  const handleCreateVideo = async () => {
+    if (!vTitle.trim()) return;
+    setSavingVideo(true);
+    try {
+      const { error } = await supabase.from("meditation_videos").insert({
+        title: vTitle.trim(),
+        instructor: vInstructor.trim() || null,
+        duration_minutes: vDuration ? parseInt(vDuration) : null,
+        category: vCategory || null,
+        video_url: vUrl.trim() || null,
+        thumbnail_emoji: vEmoji || "🧘",
+        thumbnail_gradient: vGradient || "linear-gradient(135deg,#ede9fe,#f5f3ff)",
+        is_featured: vFeatured,
+        is_new: vIsNew,
+        is_active: true,
+        sort_order: parseInt(vSortOrder) || 0,
+      });
+      if (error) throw error;
+      toast({ title: "✓ סרטון נוסף" });
+      resetVideoForm();
+      await loadVideos();
+    } catch (e: any) {
+      toast({ title: "שגיאה", description: e?.message, variant: "destructive" });
+    }
+    setSavingVideo(false);
+  };
+
+  const handleSaveVideo = async () => {
+    if (!editingVideoId || !vTitle.trim()) return;
+    setSavingVideo(true);
+    try {
+      const { error } = await supabase.from("meditation_videos").update({
+        title: vTitle.trim(),
+        instructor: vInstructor.trim() || null,
+        duration_minutes: vDuration ? parseInt(vDuration) : null,
+        category: vCategory || null,
+        video_url: vUrl.trim() || null,
+        thumbnail_emoji: vEmoji || "🧘",
+        thumbnail_gradient: vGradient || "linear-gradient(135deg,#ede9fe,#f5f3ff)",
+        is_featured: vFeatured,
+        is_new: vIsNew,
+        sort_order: parseInt(vSortOrder) || 0,
+      }).eq("id", editingVideoId);
+      if (error) throw error;
+      toast({ title: "✓ עודכן" });
+      resetVideoForm();
+      await loadVideos();
+    } catch (e: any) {
+      toast({ title: "שגיאה", description: e?.message, variant: "destructive" });
+    }
+    setSavingVideo(false);
+  };
+
+  const handleToggleVideoActive = async (video: MeditationVideoRow) => {
+    try {
+      const { error } = await supabase.from("meditation_videos").update({ is_active: !video.is_active }).eq("id", video.id);
+      if (error) throw error;
+      setVideosList((prev) => prev.map((v) => v.id === video.id ? { ...v, is_active: !v.is_active } : v));
+    } catch { toast({ title: "שגיאה", variant: "destructive" }); }
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!confirm("למחוק את הסרטון?")) return;
+    try {
+      const { error } = await supabase.from("meditation_videos").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "✓ נמחק" });
+      await loadVideos();
+    } catch { toast({ title: "שגיאה", variant: "destructive" }); }
+  };
+
+  const startEditVideo = (v: MeditationVideoRow) => {
+    setEditingVideoId(v.id);
+    setVTitle(v.title);
+    setVInstructor(v.instructor ?? "");
+    setVDuration(v.duration_minutes?.toString() ?? "");
+    setVCategory(v.category ?? "");
+    setVUrl(v.video_url ?? "");
+    setVEmoji(v.thumbnail_emoji);
+    setVGradient(v.thumbnail_gradient);
+    setVFeatured(v.is_featured);
+    setVIsNew(v.is_new);
+    setVSortOrder(v.sort_order.toString());
+    setShowNewVideo(false);
   };
 
   /* ── TAB 2: Toggles ── */
@@ -959,6 +1098,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="landing-new" className="gap-1.5 text-xs sm:text-sm"><Globe className="h-4 w-4" />עמוד נחיתה</TabsTrigger>
             <TabsTrigger value="blog" className="gap-1.5 text-xs sm:text-sm"><BookOpen className="h-4 w-4" />בלוג</TabsTrigger>
             <TabsTrigger value="subscriptions" className="gap-1.5 text-xs sm:text-sm"><CreditCard className="h-4 w-4" />מנויים</TabsTrigger>
+            <TabsTrigger value="meditation-videos" onClick={loadVideos} className="gap-1.5 text-xs sm:text-sm"><Music className="h-4 w-4" />סרטוני מדיטציה</TabsTrigger>
           </TabsList>
 
           {/* ═══════ TAB 1 — Landing Page ═══════ */}
@@ -1224,6 +1364,183 @@ const AdminDashboard = () => {
                   </TableBody>
                 </Table>
               </div>
+            </Card>
+          </TabsContent>
+
+          {/* ═══════ TAB — Meditation Videos ═══════ */}
+          <TabsContent value="meditation-videos" className="space-y-6">
+            <Card className="p-6 space-y-5">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <Music className="h-5 w-5 text-primary" />ניהול סרטוני מדיטציה
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    הוסף, ערוך ומחק סרטוני YouTube לדף הכלים הטיפוליים.
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={loadVideos} disabled={loadingVideos}>
+                    {loadingVideos ? <Loader2 className="h-3.5 w-3.5 animate-spin ml-1" /> : null}
+                    רענן
+                  </Button>
+                  {!showNewVideo && !editingVideoId && (
+                    <Button size="sm" onClick={() => { resetVideoForm(); setShowNewVideo(true); }} className="gap-1.5">
+                      <Plus className="h-3.5 w-3.5" />הוסף סרטון
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Add / Edit form */}
+              {(showNewVideo || editingVideoId) && (
+                <Card className="p-5 border-2 border-primary/30 bg-primary/5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-foreground text-sm">
+                      {editingVideoId ? "עריכת סרטון" : "סרטון חדש"}
+                    </h3>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={resetVideoForm}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">כותרת *</label>
+                      <Input value={vTitle} onChange={(e) => setVTitle(e.target.value)} placeholder="מדיטציה לפני שינה" className="text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">מנחה</label>
+                      <Input value={vInstructor} onChange={(e) => setVInstructor(e.target.value)} placeholder="שם המנחה" className="text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">משך (דקות)</label>
+                      <Input type="number" min="1" value={vDuration} onChange={(e) => setVDuration(e.target.value)} placeholder="10" className="text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">קטגוריה</label>
+                      <select
+                        value={vCategory}
+                        onChange={(e) => setVCategory(e.target.value)}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="">ללא קטגוריה</option>
+                        {["חרדה","שינה","נשימה","מיקוד","טראומה"].map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">סדר תצוגה</label>
+                      <Input type="number" value={vSortOrder} onChange={(e) => setVSortOrder(e.target.value)} placeholder="0" className="text-sm" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">YouTube URL או Video ID</label>
+                      <Input value={vUrl} onChange={(e) => setVUrl(e.target.value)} placeholder="https://youtu.be/XXXXXXXXXXX" className="text-sm font-mono" dir="ltr" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">אימוג׳י thumbnail</label>
+                      <Input value={vEmoji} onChange={(e) => setVEmoji(e.target.value)} placeholder="🧘" className="text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1 block">CSS Gradient</label>
+                      <Input value={vGradient} onChange={(e) => setVGradient(e.target.value)} placeholder="linear-gradient(...)" className="text-sm font-mono" dir="ltr" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm">
+                        <Switch checked={vFeatured} onCheckedChange={setVFeatured} />
+                        מומלץ השבוע
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm">
+                        <Switch checked={vIsNew} onCheckedChange={setVIsNew} />
+                        חדש באוסף
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      onClick={editingVideoId ? handleSaveVideo : handleCreateVideo}
+                      disabled={!vTitle.trim() || savingVideo}
+                    >
+                      {savingVideo ? <Loader2 className="h-3.5 w-3.5 animate-spin ml-1" /> : <Save className="h-3.5 w-3.5 ml-1" />}
+                      {editingVideoId ? "שמור שינויים" : "הוסף סרטון"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={resetVideoForm}>ביטול</Button>
+                  </div>
+                </Card>
+              )}
+
+              {/* Videos list */}
+              {loadingVideos ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : videosList.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8 text-sm">אין סרטונים. לחץ "הוסף סרטון" כדי להתחיל.</p>
+              ) : (
+                <div className="space-y-2">
+                  {videosList.map((vid) => (
+                    <Card
+                      key={vid.id}
+                      className={`border transition-all ${editingVideoId === vid.id ? "border-primary/40 shadow-sm" : "border-border"}`}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {/* Active toggle */}
+                            <Switch checked={vid.is_active} onCheckedChange={() => handleToggleVideoActive(vid)} />
+
+                            {/* Emoji thumbnail preview */}
+                            <div
+                              style={{ background: vid.thumbnail_gradient, width: 36, height: 36, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}
+                            >
+                              {vid.thumbnail_emoji}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold text-foreground text-sm truncate">{vid.title}</h3>
+                                {vid.is_featured && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">✨ מומלץ</span>
+                                )}
+                                {vid.is_new && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/15 text-green-700 font-medium">חדש</span>
+                                )}
+                                {!vid.is_active && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium">מוסתר</span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {[vid.instructor, vid.category, vid.duration_minutes ? `${vid.duration_minutes} דק׳` : null].filter(Boolean).join(" · ")}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-1 shrink-0">
+                            <Button
+                              variant="outline" size="sm" className="h-8 gap-1 text-xs"
+                              onClick={() => startEditVideo(vid)}
+                            >
+                              <Pencil className="h-3 w-3" />ערוך
+                            </Button>
+                            <Button
+                              variant="ghost" size="icon" className="h-8 w-8 text-destructive"
+                              onClick={() => handleDeleteVideo(vid.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </Card>
           </TabsContent>
 
