@@ -8,6 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
+import GrowthMeterCard from "@/components/dashboard/GrowthMeterCard";
 import SleepCard from "@/components/dashboard/SleepCard"
 import TraumaCard from "@/components/dashboard/TraumaCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
@@ -40,6 +41,7 @@ const CSS = `
 
   /* ── Mobile defaults ── */
   .dash-body {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
     padding-bottom: 80px;
   }
   .dash-inner {
@@ -48,7 +50,7 @@ const CSS = `
     box-sizing: border-box;
   }
   .dash-greeting {
-    padding-top: 24px;
+    padding-top: 16px;
     padding-bottom: 10px;
   }
   .dash-greeting-label {
@@ -67,6 +69,7 @@ const CSS = `
   /* ── Desktop overrides ── */
   @media (min-width: 768px) {
     .dash-body {
+      padding-top: 56px;
       padding-bottom: 48px;
     }
     .dash-inner {
@@ -76,7 +79,7 @@ const CSS = `
       box-sizing: border-box;
     }
     .dash-greeting {
-      padding-top: 40px;
+      padding-top: 32px;
       padding-bottom: 16px;
     }
     .dash-greeting-label {
@@ -371,6 +374,7 @@ const Dashboard = () => {
         {/* ── Main cards ── */}
         <div className="dash-cards">
           <HeroJournalCard />
+          <GrowthMeterCard />
           <SleepCard />
           <TraumaCard />
           <ActionGrid />

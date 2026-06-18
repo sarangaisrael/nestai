@@ -197,8 +197,6 @@ const DashboardTopbar = () => {
       </div>
       </div>
 
-      {/* Spacer to push content below the fixed topbar */}
-      <div style={{ height: "calc(env(safe-area-inset-top, 0px) + 56px)" }} />
 
       <FeedbackForm open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
