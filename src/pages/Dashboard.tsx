@@ -344,31 +344,27 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* ── Greeting ── */}
+        {/* ── Greeting (time-of-day label + streak only, no username) ── */}
         <motion.div
           initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
           className="dash-greeting"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}
         >
-          <p className="dash-greeting-label" style={{ color: '#94a3b8', fontWeight: 400, margin: '0 0 4px', fontFamily: "'Heebo', sans-serif" }}>
+          <p style={{ color: '#94a3b8', fontWeight: 500, margin: 0, fontSize: 14, fontFamily: "'Heebo', sans-serif" }}>
             {greetingLabel}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <h1 className="dash-greeting-name" style={{ fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, letterSpacing: '-1px', fontFamily: "'Heebo', sans-serif" }}>
-              {t.dashboard.helloPrefix} {firstName} 👋
-            </h1>
-            {streak > 0 && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                background: '#fff7ed', border: '1px solid #fed7aa',
-                borderRadius: 50, padding: '4px 12px',
-                fontSize: 12, fontWeight: 700, color: '#c2410c',
-                fontFamily: "'Heebo', sans-serif",
-                flexShrink: 0,
-              }}>
-                🔥 {streak} ימים ברצף
-              </span>
-            )}
-          </div>
+          {streak > 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              background: '#fff7ed', border: '1px solid #fed7aa',
+              borderRadius: 50, padding: '4px 12px',
+              fontSize: 12, fontWeight: 700, color: '#c2410c',
+              fontFamily: "'Heebo', sans-serif",
+              flexShrink: 0,
+            }}>
+              🔥 {streak} ימים ברצף
+            </span>
+          )}
         </motion.div>
 
         {/* ── Main cards ── */}

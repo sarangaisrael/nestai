@@ -62,9 +62,10 @@ const ActionGrid = () => {
       border:   "#6ee7b7",
       titleColor: "#065f46",
       subColor:   "#059669",
-      badge:    journalCount !== null ? `${journalCount}` : null,
+      badge:    journalCount !== null && journalCount > 0 ? `${journalCount}` : null,
       badgeBg:  "#6ee7b7",
       badgeColor: "#065f46",
+      emptyLabel: journalCount === 0 ? "כתוב את הרשומה הראשונה שלך" : null,
       locked:   isExpired,
     },
     {
@@ -126,6 +127,7 @@ interface Tile {
   label: string; subtitle: string; emoji: string; path: string;
   bg: string; border: string; titleColor: string; subColor: string;
   badge: string | null; badgeBg: string; badgeColor: string;
+  emptyLabel?: string | null;
   locked?: boolean;
 }
 
@@ -179,9 +181,15 @@ const TileButton = ({ tile, onClick }: { tile: Tile; onClick: () => void }) => {
         <p style={{ fontSize: 12, fontWeight: 800, color: tile.titleColor, margin: "0 0 3px", letterSpacing: "-0.2px" }}>
           {tile.label}
         </p>
-        <p style={{ fontSize: 10, fontWeight: 500, color: tile.subColor, margin: 0, opacity: 0.85 }}>
-          {tile.subtitle}
-        </p>
+        {tile.emptyLabel ? (
+          <p style={{ fontSize: 10, fontWeight: 600, color: tile.subColor, margin: 0, lineHeight: 1.4 }}>
+            {tile.emptyLabel}
+          </p>
+        ) : (
+          <p style={{ fontSize: 10, fontWeight: 500, color: tile.subColor, margin: 0, opacity: 0.85 }}>
+            {tile.subtitle}
+          </p>
+        )}
       </div>
     </button>
   );
