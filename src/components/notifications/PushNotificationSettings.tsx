@@ -67,23 +67,24 @@ const PushNotificationSettings = ({ userId }: PushNotificationSettingsProps) => 
         return;
       }
 
-      // Fetch user summary preferences for scheduling
+      // Fetch user preferences for scheduling
       const { data: prefs } = await supabase
         .from("user_preferences")
-        .select("summary_day, summary_time")
+        .select("summary_day, summary_time, daily_reminder_time")
         .eq("user_id", userId)
         .maybeSingle();
 
-      const summaryDay = prefs?.summary_day || "saturday";
-      const summaryTime = prefs?.summary_time || "20:00";
+      const summaryDay        = prefs?.summary_day         || "saturday";
+      const summaryTime       = prefs?.summary_time        || "20:00";
+      const dailyReminderTime = (prefs as any)?.daily_reminder_time || "21:00";
 
-      await scheduleAllNotifications(summaryDay, summaryTime);
+      await scheduleAllNotifications(summaryDay, summaryTime, dailyReminderTime);
       localStorage.setItem("nestai-notifications-enabled", "true");
       setIsEnabled(true);
 
       toast({
         title: "התראות הופעלו",
-        description: "תקבל/י תזכורת יומית בשעה 20:00",
+        description: `תקבל/י שאלה יומית בשעה ${dailyReminderTime}`,
       });
     } catch (error: any) {
       console.error("Error enabling notifications:", error);

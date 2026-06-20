@@ -34,13 +34,27 @@ export const requestNotificationPermission = async (): Promise<"granted" | "deni
 };
 
 // ──── Notification IDs ────
-const DAILY_REMINDER_ID = 1001;
-const WEEKLY_SUMMARY_ID = 1002;
-const MONTHLY_SUMMARY_ID = 1003;
+const DAILY_REMINDER_ID   = 1001; // legacy single-ID, cancelled when rescheduling
+const WEEKLY_SUMMARY_ID   = 1002;
+const MONTHLY_SUMMARY_ID  = 1003;
+// 7 weekly-repeating IDs, one per weekday (Sun=1010 … Sat=1016)
+const DAILY_QUESTION_IDS  = [1010, 1011, 1012, 1013, 1014, 1015, 1016];
 const MANAGED_NOTIFICATION_IDS = [
   DAILY_REMINDER_ID,
   WEEKLY_SUMMARY_ID,
   MONTHLY_SUMMARY_ID,
+  ...DAILY_QUESTION_IDS,
+];
+
+// ──── Daily questions (index 0 = Sunday … 6 = Saturday) ────
+const DAILY_QUESTIONS = [
+  "מה הרגע אחד שגרם לך להרגיש שהיום היה שווה?",  // ראשון
+  "מה דבר אחד שהפתיע אותך היום?",                  // שני
+  "מה אתה גאה בו מהיום?",                          // שלישי
+  "מה למדת על עצמך היום?",                          // רביעי
+  "מה הדבר שנתת לעצמך היום?",                       // חמישי
+  "מה היה הרגע הכי שקט שלך השבוע?",                 // שישי
+  "מה אתה רוצה לקחת איתך לשבוע הבא?",              // שבת
 ];
 
 // ──── Cancel helpers ────
@@ -78,44 +92,41 @@ export const cancelDailyReminder = async (): Promise<void> => {
 
 // ──── Scheduling ────
 
-/** Schedule the daily 20:00 reminder (repeats every day) */
-export const scheduleDailyReminder = async (): Promise<void> => {
+/**
+ * Schedule 7 weekly-repeating local notifications — one per day of week,
+ * each with a different reflective question.
+ *
+ * Uses `schedule.on { weekday, hour, minute }` so the time is interpreted in
+ * the device's LOCAL timezone (correct for Israel-timezone devices).
+ * Cancel-then-reschedule is safe to call any time preferences change.
+ *
+ * @param time - "HH:MM" string, default "21:00"
+ */
+export const scheduleDailyReminder = async (time: string = "21:00"): Promise<void> => {
   if (!isNativeApp()) return;
 
-  // Only schedule if not already pending
-  const pending = await LocalNotifications.getPending();
-  const alreadyScheduled = pending.notifications.some(n => n.id === DAILY_REMINDER_ID);
-  if (alreadyScheduled) {
-    console.log("Local notification: Daily reminder already scheduled, skipping");
-    return;
-  }
+  // Cancel legacy single ID + all 7 per-day IDs
+  const toCancel = [{ id: DAILY_REMINDER_ID }, ...DAILY_QUESTION_IDS.map(id => ({ id }))];
+  try { await LocalNotifications.cancel({ notifications: toCancel }); } catch { /* ignore */ }
 
-  await cancelDailyReminder();
+  const { hours, minutes } = parseTime(time);
 
-  const now = new Date();
-  let trigger = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0, 0);
-  if (trigger <= now) {
-    trigger.setDate(trigger.getDate() + 1);
-  }
-
+  // weekday in Capacitor: 1 = Sunday, 2 = Monday, …, 7 = Saturday
   await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: DAILY_REMINDER_ID,
-        title: "NestAI",
-        body: "איך היה לך היום? זמן לכתוב ב-NestAI",
-        schedule: {
-          at: trigger,
-          repeats: true,
-          every: "day",
-        },
-        sound: "default",
-        actionTypeId: "DAILY_REMINDER",
-        extra: { url: "/app/dashboard?from=daily-reminder" },
+    notifications: DAILY_QUESTIONS.map((question, i) => ({
+      id: DAILY_QUESTION_IDS[i],
+      title: "NestAI ✍️",
+      body: question,
+      schedule: {
+        on: { weekday: i + 1, hour: hours, minute: minutes },
+        repeats: true,
       },
-    ],
+      sound: "default",
+      actionTypeId: "DAILY_REMINDER",
+      extra: { url: "/app/chat" },
+    })),
   });
-  console.log("Local notification: Daily reminder scheduled for 20:00");
+  console.log(`Local notification: Daily reminders scheduled at ${time} (7 weekday questions)`);
 };
 
 // ──── Day mapping ────
@@ -223,16 +234,21 @@ export const scheduleMonthlySummaryNotification = async (
 };
 
 /**
- * Schedule all notifications at once.
- * @param summaryDay - user's preferred summary day (e.g. "saturday")
- * @param summaryTime - user's preferred summary time (e.g. "20:00")
+ * Schedule all notifications at once using user preferences.
+ * Safe to call any time preferences change — each helper cancels its own IDs first.
+ *
+ * @param summaryDay        - weekly summary day, e.g. "saturday"
+ * @param summaryTime       - weekly summary time, e.g. "20:00"
+ * @param dailyReminderTime - daily question time, e.g. "21:00"
  */
 export const scheduleAllNotifications = async (
-  _summaryDay: string = "saturday",
-  _summaryTime: string = "20:00"
+  summaryDay: string         = "saturday",
+  summaryTime: string        = "20:00",
+  dailyReminderTime: string  = "21:00"
 ): Promise<void> => {
-  // Notifications are disabled — return immediately
-  return;
+  await scheduleDailyReminder(dailyReminderTime);
+  await scheduleWeeklySummaryNotification(summaryDay, summaryTime);
+  await scheduleMonthlySummaryNotification(summaryTime);
 };
 
 /** Fire an immediate local notification */

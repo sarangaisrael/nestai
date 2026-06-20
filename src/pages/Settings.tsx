@@ -19,6 +19,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import BackButton from "@/components/BackButton";
 import { Heart } from "lucide-react";
+import PushNotificationSettings from "@/components/PushNotificationSettings";
+import { scheduleDailyReminder, isNativeApp } from "@/lib/pushNotifications";
 
 
 const Settings = () => {
@@ -32,6 +34,7 @@ const Settings = () => {
   const [summaryEnabled, setSummaryEnabled] = useState(true);
   const [summaryDay, setSummaryDay] = useState("saturday");
   const [summaryTime, setSummaryTime] = useState("20:00");
+  const [dailyReminderTime, setDailyReminderTime] = useState("21:00");
 
 
 
@@ -61,7 +64,7 @@ const Settings = () => {
     try {
       const { data, error } = await supabase
         .from("user_preferences")
-        .select("weekly_summary_enabled, summary_day, summary_time")
+        .select("weekly_summary_enabled, summary_day, summary_time, daily_reminder_time")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -73,6 +76,7 @@ const Settings = () => {
         setSummaryEnabled(data.weekly_summary_enabled ?? true);
         setSummaryDay(data.summary_day);
         setSummaryTime(data.summary_time);
+        setDailyReminderTime((data as any).daily_reminder_time ?? "21:00");
       }
     } catch (error: any) {
       console.error("Error loading preferences:", error);
@@ -100,11 +104,19 @@ const Settings = () => {
         summary_day: summaryDay,
         summary_time: summaryTime,
         summary_timezone: "Asia/Jerusalem",
+        daily_reminder_time: dailyReminderTime,
       }, {
         onConflict: 'user_id'
       });
 
       if (error) throw error;
+
+      // Reschedule daily notifications with the new time (native only)
+      const notificationsEnabled =
+        localStorage.getItem("nestai-notifications-enabled") === "true";
+      if (isNativeApp() && notificationsEnabled) {
+        await scheduleDailyReminder(dailyReminderTime);
+      }
 
       toast({
         title: t.settings.saveSuccess,
@@ -220,9 +232,78 @@ const Settings = () => {
           </Button>
         </div>
 
+        {/* ── Daily reminder card ── */}
+        <div className="space-y-2">
+          <h2 className="text-[20px] font-semibold text-foreground">
+            {isRTL ? "התראות יומיות" : "Daily Reminders"}
+          </h2>
+          <p className="text-[15px] text-muted-foreground">
+            {isRTL
+              ? "שאלה יומית על גבי מסך הנעילה — משתנה לפי יום השבוע"
+              : "A daily question on your lock screen, different each day of the week"}
+          </p>
+        </div>
+
+        <div className="bg-card rounded-[20px] p-6 border border-border space-y-6 animate-slide-up">
+          {/* Enable / disable toggle — shown only on native iOS/Android */}
+          {user && <PushNotificationSettings userId={user.id} />}
+
+          {/* Time picker */}
+          <div className="space-y-2">
+            <label className="text-[15px] font-medium text-foreground block">
+              {isRTL ? "שעת ההתראה" : "Reminder time"}
+            </label>
+            <Select value={dailyReminderTime} onValueChange={setDailyReminderTime}>
+              <SelectTrigger className="w-full h-12 rounded-[14px] border text-[16px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 18 }, (_, i) => {
+                  const hour = (i + 6).toString().padStart(2, "0");
+                  return (
+                    <SelectItem key={hour} value={`${hour}:00`} className="text-[16px]">
+                      {hour}:00
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Questions preview */}
+          <div className="bg-muted/20 rounded-[14px] p-4 border border-border/50 space-y-2">
+            <p className="text-[13px] font-medium text-foreground">
+              {isRTL ? "השאלות השבועיות:" : "Weekly questions:"}
+            </p>
+            {[
+              { day: "ראשון", q: "מה הרגע שגרם לך להרגיש שהיום היה שווה?" },
+              { day: "שני",   q: "מה דבר אחד שהפתיע אותך היום?" },
+              { day: "שלישי", q: "מה אתה גאה בו מהיום?" },
+              { day: "רביעי", q: "מה למדת על עצמך היום?" },
+              { day: "חמישי", q: "מה הדבר שנתת לעצמך היום?" },
+              { day: "שישי",  q: "מה היה הרגע הכי שקט שלך השבוע?" },
+              { day: "שבת",   q: "מה אתה רוצה לקחת איתך לשבוע הבא?" },
+            ].map(({ day, q }) => (
+              <div key={day} className="flex gap-2 text-[12px]">
+                <span className="text-muted-foreground font-medium w-12 shrink-0">{day}</span>
+                <span className="text-foreground/70">{q}</span>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full h-12 text-[16px] rounded-[14px]"
+          >
+            <Save className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            {saving ? t.common.loading : t.common.save}
+          </Button>
+        </div>
+
         {/* Language Settings */}
         <div className="text-center text-[14px] text-muted-foreground bg-muted/30 rounded-[14px] p-4 border border-border/50">
-          {isRTL ? "ברירת מחדל: שבת בשעה 20:00" : "Default: Saturday at 20:00"}
+          {isRTL ? "ברירת מחדל: שבת בשעה 20:00 · התראה יומית בשעה 21:00" : "Default: Saturday at 20:00 · Daily reminder at 21:00"}
         </div>
 
 
