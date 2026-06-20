@@ -39,7 +39,8 @@ const Blog               = lazy(() => import("./pages/Blog"));
 const BlogPost           = lazy(() => import("./pages/BlogPost"));
 const Welcome            = lazy(() => import("./pages/Welcome"));
 const Register           = lazy(() => import("./pages/Register"));
-const ResetPassword      = lazy(() => import("./pages/ResetPassword"));
+const ResetPassword           = lazy(() => import("./pages/ResetPassword"));
+const NotificationOnboarding = lazy(() => import("./pages/NotificationOnboarding"));
 
 const queryClient = new QueryClient();
 
@@ -74,7 +75,8 @@ const App = () => (
               <Route path="/register"        element={<Register />} />
               <Route path="/reset-password"  element={<ResetPassword />} />
               <Route path="/privacy"      element={<Privacy />} />
-              <Route path="/app"          element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="/app"             element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="/app/onboarding" element={<Suspense fallback={<LoadingSpinner />}><NotificationOnboarding /></Suspense>} />
               <Route path="/app/auth"     element={<Auth />} />
               <Route path="/app/join"     element={<JoinReferral />} />
               <Route path="/app/install"  element={<InstallScreen />} />

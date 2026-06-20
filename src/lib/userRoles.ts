@@ -24,6 +24,17 @@ export const hasUserRole = async (userId: string, role: AppRole): Promise<boolea
 
 export const getDefaultRouteForUser = async (userId: string): Promise<string> => {
   try {
+    // New users have no user_preferences row; existing users have onboarding_completed = true.
+    const { data: prefs } = await supabase
+      .from("user_preferences")
+      .select("onboarding_completed")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!prefs || (prefs as any).onboarding_completed === false) {
+      return "/app/onboarding";
+    }
+
     const { data } = await supabase.auth.getUser();
     const authUser = data.user && data.user.id === userId ? data.user : null;
 
