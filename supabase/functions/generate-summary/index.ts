@@ -268,7 +268,7 @@ serve(async (req) => {
             userId: user.id,
             title: "סיכום שבועי חדש 📝",
             body: "הסיכום השבועי שלך מוכן לצפייה",
-            url: "/summary",
+            url: "/app/summary",
           }),
         });
 

@@ -347,11 +347,36 @@ export const registerForApnsPush = async (): Promise<void> => {
 export const registerNotificationListeners = (): void => {
   if (!isNativeApp()) return;
 
+  // Local notifications (daily questions, scheduled reminders)
   LocalNotifications.addListener("localNotificationActionPerformed", (notification) => {
     const url = notification.notification.extra?.url;
     if (url && typeof url === "string") {
       window.location.href = url;
     }
+  });
+
+  // Remote push notifications tapped while app is in background/closed (APNs)
+  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+    const url = (action.notification.data as Record<string, string>)?.url;
+    if (url && typeof url === "string") {
+      window.location.href = url;
+    }
+  });
+
+  // Remote push arrives while app is in foreground — show as local notification
+  PushNotifications.addListener("pushNotificationReceived", async (notification) => {
+    const url = (notification.data as Record<string, string>)?.url;
+    const title = notification.title ?? "NestAI";
+    const body  = notification.body  ?? "";
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: Date.now() % 100000,
+        title,
+        body,
+        sound: "default",
+        extra: url ? { url } : undefined,
+      }],
+    });
   });
 };
 
