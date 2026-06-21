@@ -10,6 +10,12 @@ const PAYPAL_CLIENT_ID =
 const PLAN_ID = "P-6BL08142MG162312XNI34GXA";
 const CONTAINER_ID = `paypal-button-container-${PLAN_ID}`;
 
+const freeUntilDate = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" });
+};
+
 const FEATURES = [
   { icon: "✅", text: "גישה מלאה לכל הפיצ'רים" },
   { icon: "📝", text: "תיעוד יומי ללא הגבלה" },
@@ -147,6 +153,16 @@ export default function MonthlySubscription() {
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginBottom: 4 }}>
             <span style={{ fontSize: 44, fontWeight: 900, color: "#0f172a", letterSpacing: "-1px" }}>₪29</span>
             <span style={{ fontSize: 15, color: "#94a3b8", fontWeight: 500 }}>/ חודש</span>
+          </div>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: "#f0fdf4", border: "1.5px solid #86efac",
+            borderRadius: 50, padding: "5px 14px", margin: "10px auto 6px",
+          }}>
+            <span style={{ fontSize: 13 }}>🎁</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#15803d" }}>
+              14 יום חינם — לא תחויב/י עד {freeUntilDate()}
+            </span>
           </div>
           <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>ביטול בכל עת • ללא התחייבות</p>
         </motion.div>

@@ -1093,6 +1093,11 @@ const LandingPage = () => {
 
       {/* ── Pricing section ── */}
       {content.show_pricing && (() => {
+        const freeUntil = (() => {
+          const d = new Date();
+          d.setDate(d.getDate() + 14);
+          return d.toLocaleDateString("he-IL", { day: "numeric", month: "long", year: "numeric" });
+        })();
         const features = [
           'גישה מלאה לכל הפיצ\'רים',
           'תיעוד יומי ללא הגבלה',
@@ -1207,6 +1212,16 @@ const LandingPage = () => {
                   ))}
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    background: '#f0fdf4', border: '1.5px solid #86efac',
+                    borderRadius: 50, padding: '5px 12px',
+                  }}>
+                    <span style={{ fontSize: 12 }}>🎁</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#15803d', fontFamily: F }}>
+                      14 יום חינם — לא תחויב/י עד {freeUntil}
+                    </span>
+                  </div>
                   <a
                     href="/month"
                     style={waBtn}
@@ -1214,7 +1229,7 @@ const LandingPage = () => {
                     מתחילים עכשיו
                   </a>
                   <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', fontFamily: F }}>
-                    נחזור אליכם תוך 24 שעות
+                    ביטול בכל עת • ללא התחייבות
                   </p>
                 </div>
               </div>
