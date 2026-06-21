@@ -47,7 +47,7 @@ export default function MonthlySubscription() {
         createSubscription: (_data: any, actions: any) =>
           actions.subscription.create({ plan_id: PLAN_ID }),
         onApprove: () => {
-          setPaid(true);
+          window.location.href = "/register?payment=success";
         },
       }).render(`#${CONTAINER_ID}`);
     };

@@ -74,8 +74,9 @@ const Register = () => {
   const location  = useLocation();
   const { toast } = useToast();
 
-  const searchParams = new URLSearchParams(location.search);
-  const referralCode = searchParams.get("ref")?.trim() ?? "";
+  const searchParams  = new URLSearchParams(location.search);
+  const referralCode  = searchParams.get("ref")?.trim() ?? "";
+  const paymentSuccess = searchParams.get("payment") === "success";
 
   const getReadableAuthError = (rawMessage?: string) => {
     const normalized = rawMessage?.toLowerCase().trim() ?? "";
@@ -282,6 +283,21 @@ const Register = () => {
         }}
       >
         <div style={{ maxWidth: 520, width: '100%', margin: '0 auto' }}>
+
+          {/* Payment success banner */}
+          {paymentSuccess && (
+            <div style={{
+              background: 'linear-gradient(135deg, #16a34a, #15803d)',
+              borderRadius: 12, padding: '14px 18px',
+              marginBottom: 20,
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <span style={{ fontSize: 20 }}>🎉</span>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#ffffff', lineHeight: 1.4 }}>
+                התשלום התקבל! צור/י חשבון כדי להתחיל
+              </p>
+            </div>
+          )}
 
           {/* Title */}
           <div style={{ marginBottom: 24 }}>
