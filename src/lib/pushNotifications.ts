@@ -123,7 +123,7 @@ export const scheduleDailyReminder = async (time: string = "21:00"): Promise<voi
       },
       sound: "default",
       actionTypeId: "DAILY_REMINDER",
-      extra: { url: "/app/chat" },
+      extra: { url: `/app/chat?q=${encodeURIComponent(question)}` },
     })),
   });
   console.log(`Local notification: Daily reminders scheduled at ${time} (7 weekday questions)`);
