@@ -116,9 +116,9 @@ const CSS = `
   }
   .lp-pricing-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
-    max-width: 960px;
+    max-width: 660px;
     margin: 0 auto;
   }
 
