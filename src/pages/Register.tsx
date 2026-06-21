@@ -106,6 +106,12 @@ const Register = () => {
           therapy_type: therapyType || null,
           summary_focus: summaryFocus,
         }, { onConflict: 'user_id' });
+
+        if (paymentSuccess) {
+          // Upgrade subscription to monthly (30 days) — overrides the default 14-day trial
+          // created by the DB trigger. Uses a security-definer RPC so no extra RLS policy needed.
+          await supabase.rpc("claim_monthly_subscription");
+        }
       }
       setLoading(false);
       setRegistrationDone(true);
