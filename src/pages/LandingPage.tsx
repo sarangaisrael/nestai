@@ -1208,13 +1208,10 @@ const LandingPage = () => {
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <a
-                    href="https://wa.me/9720537000277?text=היי, אני מעוניין/ת במנוי החודשי של NestAI (₪29 לחודש)"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/month"
                     style={waBtn}
                   >
-                    <WaSvg />
-                    צרו קשר בוואטסאפ
+                    מתחילים עכשיו
                   </a>
                   <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', fontFamily: F }}>
                     נחזור אליכם תוך 24 שעות
