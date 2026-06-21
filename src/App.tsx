@@ -41,6 +41,7 @@ const Welcome            = lazy(() => import("./pages/Welcome"));
 const Register           = lazy(() => import("./pages/Register"));
 const ResetPassword           = lazy(() => import("./pages/ResetPassword"));
 const NotificationOnboarding = lazy(() => import("./pages/NotificationOnboarding"));
+const MonthlySubscription    = lazy(() => import("./pages/MonthlySubscription"));
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const App = () => (
               {/* ── Auth / onboarding ── */}
               <Route path="/welcome"         element={<Welcome />} />
               <Route path="/register"        element={<Register />} />
+              <Route path="/month"           element={<Suspense fallback={<LoadingSpinner />}><MonthlySubscription /></Suspense>} />
               <Route path="/reset-password"  element={<ResetPassword />} />
               <Route path="/privacy"      element={<Privacy />} />
               <Route path="/app"             element={<Navigate to="/app/dashboard" replace />} />
