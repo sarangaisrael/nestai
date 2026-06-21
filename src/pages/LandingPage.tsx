@@ -1219,7 +1219,7 @@ const LandingPage = () => {
                   }}>
                     <span style={{ fontSize: 12 }}>🎁</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#15803d', fontFamily: F }}>
-                      14 יום חינם — לא תחויב/י עד {freeUntil}
+                      14 יום חינם
                     </span>
                   </div>
                   <a

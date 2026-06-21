@@ -161,7 +161,7 @@ export default function MonthlySubscription() {
           }}>
             <span style={{ fontSize: 13 }}>🎁</span>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#15803d" }}>
-              14 יום חינם — לא תחויב/י עד {freeUntilDate()}
+              14 יום חינם
             </span>
           </div>
           <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>ביטול בכל עת • ללא התחייבות</p>
