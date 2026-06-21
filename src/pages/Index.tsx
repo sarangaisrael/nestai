@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +36,11 @@ const Index = () => {
   const inputBeforeRecordingRef = useRef<string>("");
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Question passed via ?q= from a daily notification tap
+  const notificationQuestion = new URLSearchParams(location.search).get("q") ?? "";
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +63,7 @@ const Index = () => {
         navigate("/app/auth");
       } else {
         setUser(session.user);
-        loadMessages(session.user.id);
+        loadMessages(session.user.id, notificationQuestion || undefined);
       }
     }).catch(err => {
       console.error("Session fetch failed:", err);
@@ -77,14 +81,25 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const loadMessages = async (userId: string) => {
+  const loadMessages = async (userId: string, initialQuestion?: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('decrypt-messages', { body: { source: 'chat' } });
       if (error) {
         console.error("Error loading messages:", error);
         return;
       }
-      setMessages((data?.messages || []) as Message[]);
+      const loaded = (data?.messages || []) as Message[];
+      if (initialQuestion) {
+        const notifMsg: Message = {
+          id: `notification-q-${Date.now()}`,
+          text: initialQuestion,
+          role: "assistant",
+          created_at: new Date().toISOString(),
+        };
+        setMessages([notifMsg, ...loaded]);
+      } else {
+        setMessages(loaded);
+      }
     } catch (err) {
       console.error("Error loading messages:", err);
     }
@@ -139,7 +154,7 @@ const Index = () => {
 
     try {
       const { data: functionData, error: functionError } = await supabase.functions.invoke('chat', {
-        body: { message: messageText, userId: user.id }
+        body: { message: messageText, userId: user.id, ...(notificationQuestion ? { initialQuestion: notificationQuestion } : {}) }
       });
       if (functionError) throw functionError;
 

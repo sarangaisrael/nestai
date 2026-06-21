@@ -3,13 +3,6 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-// ── Time option arrays ────────────────────────────────────────────────────────
-const SLEEP_OPTIONS = [
-  "20:00","21:00","22:00","23:00","00:00","01:00","02:00","03:00",
-];
-const WAKE_OPTIONS = [
-  "04:00","05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00",
-];
 const QUALITY_OPTIONS = [
   { value: 1, emoji: "😴", label: "גרוע" },
   { value: 2, emoji: "😕", label: "לא טוב" },
@@ -118,20 +111,21 @@ const SleepCard = () => {
   // Not morning, already logged, or still checking → render nothing
   if (visible !== true) return null;
 
-  const selectStyle: React.CSSProperties = {
+  const timeInputStyle: React.CSSProperties = {
     flex: 1,
     background: "#f8fafc",
     border: "1px solid #e2e8f0",
     borderRadius: 10,
     padding: "8px 10px",
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: 600,
     color: "#0f172a",
     fontFamily: "'Heebo', sans-serif",
-    cursor: "pointer",
-    appearance: "none" as const,
-    WebkitAppearance: "none" as const,
     textAlign: "center" as const,
+    WebkitAppearance: "none" as const,
+    outline: "none",
+    width: "100%",
+    boxSizing: "border-box" as const,
   };
 
   return (
@@ -167,15 +161,12 @@ const SleepCard = () => {
           <label style={{ fontSize: 10, fontWeight: 700, color: "#7c3aed", textAlign: "center" }}>
             הלכתי לישון
           </label>
-          <select
+          <input
+            type="time"
             value={sleepTime}
             onChange={(e) => setSleepTime(e.target.value)}
-            style={selectStyle}
-          >
-            {SLEEP_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
+            style={timeInputStyle}
+          />
         </div>
 
         {/* Wake time */}
@@ -183,15 +174,12 @@ const SleepCard = () => {
           <label style={{ fontSize: 10, fontWeight: 700, color: "#7c3aed", textAlign: "center" }}>
             התעוררתי
           </label>
-          <select
+          <input
+            type="time"
             value={wakeTime}
             onChange={(e) => setWakeTime(e.target.value)}
-            style={selectStyle}
-          >
-            {WAKE_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
+            style={timeInputStyle}
+          />
         </div>
       </div>
 

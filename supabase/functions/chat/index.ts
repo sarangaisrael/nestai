@@ -109,7 +109,9 @@ serve(async (req) => {
     console.log("[chat] ── STEP 3: parsing request body");
     const body = await req.json();
     const message: string = body?.message;
+    const initialQuestion: string | undefined = typeof body?.initialQuestion === "string" ? body.initialQuestion : undefined;
     console.log("[chat] message length:", message?.length ?? "undefined");
+    if (initialQuestion) console.log("[chat] initialQuestion present, length:", initialQuestion.length);
 
     if (!message || typeof message !== "string") {
       console.error("[chat] Missing or invalid message field");
@@ -217,6 +219,7 @@ serve(async (req) => {
     console.log("[chat] ── STEP 7: calling Gemini gemini-2.5-flash");
     const aiPayload = [
       { role: "system", content: systemPrompt },
+      ...(initialQuestion ? [{ role: "assistant", content: initialQuestion }] : []),
       ...conversationHistory,
       { role: "user", content: message },
     ];
