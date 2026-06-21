@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 declare global {
   interface Window { paypal?: any; }
@@ -11,18 +11,18 @@ const PLAN_ID = "P-6BL08142MG162312XNI34GXA";
 const CONTAINER_ID = `paypal-button-container-${PLAN_ID}`;
 
 const FEATURES = [
-  { icon: "🧠", text: "סיכומים שבועיים חכמים מבוססי AI" },
-  { icon: "📊", text: "ניתוח מגמות ודפוסים חודשי" },
-  { icon: "🔒", text: "הצפנה מלאה — רק אתה/את קורא/ת" },
-  { icon: "💬", text: "שיחה חופשית עם NestAI ללא הגבלה" },
-  { icon: "🌙", text: "מעקב שינה ומצב רוח" },
-  { icon: "✨", text: "כלי מדיטציה ורפלקציה" },
+  { icon: "✅", text: "גישה מלאה לכל הפיצ'רים" },
+  { icon: "📝", text: "תיעוד יומי ללא הגבלה" },
+  { icon: "📋", text: "סיכום שבועי אוטומטי" },
+  { icon: "📊", text: "מעקב מגמות רגשיות" },
+  { icon: "💬", text: "צ'אט AI בין הפגישות" },
 ];
 
 export default function MonthlySubscription() {
-  const btnRef      = useRef<HTMLDivElement>(null);
-  const rendered    = useRef(false);
-  const scriptRef   = useRef<HTMLScriptElement | null>(null);
+  const btnRef    = useRef<HTMLDivElement>(null);
+  const rendered  = useRef(false);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const [paid, setPaid] = useState(false);
 
   useEffect(() => {
     if (scriptRef.current) return;
@@ -46,8 +46,8 @@ export default function MonthlySubscription() {
         },
         createSubscription: (_data: any, actions: any) =>
           actions.subscription.create({ plan_id: PLAN_ID }),
-        onApprove: (_data: any) => {
-          window.location.href = "/app/dashboard";
+        onApprove: () => {
+          setPaid(true);
         },
       }).render(`#${CONTAINER_ID}`);
     };
@@ -145,7 +145,7 @@ export default function MonthlySubscription() {
           }}
         >
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginBottom: 4 }}>
-            <span style={{ fontSize: 44, fontWeight: 900, color: "#0f172a", letterSpacing: "-1px" }}>₪39</span>
+            <span style={{ fontSize: 44, fontWeight: 900, color: "#0f172a", letterSpacing: "-1px" }}>₪29</span>
             <span style={{ fontSize: 15, color: "#94a3b8", fontWeight: 500 }}>/ חודש</span>
           </div>
           <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>ביטול בכל עת • ללא התחייבות</p>
@@ -168,37 +168,85 @@ export default function MonthlySubscription() {
             <div key={text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 18, flexShrink: 0, width: 28, textAlign: "center" }}>{icon}</span>
               <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>{text}</span>
-              <span style={{ marginRight: "auto", color: "#6366f1", fontSize: 14, fontWeight: 700 }}>✓</span>
             </div>
           ))}
         </motion.div>
 
-        {/* PayPal button */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          style={{
-            background: "#ffffff", borderRadius: 20,
-            border: "1.5px solid #e2e8f0",
-            padding: "24px 24px 20px",
-            marginBottom: 16,
-          }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: "0 0 16px", textAlign: "center" }}>
-            התחל/י את המנוי
-          </p>
-          <div id={CONTAINER_ID} ref={btnRef} />
-        </motion.div>
+        {/* PayPal button / Success message */}
+        <AnimatePresence mode="wait">
+          {paid ? (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.35 }}
+              style={{
+                background: "linear-gradient(135deg, #16a34a, #15803d)",
+                borderRadius: 20,
+                padding: "32px 28px",
+                marginBottom: 16,
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+              <p style={{
+                fontSize: 18, fontWeight: 800, color: "#ffffff",
+                margin: "0 0 10px", lineHeight: 1.4,
+              }}>
+                התשלום התקבל!
+              </p>
+              <p style={{
+                fontSize: 14, color: "rgba(255,255,255,0.85)",
+                margin: "0 0 24px", lineHeight: 1.6,
+              }}>
+                המנוי שלך יופעל בשעות הקרובות 🎉
+              </p>
+              <a
+                href="/app/dashboard"
+                style={{
+                  display: "inline-block",
+                  background: "rgba(255,255,255,0.2)",
+                  border: "1.5px solid rgba(255,255,255,0.4)",
+                  borderRadius: 12, padding: "10px 24px",
+                  fontSize: 14, fontWeight: 700, color: "#ffffff",
+                  textDecoration: "none",
+                }}
+              >
+                חזרה לאפליקציה ←
+              </a>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="paypal"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              style={{
+                background: "#ffffff", borderRadius: 20,
+                border: "1.5px solid #e2e8f0",
+                padding: "24px 24px 20px",
+                marginBottom: 16,
+              }}
+            >
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", margin: "0 0 16px", textAlign: "center" }}>
+                התחל/י את המנוי
+              </p>
+              <div id={CONTAINER_ID} ref={btnRef} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Trust */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 6, color: "#94a3b8", fontSize: 11,
-        }}>
-          <span>🔒</span>
-          <span>תשלום מאובטח דרך PayPal • הנתונים שלך מוצפנים ופרטיים</span>
-        </div>
+        {!paid && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 6, color: "#94a3b8", fontSize: 11,
+          }}>
+            <span>🔒</span>
+            <span>תשלום מאובטח דרך PayPal • הנתונים שלך מוצפנים ופרטיים</span>
+          </div>
+        )}
       </div>
     </div>
   );
