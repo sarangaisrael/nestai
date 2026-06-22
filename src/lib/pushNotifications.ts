@@ -37,12 +37,14 @@ export const requestNotificationPermission = async (): Promise<"granted" | "deni
 const DAILY_REMINDER_ID   = 1001; // legacy single-ID, cancelled when rescheduling
 const WEEKLY_SUMMARY_ID   = 1002;
 const MONTHLY_SUMMARY_ID  = 1003;
+const SLEEP_REMINDER_ID   = 1004;
 // 7 weekly-repeating IDs, one per weekday (Sun=1010 … Sat=1016)
 const DAILY_QUESTION_IDS  = [1010, 1011, 1012, 1013, 1014, 1015, 1016];
 const MANAGED_NOTIFICATION_IDS = [
   DAILY_REMINDER_ID,
   WEEKLY_SUMMARY_ID,
   MONTHLY_SUMMARY_ID,
+  SLEEP_REMINDER_ID,
   ...DAILY_QUESTION_IDS,
 ];
 
@@ -241,6 +243,35 @@ export const scheduleMonthlySummaryNotification = async (
  * @param summaryTime       - weekly summary time, e.g. "20:00"
  * @param dailyReminderTime - daily question time, e.g. "21:00"
  */
+/**
+ * Schedule a daily sleep-log reminder at 07:30 every morning.
+ * Tapping it navigates to the dashboard where the SleepCard is shown.
+ */
+export const scheduleSleepReminder = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+
+  try {
+    await LocalNotifications.cancel({ notifications: [{ id: SLEEP_REMINDER_ID }] });
+  } catch { /* ignore */ }
+
+  const now = new Date();
+  const trigger = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 30, 0);
+  if (trigger <= now) trigger.setDate(trigger.getDate() + 1);
+
+  await LocalNotifications.schedule({
+    notifications: [{
+      id: SLEEP_REMINDER_ID,
+      title: "NestAI",
+      body: "בוקר טוב 🌤️ איך ישנת הלילה?",
+      schedule: { at: trigger, repeats: true, every: "day" },
+      sound: "default",
+      actionTypeId: "SLEEP_REMINDER",
+      extra: { url: "/app/dashboard" },
+    }],
+  });
+  console.log("Local notification: Sleep reminder scheduled daily at 07:30");
+};
+
 export const scheduleAllNotifications = async (
   summaryDay: string         = "saturday",
   summaryTime: string        = "20:00",
@@ -249,6 +280,7 @@ export const scheduleAllNotifications = async (
   await scheduleDailyReminder(dailyReminderTime);
   await scheduleWeeklySummaryNotification(summaryDay, summaryTime);
   await scheduleMonthlySummaryNotification(summaryTime);
+  await scheduleSleepReminder();
 };
 
 /** Fire an immediate local notification */

@@ -5,6 +5,7 @@ import {
   isNativeApp,
   requestNotificationPermission,
   scheduleDailyReminder,
+  scheduleSleepReminder,
 } from "@/lib/pushNotifications";
 
 const HOURS = Array.from({ length: 18 }, (_, i) => {
@@ -38,6 +39,7 @@ const NotificationOnboarding = () => {
         const perm = await requestNotificationPermission();
         if (perm === "granted") {
           await scheduleDailyReminder(time);
+          await scheduleSleepReminder();
           localStorage.setItem("nestai-notifications-enabled", "true");
         } else {
           setDenied(true);
