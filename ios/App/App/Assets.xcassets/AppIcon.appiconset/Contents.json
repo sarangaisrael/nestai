@@ -97,6 +97,12 @@
       "size": "76x76"
     },
     {
+      "filename": "Icon-83.5@2x.png",
+      "idiom": "ipad",
+      "scale": "2x",
+      "size": "83.5x83.5"
+    },
+    {
       "filename": "Icon-1024@1x.png",
       "idiom": "ios-marketing",
       "scale": "1x",
