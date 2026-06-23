@@ -42,6 +42,7 @@ const Register           = lazy(() => import("./pages/Register"));
 const ResetPassword           = lazy(() => import("./pages/ResetPassword"));
 const NotificationOnboarding = lazy(() => import("./pages/NotificationOnboarding"));
 const MonthlySubscription    = lazy(() => import("./pages/MonthlySubscription"));
+const SleepMonitorPage       = lazy(() => import("./pages/SleepMonitorPage"));
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/app/meditation"       element={<AppLayout><Meditation /></AppLayout>} />
               <Route path="/app/journal"          element={<AppLayout><JournalPage /></AppLayout>} />
               <Route path="/app/patterns"         element={<AppLayout><PatternsInsights /></AppLayout>} />
+              <Route path="/app/sleep"            element={<AppLayout><SleepMonitorPage /></AppLayout>} />
               <Route path="/app/privacy"          element={<AppLayout><Privacy /></AppLayout>} />
               <Route path="/app/support"          element={<AppLayout><Support /></AppLayout>} />
 

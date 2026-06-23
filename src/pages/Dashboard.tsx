@@ -9,7 +9,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import HeroJournalCard from "@/components/dashboard/HeroJournalCard";
 import GrowthMeterCard from "@/components/dashboard/GrowthMeterCard";
-import SleepCard from "@/components/dashboard/SleepCard"
+import SleepCard from "@/components/dashboard/SleepCard";
+import SleepMonitorCard from "@/components/dashboard/SleepMonitorCard";
 import TraumaCard from "@/components/dashboard/TraumaCard";
 import ActionGrid from "@/components/dashboard/ActionGrid";
 import ToolboxCarousel from "@/components/dashboard/ToolboxCarousel";
@@ -372,6 +373,7 @@ const Dashboard = () => {
           <HeroJournalCard />
           <GrowthMeterCard />
           <SleepCard />
+          <SleepMonitorCard />
           <TraumaCard />
           <ActionGrid />
           <ToolboxCarousel />
