@@ -20,7 +20,7 @@ import AppHeader from "@/components/AppHeader";
 import BackButton from "@/components/BackButton";
 import { Heart } from "lucide-react";
 import PushNotificationSettings from "@/components/PushNotificationSettings";
-import { scheduleDailyReminder, isNativeApp } from "@/lib/pushNotifications";
+import { scheduleDailyReminder, scheduleSleepReminder, cancelSleepReminder, isNativeApp } from "@/lib/pushNotifications";
 
 
 const Settings = () => {
@@ -35,6 +35,8 @@ const Settings = () => {
   const [summaryDay, setSummaryDay] = useState("saturday");
   const [summaryTime, setSummaryTime] = useState("20:00");
   const [dailyReminderTime, setDailyReminderTime] = useState("21:00");
+  const [sleepReminderEnabled, setSleepReminderEnabled] = useState(true);
+  const [sleepReminderTime, setSleepReminderTime] = useState("07:30");
 
 
 
@@ -64,7 +66,7 @@ const Settings = () => {
     try {
       const { data, error } = await supabase
         .from("user_preferences")
-        .select("weekly_summary_enabled, summary_day, summary_time, daily_reminder_time")
+        .select("weekly_summary_enabled, summary_day, summary_time, daily_reminder_time, sleep_reminder_enabled, sleep_reminder_time")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -77,6 +79,8 @@ const Settings = () => {
         setSummaryDay(data.summary_day);
         setSummaryTime(data.summary_time);
         setDailyReminderTime((data as any).daily_reminder_time ?? "21:00");
+        setSleepReminderEnabled((data as any).sleep_reminder_enabled ?? true);
+        setSleepReminderTime((data as any).sleep_reminder_time ?? "07:30");
       }
     } catch (error: any) {
       console.error("Error loading preferences:", error);
@@ -105,17 +109,24 @@ const Settings = () => {
         summary_time: summaryTime,
         summary_timezone: "Asia/Jerusalem",
         daily_reminder_time: dailyReminderTime,
+        sleep_reminder_enabled: sleepReminderEnabled,
+        sleep_reminder_time: sleepReminderTime,
       }, {
         onConflict: 'user_id'
       });
 
       if (error) throw error;
 
-      // Reschedule daily notifications with the new time (native only)
+      // Reschedule notifications with new settings (native only)
       const notificationsEnabled =
         localStorage.getItem("nestai-notifications-enabled") === "true";
       if (isNativeApp() && notificationsEnabled) {
         await scheduleDailyReminder(dailyReminderTime);
+        if (sleepReminderEnabled) {
+          await scheduleSleepReminder(sleepReminderTime);
+        } else {
+          await cancelSleepReminder();
+        }
       }
 
       toast({
@@ -290,6 +301,70 @@ const Settings = () => {
               </div>
             ))}
           </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full h-12 text-[16px] rounded-[14px]"
+          >
+            <Save className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            {saving ? t.common.loading : t.common.save}
+          </Button>
+        </div>
+
+        {/* ── Sleep reminder card ── */}
+        <div className="space-y-2">
+          <h2 className="text-[20px] font-semibold text-foreground">
+            {isRTL ? "התראת שינה בוקרית" : "Morning Sleep Reminder"}
+          </h2>
+          <p className="text-[15px] text-muted-foreground">
+            {isRTL
+              ? "תזכורת בבוקר לתעד את נתוני השינה שלך"
+              : "A morning nudge to log your sleep data"}
+          </p>
+        </div>
+
+        <div className="bg-card rounded-[20px] p-6 border border-border space-y-6 animate-slide-up">
+          {/* Enable / disable toggle */}
+          <div className="flex items-center justify-between py-3 px-4 bg-muted/20 rounded-[14px] border border-border/50">
+            <div className="space-y-1">
+              <label className="text-[15px] font-medium text-foreground block">
+                {isRTL ? "הפעל התראת שינה" : "Enable sleep reminder"}
+              </label>
+              <p className="text-[13px] text-muted-foreground">
+                {isRTL ? "בוקר טוב 🌤️ איך ישנת הלילה?" : "Good morning 🌤️ How did you sleep?"}
+              </p>
+            </div>
+            <Switch
+              checked={sleepReminderEnabled}
+              onCheckedChange={setSleepReminderEnabled}
+            />
+          </div>
+
+          {/* Time picker — shown only when enabled */}
+          {sleepReminderEnabled && (
+            <div className="space-y-2">
+              <label className="text-[15px] font-medium text-foreground block">
+                {isRTL ? "שעת ההתראה" : "Reminder time"}
+              </label>
+              <Select value={sleepReminderTime} onValueChange={setSleepReminderTime}>
+                <SelectTrigger className="w-full h-12 rounded-[14px] border text-[16px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const hour = (i + 5).toString().padStart(2, "0");
+                    return (
+                      <>
+                        <SelectItem key={`${hour}:00`} value={`${hour}:00`} className="text-[16px]">{hour}:00</SelectItem>
+                        <SelectItem key={`${hour}:30`} value={`${hour}:30`} className="text-[16px]">{hour}:30</SelectItem>
+                      </>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Button
             onClick={handleSave}

@@ -244,18 +244,20 @@ export const scheduleMonthlySummaryNotification = async (
  * @param dailyReminderTime - daily question time, e.g. "21:00"
  */
 /**
- * Schedule a daily sleep-log reminder at 07:30 every morning.
+ * Schedule a daily sleep-log reminder at the given time every morning.
  * Tapping it navigates to the dashboard where the SleepCard is shown.
+ * @param time - "HH:MM" string, default "07:30"
  */
-export const scheduleSleepReminder = async (): Promise<void> => {
+export const scheduleSleepReminder = async (time: string = "07:30"): Promise<void> => {
   if (!isNativeApp()) return;
 
   try {
     await LocalNotifications.cancel({ notifications: [{ id: SLEEP_REMINDER_ID }] });
   } catch { /* ignore */ }
 
+  const { hours, minutes } = parseTime(time);
   const now = new Date();
-  const trigger = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 30, 0);
+  const trigger = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
   if (trigger <= now) trigger.setDate(trigger.getDate() + 1);
 
   await LocalNotifications.schedule({
@@ -269,18 +271,31 @@ export const scheduleSleepReminder = async (): Promise<void> => {
       extra: { url: "/app/dashboard" },
     }],
   });
-  console.log("Local notification: Sleep reminder scheduled daily at 07:30");
+  console.log(`Local notification: Sleep reminder scheduled daily at ${time}`);
+};
+
+export const cancelSleepReminder = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  try {
+    await LocalNotifications.cancel({ notifications: [{ id: SLEEP_REMINDER_ID }] });
+  } catch { /* ignore */ }
 };
 
 export const scheduleAllNotifications = async (
   summaryDay: string         = "saturday",
   summaryTime: string        = "20:00",
-  dailyReminderTime: string  = "21:00"
+  dailyReminderTime: string  = "21:00",
+  sleepReminderEnabled: boolean = true,
+  sleepReminderTime: string  = "07:30"
 ): Promise<void> => {
   await scheduleDailyReminder(dailyReminderTime);
   await scheduleWeeklySummaryNotification(summaryDay, summaryTime);
   await scheduleMonthlySummaryNotification(summaryTime);
-  await scheduleSleepReminder();
+  if (sleepReminderEnabled) {
+    await scheduleSleepReminder(sleepReminderTime);
+  } else {
+    await cancelSleepReminder();
+  }
 };
 
 /** Fire an immediate local notification */
