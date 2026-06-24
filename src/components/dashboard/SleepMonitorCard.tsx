@@ -34,10 +34,8 @@ function shortDay(dateStr: string): string {
 
 const SleepMonitorCard = () => {
   const navigate = useNavigate();
-  const [logs, setLogs]           = useState<SleepLog[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [insight, setInsight]     = useState<string | null>(null);
-  const [insightLoading, setInsightLoading] = useState(false);
+  const [logs, setLogs]       = useState<SleepLog[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -54,24 +52,7 @@ const SleepMonitorCard = () => {
           .lte("date", weekDates[6])
           .order("date", { ascending: true });
 
-        const loaded = (data ?? []) as SleepLog[];
-        setLogs(loaded);
-
-        // Only fetch AI insight if there are at least 2 nights logged
-        const valid = loaded.filter(l => l.sleep_hours && l.sleep_hours > 0);
-        if (valid.length >= 2) {
-          setInsightLoading(true);
-          try {
-            const { data: aiData, error } = await supabase.functions.invoke("sleep-insight");
-            if (!error && aiData?.insight) {
-              setInsight(aiData.insight);
-            }
-          } catch {
-            // silent — no insight shown
-          } finally {
-            setInsightLoading(false);
-          }
-        }
+        setLogs((data ?? []) as SleepLog[]);
       } catch {
         // silent fail
       } finally {
@@ -155,38 +136,12 @@ const SleepMonitorCard = () => {
         })}
       </div>
 
-      {/* Insight area */}
-      {valid.length === 0 ? (
+      {valid.length === 0 && (
         <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, textAlign: "center" }}>
           עוד לא נרשמו נתוני שינה השבוע
         </p>
-      ) : insightLoading ? (
-        <div style={{
-          background: "#f8f7ff", borderRadius: 10, padding: "8px 12px",
-          display: "flex", alignItems: "center", gap: 8,
-        }}>
-          <div style={{ display: "flex", gap: 4 }}>
-            {[0, 150, 300].map(delay => (
-              <div key={delay} style={{
-                width: 5, height: 5, borderRadius: "50%",
-                background: "#a5b4fc",
-                animation: "bounce 1s infinite",
-                animationDelay: `${delay}ms`,
-              }} />
-            ))}
-          </div>
-          <span style={{ fontSize: 11, color: "#7c3aed" }}>מנתח שינה ומצב רגשי...</span>
-        </div>
-      ) : insight ? (
-        <div style={{
-          background: "#f8f7ff", borderRadius: 10, padding: "8px 12px",
-          fontSize: 12, color: "#4c1d95", lineHeight: 1.6, fontWeight: 500,
-        }}>
-          💡 {insight}
-        </div>
-      ) : null}
+      )}
 
-      {/* Tap hint */}
       <p style={{ fontSize: 11, color: "#cbd5e1", margin: "10px 0 0", textAlign: "center" }}>
         לחץ לפרטים נוספים ←
       </p>
