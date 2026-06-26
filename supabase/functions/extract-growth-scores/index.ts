@@ -104,11 +104,17 @@ serve(async (req) => {
       });
     }
 
-    // Decrypt summary_text if needed
+    // Decrypt summary_text if needed; fail hard if we can't — don't pass ciphertext to Gemini
     let summaryText: string = row.summary_text ?? "";
     if (looksEncrypted(summaryText)) {
-      try { summaryText = await decryptText(summaryText, ENCRYPTION_KEY); }
-      catch { /* use raw */ }
+      try {
+        summaryText = await decryptText(summaryText, ENCRYPTION_KEY);
+      } catch {
+        console.error("extract-growth-scores: decryption failed for summary", summary_id);
+        return new Response(JSON.stringify({ error: "Cannot decrypt summary" }), {
+          status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (!summaryText.trim()) {

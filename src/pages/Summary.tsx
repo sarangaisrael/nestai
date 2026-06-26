@@ -112,8 +112,11 @@ const Summary = () => {
           const response = await supabase.functions.invoke('get-decrypted-summary', {
             body: { summary_id: summary.id },
           });
-          if (response.data?.summary_text) {
-            summary.summary_text = response.data.summary_text;
+          // Always overwrite — even with "" — so the raw encrypted blob is never displayed
+          if (!response.error) {
+            summary.summary_text = response.data?.summary_text ?? "";
+          } else {
+            summary.summary_text = "";
           }
         } catch (e) {
           console.error("Failed to decrypt summary", summary.id, e);
@@ -362,7 +365,11 @@ const Summary = () => {
               </div>
 
               <div className="prose prose-sm max-w-none">
-                <p className="text-[16px] leading-relaxed whitespace-pre-wrap">{currentSummary.summary_text}</p>
+                {currentSummary.summary_text ? (
+                  <p className="text-[16px] leading-relaxed whitespace-pre-wrap">{currentSummary.summary_text}</p>
+                ) : (
+                  <p className="text-[14px] text-muted-foreground text-center py-6">הסיכום אינו זמין כרגע</p>
+                )}
               </div>
 
               {/* Emotion Meter */}

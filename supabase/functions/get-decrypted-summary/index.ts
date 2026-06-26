@@ -120,13 +120,13 @@ serve(async (req: Request) => {
       );
     }
 
-    // Decrypt if needed; fall back to raw text if decryption fails
+    // Decrypt if needed; return empty string if decryption fails (never expose raw ciphertext)
     let summary_text: string = row.summary_text;
     if (looksEncrypted(summary_text)) {
       try {
         summary_text = await decryptText(summary_text, MESSAGE_ENCRYPTION_KEY);
       } catch {
-        // Not actually encrypted or wrong key — return raw
+        summary_text = "";
       }
     }
 
