@@ -76,8 +76,6 @@ function getGreeting(): string {
   return "ערב טוב 🌙";
 }
 
-function pad2(n: number) { return String(n).padStart(2, "0"); }
-
 function calcSleepHours(sleep: string, wake: string): number | null {
   if (!sleep || !wake) return null;
   const [sh, sm] = sleep.split(":").map(Number);
@@ -125,6 +123,12 @@ const Home = () => {
   const [streak, setStreak]         = useState(0);
   const [loading, setLoading]       = useState(true);
   const [hasWeeklySummary, setHasWeeklySummary] = useState(false);
+  const [totalCheckins, setTotalCheckins] = useState(0);
+
+  // Quick journal state
+  const [quickNote, setQuickNote]   = useState("");
+  const [savingQuick, setSavingQuick] = useState(false);
+  const [quickSaved, setQuickSaved] = useState(false);
 
   // Sleep card state
   const [sleepTime, setSleepTime]   = useState("23:00");
@@ -160,6 +164,7 @@ const Home = () => {
       { data: weekCheckins },
       { data: todaySleep },
       { data: summaries },
+      { count: checkinCount },
     ] = await Promise.all([
       supabase.from("user_settings").select("*").eq("user_id", uid).maybeSingle(),
       supabase.from("daily_checkins").select("*").eq("user_id", uid).eq("date", today).maybeSingle(),
@@ -167,6 +172,7 @@ const Home = () => {
       supabase.from("daily_checkins").select("date, mood").eq("user_id", uid).gte("date", weekStart).lte("date", today).order("date"),
       supabase.from("sleep_logs").select("sleep_hours, sleep_quality, sleep_time, wake_time").eq("user_id", uid).eq("date", today).maybeSingle(),
       supabase.from("weekly_summaries").select("id").eq("user_id", uid).order("created_at", { ascending: false }).limit(1),
+      supabase.from("daily_checkins").select("id", { count: "exact", head: true }).eq("user_id", uid),
     ]);
 
     const s = settingsRow ?? { checkin_time: "20:00", sleep_reminder_time: "08:00", sleep_reminder_enabled: true };
@@ -177,6 +183,7 @@ const Home = () => {
     setSleepData(todaySleep as SleepData | null);
     setSleepLogged(!!todaySleep && (todaySleep.sleep_hours ?? 0) > 0);
     setHasWeeklySummary((summaries ?? []).length > 0);
+    setTotalCheckins(checkinCount ?? 0);
     setAppState(getAppState(s.checkin_time, !!todayCheckin));
 
     const streakVal = await fetchStreak(uid);
@@ -215,6 +222,20 @@ const Home = () => {
     setCheckin({ mood: selectedMood, activities: selectedActivities, note, created_at: new Date().toISOString() });
     setAppState("done");
     setSavingCheckin(false);
+  };
+
+  // ── Save quick journal entry ────────────────────────────────────────────────
+  const saveQuickNote = async () => {
+    if (!userId || !quickNote.trim()) return;
+    setSavingQuick(true);
+    await supabase.from("journal_entries").insert({
+      user_id: userId,
+      content: quickNote.trim(),
+    });
+    setQuickNote("");
+    setQuickSaved(true);
+    setSavingQuick(false);
+    setTimeout(() => setQuickSaved(false), 2500);
   };
 
   if (loading) {
@@ -557,10 +578,85 @@ const Home = () => {
           </motion.div>
         )}
 
-        {/* ── Countdown timer (daytime + morning) ─────────────────────── */}
-        {(isMorning || appState === "daytime") && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <CheckinTimer checkinTime={settings.checkin_time} />
+        {/* ── Quick journal card (always visible) ──────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e2e8f0", padding: "14px 16px", marginBottom: 14 }}>
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, color: "#0f172a" }}>📓 כתיבה מהירה</p>
+            <textarea
+              value={quickNote}
+              onChange={e => setQuickNote(e.target.value)}
+              rows={3}
+              placeholder="מה עובר עליך עכשיו?"
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 10,
+                border: "1px solid #e2e8f0", fontSize: 14, fontFamily: "'Heebo', sans-serif",
+                resize: "none", background: "#f8fafc", boxSizing: "border-box",
+                marginBottom: 10, outline: "none",
+              }}
+            />
+            <button
+              onClick={saveQuickNote}
+              disabled={!quickNote.trim() || savingQuick}
+              style={{
+                width: "100%", padding: "10px", borderRadius: 10, border: "none",
+                background: quickSaved ? "#dcfce7" : quickNote.trim() ? "#6366f1" : "#e2e8f0",
+                color: quickSaved ? "#15803d" : quickNote.trim() ? "#fff" : "#94a3b8",
+                fontSize: 13, fontWeight: 700, cursor: quickNote.trim() ? "pointer" : "default",
+                fontFamily: "'Heebo', sans-serif", transition: "all 0.2s",
+              }}
+            >
+              {quickSaved ? "✓ נשמר ביומן" : savingQuick ? "שומר..." : "💾 שמור ביומן"}
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── Steps card (shown until 7 check-ins) ─────────────────────── */}
+        {totalCheckins < 7 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e2e8f0", padding: "14px 16px", marginBottom: 14 }}>
+              <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, color: "#0f172a" }}>🗺️ הצעדים הראשונים</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  {
+                    done: true,
+                    label: "נרשמת ל-NestAI",
+                  },
+                  {
+                    done: totalCheckins > 0,
+                    label: "עדכון מצב רוח ראשון",
+                  },
+                  {
+                    done: streak >= 7,
+                    active: streak > 0 && streak < 7,
+                    label: streak > 0 && streak < 7 ? `7 ימים רצופים — יום ${streak} מתוך 7` : "7 ימים רצופים",
+                  },
+                  {
+                    done: hasWeeklySummary,
+                    label: "סיכום שבועי ראשון — תובנות על מה משפיע עליך",
+                  },
+                ].map((step, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{
+                      width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 800,
+                      background: step.done ? "#dcfce7" : step.active ? "#ede9fe" : "#f1f5f9",
+                      color: step.done ? "#15803d" : step.active ? "#6366f1" : "#94a3b8",
+                      border: step.active ? "2px solid #6366f1" : "none",
+                    }}>
+                      {step.done ? "✓" : step.active ? "●" : "○"}
+                    </span>
+                    <span style={{
+                      fontSize: 13, color: step.done ? "#15803d" : step.active ? "#0f172a" : "#94a3b8",
+                      fontWeight: step.active ? 700 : 400,
+                      textDecoration: step.done ? "line-through" : "none",
+                    }}>
+                      {step.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -593,39 +689,6 @@ const Home = () => {
         </motion.div>
 
       </div>
-    </div>
-  );
-};
-
-// ── Countdown timer component ─────────────────────────────────────────────────
-
-const CheckinTimer = ({ checkinTime }: { checkinTime: string }) => {
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      const [hh, mm] = checkinTime.split(":").map(Number);
-      const target = new Date(now);
-      target.setHours(hh, mm, 0, 0);
-      if (target <= now) target.setDate(target.getDate() + 1);
-      const diff = target.getTime() - now.getTime();
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      setTimeLeft(`${h}:${pad2(m)}`);
-    };
-    update();
-    const t = setInterval(update, 30000);
-    return () => clearInterval(t);
-  }, [checkinTime]);
-
-  return (
-    <div style={{ background: "#fff", borderRadius: 14, border: "0.5px solid #e2e8f0", padding: "12px 16px", marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-      <div>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Check-in היומי</p>
-        <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>עוד {timeLeft} שעות</p>
-      </div>
-      <span style={{ fontSize: 24 }}>⏰</span>
     </div>
   );
 };
