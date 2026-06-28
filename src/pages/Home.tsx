@@ -236,7 +236,7 @@ const Home = () => {
 
       {/* ── Topbar ─────────────────────────────────────────────────────────── */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 30,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 30,
         background: "#ffffff",
         borderBottom: "0.5px solid #e2e8f0",
         paddingTop: "env(safe-area-inset-top, 0px)",
@@ -264,6 +264,9 @@ const Home = () => {
           <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{streak}</span>
         </div>
       </div>
+
+      {/* Spacer so fixed topbar doesn't overlap content */}
+      <div style={{ height: "calc(56px + env(safe-area-inset-top, 0px))" }} />
 
       {/* ── Page body ──────────────────────────────────────────────────────── */}
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "20px 16px 16px" }}>

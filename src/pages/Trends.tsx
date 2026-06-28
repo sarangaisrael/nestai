@@ -124,7 +124,7 @@ const Trends = () => {
 
       {/* Header */}
       <div style={{
-        position: "sticky", top: 0, zIndex: 30,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 30,
         background: "#fff", borderBottom: "0.5px solid #e2e8f0",
         paddingTop: "env(safe-area-inset-top, 0px)",
         paddingBottom: "14px", paddingLeft: "20px", paddingRight: "20px",
@@ -133,6 +133,8 @@ const Trends = () => {
       }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>מגמות</h1>
       </div>
+
+      <div style={{ height: "calc(56px + env(safe-area-inset-top, 0px))" }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
 

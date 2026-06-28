@@ -28,6 +28,21 @@ const WA_UPGRADE_URL = "https://wa.me/9720537000277?text=היי, אני רוצה
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chatHeight, setChatHeight] = useState<string>("100dvh");
+
+  // Track visual viewport so layout shrinks when keyboard opens (works in Capacitor WKWebView)
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setChatHeight(`${vv.height}px`);
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -244,7 +259,7 @@ const Index = () => {
 
 
   return (
-    <div className="w-full flex flex-col bg-background" style={{ height: "100dvh" }} dir={dir}>
+    <div className="w-full flex flex-col bg-background" style={{ height: chatHeight }} dir={dir}>
       <PreferencesOnboarding />
       <AddToHomeBanner />
       
