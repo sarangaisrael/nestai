@@ -244,7 +244,7 @@ const Index = () => {
 
 
   return (
-    <div className="w-full flex flex-col bg-background fixed inset-0" dir={dir}>
+    <div className="w-full flex flex-col bg-background" style={{ height: "100dvh" }} dir={dir}>
       <PreferencesOnboarding />
       <AddToHomeBanner />
       
@@ -407,7 +407,10 @@ const Index = () => {
           {t.footer.copyright}
         </div>
       </div>
-      
+
+      {/* Spacer so input bar sits above the fixed bottom nav */}
+      <div style={{ height: "calc(58px + env(safe-area-inset-bottom, 0px))", flexShrink: 0 }} />
+
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
 
 const TABS = [
   { path: "/app/dashboard", label: "בית",    emoji: "🏠" },
@@ -12,28 +11,13 @@ const TABS = [
 const BottomNav = () => {
   const navigate  = useNavigate();
   const { pathname } = useLocation();
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const onResize = () => {
-      const ratio = vv.height / window.innerHeight;
-      setKeyboardOpen(ratio < 0.75);
-    };
-    vv.addEventListener("resize", onResize);
-    return () => vv.removeEventListener("resize", onResize);
-  }, []);
-
-  const onChat = pathname === "/app/chat";
-  if (onChat || keyboardOpen) return null;
 
   return (
     <nav style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
       background: "#ffffff",
       borderTop: "0.5px solid #e2e8f0",
-      paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      paddingBottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
       fontFamily: "'Heebo', sans-serif",
     }}>
       <div style={{
