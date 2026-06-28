@@ -48,7 +48,7 @@ const NewOnboarding = () => {
 
       {/* Logo */}
       <div style={{ marginBottom: 40, textAlign: "center" }}>
-        <span style={{ fontSize: 28, fontFamily: "'Righteous', cursive", color: "#6366f1" }}>LogMe</span>
+        <span style={{ fontSize: 28, fontFamily: "'Righteous', cursive", color: "#6366f1" }}>NestAI</span>
       </div>
 
       <AnimatePresence mode="wait">

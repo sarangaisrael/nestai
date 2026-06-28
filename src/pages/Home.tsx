@@ -253,7 +253,7 @@ const Home = () => {
 
         {/* Logo — center */}
         <span style={{ fontSize: 20, fontFamily: "'Righteous', cursive", color: "#6366f1", letterSpacing: 0.5 }}>
-          LogMe
+          NestAI
         </span>
 
         {/* Streak — right */}
