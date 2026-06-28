@@ -51,7 +51,13 @@ const NewSettings = () => {
     } else {
       await cancelSleepReminder();
     }
-    await scheduleAllNotifications(settings.checkin_time, settings.sleep_reminder_enabled, settings.sleep_reminder_time);
+    await scheduleAllNotifications(
+      "saturday",
+      "20:00",
+      settings.checkin_time,
+      settings.sleep_reminder_enabled,
+      settings.sleep_reminder_time
+    );
 
     setSaved(true);
     setSaving(false);

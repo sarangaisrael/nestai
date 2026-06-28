@@ -34,7 +34,7 @@ const NewOnboarding = () => {
   const requestPermission = async () => {
     await requestNotificationPermission();
     // Schedule with default sleep reminder enabled
-    await scheduleAllNotifications(checkinTime, true, "08:00");
+    await scheduleAllNotifications("saturday", "20:00", checkinTime, true, "08:00");
     await scheduleSleepReminder("08:00");
     navigate("/app/dashboard");
   };
