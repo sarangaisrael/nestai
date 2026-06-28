@@ -10,6 +10,8 @@ import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { AppDirectivesProvider } from "@/components/AppDirectivesProvider";
 import { PWAInstallProvider } from "@/contexts/PWAInstallContext";
 import AppLayout from "@/components/AppLayout";
+import NewAppLayout from "@/components/NewAppLayout";
+import PremiumGate from "@/components/PremiumGate";
 
 // Lazy load all pages
 const LandingPage        = lazy(() => import("./pages/LandingPage"));
@@ -43,6 +45,13 @@ const ResetPassword           = lazy(() => import("./pages/ResetPassword"));
 const NotificationOnboarding = lazy(() => import("./pages/NotificationOnboarding"));
 const MonthlySubscription    = lazy(() => import("./pages/MonthlySubscription"));
 const SleepMonitorPage       = lazy(() => import("./pages/SleepMonitorPage"));
+
+// ── New redesigned pages ──
+const Home         = lazy(() => import("./pages/Home"));
+const NewJournal   = lazy(() => import("./pages/NewJournal"));
+const Trends       = lazy(() => import("./pages/Trends"));
+const NewSettings  = lazy(() => import("./pages/NewSettings"));
+const NewOnboarding = lazy(() => import("./pages/NewOnboarding"));
 
 const queryClient = new QueryClient();
 
@@ -91,15 +100,19 @@ const App = () => (
               <Route path="/app/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminDashboard /></AdminGate></Suspense>} />
               <Route path="/app/admin/notifications" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminNotifications /></AdminGate></Suspense>} />
 
-              {/* ── Authenticated patient pages — with sidebar on desktop ── */}
-              <Route path="/app/chat"             element={<AppLayout><Index /></AppLayout>} />
-              <Route path="/app/dashboard"        element={<AppLayout><Dashboard /></AppLayout>} />
+              {/* ── New redesigned app (bottom nav) ── */}
+              <Route path="/app/dashboard"        element={<NewAppLayout><Home /></NewAppLayout>} />
+              <Route path="/app/journal"          element={<NewAppLayout><NewJournal /></NewAppLayout>} />
+              <Route path="/app/trends"           element={<NewAppLayout><Trends /></NewAppLayout>} />
+              <Route path="/app/chat"             element={<NewAppLayout><PremiumGate><Index /></PremiumGate></NewAppLayout>} />
+              <Route path="/app/settings"         element={<NewAppLayout><NewSettings /></NewAppLayout>} />
+              <Route path="/app/new-onboarding"   element={<NewOnboarding />} />
+
+              {/* ── Legacy pages (still accessible) ── */}
               <Route path="/app/summary"          element={<AppLayout><Summary /></AppLayout>} />
               <Route path="/app/monthly-summary"  element={<AppLayout><MonthlySummary /></AppLayout>} />
-              <Route path="/app/settings"         element={<AppLayout><Settings /></AppLayout>} />
               <Route path="/app/account-settings" element={<AppLayout><AccountSettings /></AppLayout>} />
               <Route path="/app/meditation"       element={<AppLayout><Meditation /></AppLayout>} />
-              <Route path="/app/journal"          element={<AppLayout><JournalPage /></AppLayout>} />
               <Route path="/app/patterns"         element={<AppLayout><PatternsInsights /></AppLayout>} />
               <Route path="/app/sleep"            element={<AppLayout><SleepMonitorPage /></AppLayout>} />
               <Route path="/app/privacy"          element={<AppLayout><Privacy /></AppLayout>} />
