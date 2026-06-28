@@ -58,9 +58,12 @@ const Summaries = () => {
 
       {/* Header */}
       <div style={{
+        position: "sticky", top: 0, zIndex: 30,
         background: "#fff", borderBottom: "0.5px solid #e2e8f0",
-        padding: "16px 20px 14px",
-        display: "flex", alignItems: "center", gap: 12,
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "14px", paddingLeft: "20px", paddingRight: "20px",
+        minHeight: "calc(56px + env(safe-area-inset-top, 0px))",
+        display: "flex", alignItems: "flex-end", gap: 12,
       }}>
         <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#94a3b8", fontSize: 18 }}>
           ←

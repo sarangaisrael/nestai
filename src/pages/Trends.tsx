@@ -123,7 +123,14 @@ const Trends = () => {
     <div dir="rtl" style={{ minHeight: "100dvh", background: "#f8fafc", fontFamily: "'Heebo', sans-serif" }}>
 
       {/* Header */}
-      <div style={{ background: "#fff", borderBottom: "0.5px solid #e2e8f0", padding: "calc(env(safe-area-inset-top,0px) + 16px) 20px 14px" }}>
+      <div style={{
+        position: "sticky", top: 0, zIndex: 30,
+        background: "#fff", borderBottom: "0.5px solid #e2e8f0",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "14px", paddingLeft: "20px", paddingRight: "20px",
+        minHeight: "calc(56px + env(safe-area-inset-top, 0px))",
+        display: "flex", alignItems: "flex-end",
+      }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>מגמות</h1>
       </div>
 

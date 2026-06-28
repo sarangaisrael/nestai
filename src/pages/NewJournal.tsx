@@ -62,8 +62,12 @@ const NewJournal = () => {
 
       {/* Header */}
       <div style={{
+        position: "sticky", top: 0, zIndex: 30,
         background: "#fff", borderBottom: "0.5px solid #e2e8f0",
-        padding: "calc(env(safe-area-inset-top,0px) + 16px) 20px 14px",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "14px", paddingLeft: "20px", paddingRight: "20px",
+        minHeight: "calc(56px + env(safe-area-inset-top, 0px))",
+        display: "flex", flexDirection: "column", justifyContent: "flex-end",
       }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#0f172a" }}>יומן</h1>
         <p style={{ margin: "2px 0 0", fontSize: 12, color: "#94a3b8" }}>כתיבה חופשית ללא תגובה</p>

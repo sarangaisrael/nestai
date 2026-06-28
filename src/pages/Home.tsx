@@ -240,9 +240,11 @@ const Home = () => {
         background: "#ffffff",
         borderBottom: "0.5px solid #e2e8f0",
         paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: 0,
+        paddingLeft: "20px",
+        paddingRight: "20px",
+        minHeight: "calc(56px + env(safe-area-inset-top, 0px))",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: `env(safe-area-inset-top, 0px) 20px 0`,
-        height: "calc(env(safe-area-inset-top, 0px) + 52px)",
       }}>
         {/* Settings icon — left side (RTL: visual left = logical right) */}
         <button onClick={() => navigate("/app/settings")} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#94a3b8" }}>
