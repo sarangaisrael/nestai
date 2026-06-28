@@ -52,6 +52,7 @@ const NewJournal   = lazy(() => import("./pages/NewJournal"));
 const Trends       = lazy(() => import("./pages/Trends"));
 const NewSettings  = lazy(() => import("./pages/NewSettings"));
 const NewOnboarding = lazy(() => import("./pages/NewOnboarding"));
+const Summaries    = lazy(() => import("./pages/Summaries"));
 
 const queryClient = new QueryClient();
 
@@ -106,6 +107,7 @@ const App = () => (
               <Route path="/app/trends"           element={<NewAppLayout><Trends /></NewAppLayout>} />
               <Route path="/app/chat"             element={<NewAppLayout><PremiumGate><Index /></PremiumGate></NewAppLayout>} />
               <Route path="/app/settings"         element={<NewAppLayout><NewSettings /></NewAppLayout>} />
+              <Route path="/app/summaries"        element={<NewAppLayout><Summaries /></NewAppLayout>} />
               <Route path="/app/new-onboarding"   element={<NewOnboarding />} />
 
               {/* ── Legacy pages (still accessible) ── */}

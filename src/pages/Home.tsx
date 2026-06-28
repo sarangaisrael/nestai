@@ -474,7 +474,7 @@ const Home = () => {
 
               {/* Weekly summary banner */}
               {hasWeeklySummary && (
-                <div onClick={() => navigate("/app/summary")} style={{
+                <div onClick={() => navigate("/app/summaries")} style={{
                   background: "linear-gradient(135deg, #1e1b4b, #312e81)",
                   borderRadius: 16, padding: "16px 18px", marginBottom: 14, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "space-between",

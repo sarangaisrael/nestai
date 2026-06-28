@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
 type Period = "week" | "month" | "year";
+
+interface SummaryCard {
+  id: string;
+  type: "weekly" | "monthly";
+  label: string;
+  created_at: string;
+  preview: string;
+}
 
 const MOOD_EMOJIS  = ["😔", "😕", "😐", "🙂", "😊"];
 const MOOD_COLORS: Record<number, string> = {
@@ -38,9 +47,42 @@ interface Checkin {
 }
 
 const Trends = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState<Period>("week");
   const [data, setData]     = useState<Checkin[]>([]);
   const [loading, setLoading] = useState(true);
+  const [summaries, setSummaries] = useState<SummaryCard[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const uid = session.user.id;
+
+      // Fetch latest weekly + monthly summary rows (ids only first)
+      const [{ data: weeklies }, { data: monthlies }] = await Promise.all([
+        supabase.from("weekly_summaries").select("id, created_at, summary_text")
+          .eq("user_id", uid).order("created_at", { ascending: false }).limit(1),
+        supabase.from("monthly_summaries").select("id, created_at, summary_text")
+          .eq("user_id", uid).order("created_at", { ascending: false }).limit(1),
+      ]);
+
+      const cards: SummaryCard[] = [];
+
+      for (const row of (weeklies ?? [])) {
+        const res = await supabase.functions.invoke("get-decrypted-summary", { body: { summary_id: row.id } });
+        const text: string = res.error ? "" : (res.data?.summary_text ?? "");
+        cards.push({ id: row.id, type: "weekly", label: "סיכום שבועי", created_at: row.created_at, preview: text.slice(0, 120) });
+      }
+      for (const row of (monthlies ?? [])) {
+        const res = await supabase.functions.invoke("get-decrypted-summary", { body: { summary_id: row.id } });
+        const text: string = res.error ? "" : (res.data?.summary_text ?? "");
+        cards.push({ id: row.id, type: "monthly", label: "סיכום חודשי", created_at: row.created_at, preview: text.slice(0, 120) });
+      }
+
+      setSummaries(cards);
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -86,6 +128,41 @@ const Trends = () => {
       </div>
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px" }}>
+
+        {/* Summaries section */}
+        {summaries.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#0f172a" }}>סיכומים</p>
+              <button onClick={() => navigate("/app/summaries")} style={{
+                background: "none", border: "none", fontSize: 12, color: "#6366f1",
+                fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+              }}>כל הסיכומים ←</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
+              {summaries.map(s => (
+                <div key={s.id} onClick={() => navigate("/app/summaries")} style={{
+                  background: "linear-gradient(135deg, #1e1b4b, #312e81)",
+                  borderRadius: 14, padding: "14px 16px", cursor: "pointer",
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#a5b4fc" }}>{s.label}</span>
+                    <span style={{ fontSize: 11, color: "#818cf8" }}>
+                      {new Date(s.created_at).toLocaleDateString("he-IL", { day: "numeric", month: "short" })}
+                    </span>
+                  </div>
+                  {s.preview ? (
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {s.preview}
+                    </p>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 12, color: "#818cf8" }}>לחץ לצפייה בסיכום ✨</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Period selector */}
         <div style={{ display: "flex", background: "#fff", borderRadius: 12, border: "0.5px solid #e2e8f0", overflow: "hidden", marginBottom: 18 }}>
