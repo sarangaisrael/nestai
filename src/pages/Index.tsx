@@ -28,13 +28,19 @@ const WA_UPGRADE_URL = "https://wa.me/9720537000277?text=היי, אני רוצה
 
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [chatHeight, setChatHeight] = useState<string>("100dvh");
+  const [vpOffset, setVpOffset]   = useState(0);
+  const [vpHeight, setVpHeight]   = useState<number | null>(null);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Track visual viewport so layout shrinks when keyboard opens (works in Capacitor WKWebView)
+  // Anchor to visual viewport so layout adjusts when keyboard opens in Capacitor WKWebView
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setChatHeight(`${vv.height}px`);
+    const update = () => {
+      setVpOffset(vv.offsetTop);
+      setVpHeight(vv.height);
+      setKeyboardOpen(vv.height < window.innerHeight * 0.75);
+    };
     update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
@@ -259,7 +265,13 @@ const Index = () => {
 
 
   return (
-    <div className="w-full flex flex-col bg-background" style={{ height: chatHeight }} dir={dir}>
+    <div className="w-full flex flex-col bg-background" style={{
+      position: "fixed",
+      top: vpOffset,
+      left: 0,
+      right: 0,
+      height: vpHeight ?? "100dvh",
+    }} dir={dir}>
       <PreferencesOnboarding />
       <AddToHomeBanner />
       
@@ -423,8 +435,8 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Spacer so input bar sits above the fixed bottom nav */}
-      <div style={{ height: "calc(58px + env(safe-area-inset-bottom, 0px))", flexShrink: 0 }} />
+      {/* Spacer for bottom nav — only when keyboard is closed */}
+      {!keyboardOpen && <div style={{ height: "calc(58px + env(safe-area-inset-bottom, 0px))", flexShrink: 0 }} />}
 
     </div>
   );
