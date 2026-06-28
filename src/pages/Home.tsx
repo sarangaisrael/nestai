@@ -498,20 +498,6 @@ const Home = () => {
                 )}
               </div>
 
-              {/* Weekly summary banner */}
-              {hasWeeklySummary && (
-                <div onClick={() => navigate("/app/summaries")} style={{
-                  background: "linear-gradient(135deg, #1e1b4b, #312e81)",
-                  borderRadius: 16, padding: "16px 18px", marginBottom: 14, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                }}>
-                  <div>
-                    <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: "#fff" }}>הסיכום השבועי מוכן ✨</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#a5b4fc" }}>לחץ לצפייה</p>
-                  </div>
-                  <span style={{ fontSize: 20 }}>📋</span>
-                </div>
-              )}
             </motion.div>
           )}
 
