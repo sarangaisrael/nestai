@@ -107,11 +107,14 @@ export const cancelDailyReminder = async (): Promise<void> => {
 export const scheduleDailyReminder = async (time: string = "21:00"): Promise<void> => {
   if (!isNativeApp()) return;
 
+  console.log(`[Notifications] scheduleDailyReminder called with time="${time}"`);
+
   // Cancel legacy single ID + all 7 per-day IDs
   const toCancel = [{ id: DAILY_REMINDER_ID }, ...DAILY_QUESTION_IDS.map(id => ({ id }))];
   try { await LocalNotifications.cancel({ notifications: toCancel }); } catch { /* ignore */ }
 
   const { hours, minutes } = parseTime(time);
+  console.log(`[Notifications] scheduleDailyReminder parsed → hour=${hours}, minute=${minutes}`);
 
   // weekday in Capacitor: 1 = Sunday, 2 = Monday, …, 7 = Saturday
   await LocalNotifications.schedule({
@@ -128,7 +131,12 @@ export const scheduleDailyReminder = async (time: string = "21:00"): Promise<voi
       extra: { url: `/app/chat?q=${encodeURIComponent(question)}` },
     })),
   });
-  console.log(`Local notification: Daily reminders scheduled at ${time} (7 weekday questions)`);
+
+  // Verify what's actually registered with the OS
+  const pending = await LocalNotifications.getPending();
+  const myIds = new Set(DAILY_QUESTION_IDS);
+  const registered = pending.notifications.filter(n => myIds.has(n.id));
+  console.log(`[Notifications] scheduleDailyReminder done — ${registered.length}/7 notifications registered with OS at ${hours}:${String(minutes).padStart(2, "0")}`);
 };
 
 // ──── Day mapping ────
@@ -271,7 +279,10 @@ export const scheduleSleepReminder = async (time: string = "07:30"): Promise<voi
       extra: { url: "/app/dashboard" },
     }],
   });
-  console.log(`Local notification: Sleep reminder scheduled daily at ${time}`);
+
+  const pending = await LocalNotifications.getPending();
+  const registered = pending.notifications.some(n => n.id === SLEEP_REMINDER_ID);
+  console.log(`[Notifications] scheduleSleepReminder done — registered=${registered}, first trigger=${trigger.toISOString()}`);
 };
 
 export const cancelSleepReminder = async (): Promise<void> => {
@@ -281,6 +292,44 @@ export const cancelSleepReminder = async (): Promise<void> => {
   } catch { /* ignore */ }
 };
 
+/**
+ * Re-schedule all notifications from the user's stored settings in user_settings.
+ * Call once per app session (e.g. on app open) to restore notifications after
+ * reinstall, OS reset, or permission revoke.
+ */
+export const rescheduleNotificationsFromSettings = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+
+  console.log("[Notifications] rescheduleNotificationsFromSettings: starting");
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    console.log("[Notifications] rescheduleNotificationsFromSettings: no session, skipping");
+    return;
+  }
+
+  const { data: settings, error } = await supabase
+    .from("user_settings")
+    .select("checkin_time, sleep_reminder_time, sleep_reminder_enabled")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("[Notifications] rescheduleNotificationsFromSettings: DB error", error.message);
+    return;
+  }
+
+  const checkinTime  = settings?.checkin_time          ?? "20:00";
+  const sleepTime    = settings?.sleep_reminder_time   ?? "08:00";
+  const sleepEnabled = settings?.sleep_reminder_enabled ?? true;
+
+  console.log(`[Notifications] rescheduleNotificationsFromSettings: checkin_time=${checkinTime}, sleep_time=${sleepTime}, sleep_enabled=${sleepEnabled}`);
+
+  await scheduleAllNotifications("saturday", "20:00", checkinTime, sleepEnabled, sleepTime);
+
+  console.log("[Notifications] rescheduleNotificationsFromSettings: complete");
+};
+
 export const scheduleAllNotifications = async (
   summaryDay: string         = "saturday",
   summaryTime: string        = "20:00",
@@ -288,6 +337,7 @@ export const scheduleAllNotifications = async (
   sleepReminderEnabled: boolean = true,
   sleepReminderTime: string  = "07:30"
 ): Promise<void> => {
+  console.log(`[Notifications] scheduleAllNotifications: dailyReminderTime=${dailyReminderTime}, sleepReminderEnabled=${sleepReminderEnabled}, sleepReminderTime=${sleepReminderTime}`);
   await scheduleDailyReminder(dailyReminderTime);
   await scheduleWeeklySummaryNotification(summaryDay, summaryTime);
   await scheduleMonthlySummaryNotification(summaryTime);
@@ -296,6 +346,7 @@ export const scheduleAllNotifications = async (
   } else {
     await cancelSleepReminder();
   }
+  console.log("[Notifications] scheduleAllNotifications: all done");
 };
 
 /** Fire an immediate local notification */
