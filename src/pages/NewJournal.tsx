@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { encryptText, decryptText } from "@/utils/encryption";
 
 const MOOD_EMOJIS = ["😔", "😕", "😐", "🙂", "😊"];
 const MOOD_LABELS = ["קשה", "לא טוב", "בסדר", "טוב", "מעולה"];
@@ -32,7 +33,14 @@ const NewJournal = () => {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
         .limit(50);
-      setEntries((data ?? []) as Entry[]);
+      const uid = session.user.id;
+      const decrypted = await Promise.all(
+        (data ?? []).map(async entry => ({
+          ...entry,
+          content: await decryptText(entry.content, uid),
+        }))
+      );
+      setEntries(decrypted as Entry[]);
       setLoading(false);
     })();
   }, []);
@@ -40,12 +48,15 @@ const NewJournal = () => {
   const save = async () => {
     if (!userId || !content.trim()) return;
     setSaving(true);
+    const plaintext = content.trim();
+    const encryptedContent = await encryptText(plaintext, userId);
     const { data: row } = await supabase
       .from("journal_entries")
-      .insert({ user_id: userId, content: content.trim(), mood })
+      .insert({ user_id: userId, content: encryptedContent, mood })
       .select()
       .single();
-    if (row) setEntries(p => [row as Entry, ...p]);
+    // Use plaintext in local state — DB row has encrypted content
+    if (row) setEntries(p => [{ ...row, content: plaintext } as Entry, ...p]);
     setContent("");
     setMood(null);
     setShowNew(false);

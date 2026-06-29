@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { encryptText, decryptText } from "@/utils/encryption";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -177,8 +178,12 @@ const Home = () => {
 
     const s = settingsRow ?? { checkin_time: "20:00", sleep_reminder_time: "08:00", sleep_reminder_enabled: true };
     setSettings(s);
-    setCheckin(todayCheckin as CheckinData | null);
-    setYesterday(yCheckin as CheckinData | null);
+    const decryptCheckin = async (checkin: CheckinData | null) => {
+      if (!checkin?.note) return checkin;
+      return { ...checkin, note: await decryptText(checkin.note, uid) };
+    };
+    setCheckin((await decryptCheckin(todayCheckin as CheckinData | null)) as CheckinData | null);
+    setYesterday((await decryptCheckin(yCheckin as CheckinData | null)) as CheckinData | null);
     setWeekData((weekCheckins ?? []) as { date: string; mood: number }[]);
     setSleepData(todaySleep as SleepData | null);
     setSleepLogged(!!todaySleep);
@@ -215,10 +220,12 @@ const Home = () => {
     if (!userId || !selectedMood) return;
     setSavingCheckin(true);
     const today = todayISO();
+    const encryptedNote = note ? await encryptText(note, userId) : note;
     await supabase.from("daily_checkins").upsert({
       user_id: userId, date: today, mood: selectedMood,
-      activities: selectedActivities, note,
+      activities: selectedActivities, note: encryptedNote,
     }, { onConflict: "user_id,date" });
+    // Store plaintext in local state — DB has encrypted note
     setCheckin({ mood: selectedMood, activities: selectedActivities, note, created_at: new Date().toISOString() });
     setAppState("done");
     setSavingCheckin(false);
