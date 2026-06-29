@@ -66,23 +66,25 @@ export default function LandingPage() {
       <style>{CSS}</style>
 
       {/* ── NAV ── */}
-      <div style={{ position: "sticky", top: 0, zIndex: 100, transition: "all 0.3s" }}>
+      {/* Outer: sticky anchor — transparent so page shows in the gap when pill is active */}
+      <div style={{ position: "sticky", top: 0, zIndex: 100 }}>
+        {/* Inner: the visual nav element that morphs into a pill */}
         <div
           className="lp-nav-inner"
           style={{
             margin: scrolled ? "8px 24px 0" : "0",
             borderRadius: scrolled ? 18 : 0,
-            background: "rgba(255,255,255,0.95)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06)" : "none",
-            border: scrolled ? "1px solid #e2e8f0" : "none",
-            borderBottom: scrolled ? "1px solid #e2e8f0" : "1px solid #f1f5f9",
+            background: "rgba(255,255,255,0.97)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.08),0 1px 6px rgba(0,0,0,0.04)" : "none",
+            borderBottom: scrolled ? "none" : "1px solid #f1f5f9",
+            border: scrolled ? "1px solid #e2e8f0" : undefined,
             padding: "18px 64px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            transition: "all 0.3s ease",
+            transition: "margin 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease",
           }}
         >
           <Logo />
@@ -141,7 +143,7 @@ export default function LandingPage() {
 
           {/* Phone mockup */}
           <div className="lp-phone-wrap" style={{ display: "flex", justifyContent: "center", position: "relative" }}>
-            <div style={{ background: "#0f172a", borderRadius: 48, padding: 14, boxShadow: "0 48px 120px rgba(15,23,42,0.22),0 12px 40px rgba(15,23,42,0.12)", width: 270, position: "relative" }}>
+            <div style={{ background: "#0f172a", borderRadius: 48, padding: 14, boxShadow: "0 48px 120px rgba(15,23,42,0.22),0 12px 40px rgba(15,23,42,0.12)", width: 310, position: "relative" }}>
               <div style={{ width: 80, height: 6, background: "#1e293b", borderRadius: 3, margin: "0 auto 10px" }} />
               <div style={{ background: "#f9fafb", borderRadius: 36, overflow: "hidden" }}>
                 {/* Status bar */}

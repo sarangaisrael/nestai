@@ -27,14 +27,10 @@ const NotFound           = lazy(() => import("./pages/NotFound"));
 const Privacy            = lazy(() => import("./pages/Privacy"));
 const InstallScreen      = lazy(() => import("./pages/InstallScreen"));
 const MailMessages       = lazy(() => import("./pages/MailMessages"));
-const AdminNotifications = lazy(() => import("./pages/AdminNotifications"));
 const PressDemo          = lazy(() => import("./pages/PressDemo"));
-const AdminDashboard     = lazy(() => import("./pages/AdminDashboard"));
-const AdminLogin         = lazy(() => import("./pages/AdminLogin"));
 const JournalPage        = lazy(() => import("./pages/JournalPage"));
 const PatternsInsights   = lazy(() => import("./pages/PatternsInsights"));
 const Support            = lazy(() => import("./pages/Support"));
-const AdminGate          = lazy(() => import("./components/admin/AdminGate"));
 const ChoosePathScreen   = lazy(() => import("./pages/ChoosePathScreen"));
 const JoinReferral       = lazy(() => import("./pages/JoinReferral"));
 const Blog               = lazy(() => import("./pages/Blog"));
@@ -95,12 +91,6 @@ const App = () => (
               <Route path="/app/install"  element={<InstallScreen />} />
               <Route path="/app/press-demo" element={<PressDemo />} />
               <Route path="/app/mail"     element={<MailMessages />} />
-              <Route path="/app/admin/login" element={<AdminLogin />} />
-
-              {/* ── Admin ── */}
-              <Route path="/app/admin" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminDashboard /></AdminGate></Suspense>} />
-              <Route path="/app/admin/notifications" element={<Suspense fallback={<LoadingSpinner />}><AdminGate><AdminNotifications /></AdminGate></Suspense>} />
-
               {/* ── New redesigned app (bottom nav) ── */}
               <Route path="/app/dashboard"        element={<NewAppLayout><Home /></NewAppLayout>} />
               <Route path="/app/journal"          element={<NewAppLayout><NewJournal /></NewAppLayout>} />
