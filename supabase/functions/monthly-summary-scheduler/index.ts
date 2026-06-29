@@ -97,7 +97,8 @@ serve(async (req) => {
     if (!GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY not configured');
     }
-    const ENCRYPTION_KEY = Deno.env.get('MESSAGE_ENCRYPTION_KEY') || 'nestai-encryption-key-2026';
+    const ENCRYPTION_KEY = Deno.env.get('MESSAGE_ENCRYPTION_KEY');
+    if (!ENCRYPTION_KEY) throw new Error('MESSAGE_ENCRYPTION_KEY env var is not set');
 
     const now = new Date();
     const israelTime = new Intl.DateTimeFormat('en-CA', {

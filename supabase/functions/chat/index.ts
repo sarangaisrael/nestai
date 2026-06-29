@@ -68,7 +68,8 @@ serve(async (req) => {
     const GEMINI_API_KEY            = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL              = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ENCRYPTION_KEY            = Deno.env.get("MESSAGE_ENCRYPTION_KEY") || "nestai-encryption-key-2026";
+    const ENCRYPTION_KEY            = Deno.env.get("MESSAGE_ENCRYPTION_KEY");
+    if (!ENCRYPTION_KEY) throw new Error("MESSAGE_ENCRYPTION_KEY env var is not set");
     console.log("[chat] GEMINI_API_KEY present:", !!GEMINI_API_KEY);
     console.log("[chat] SUPABASE_URL present:", !!SUPABASE_URL);
     console.log("[chat] SUPABASE_SERVICE_ROLE_KEY present:", !!SUPABASE_SERVICE_ROLE_KEY);
