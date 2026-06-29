@@ -181,7 +181,7 @@ const Home = () => {
     setYesterday(yCheckin as CheckinData | null);
     setWeekData((weekCheckins ?? []) as { date: string; mood: number }[]);
     setSleepData(todaySleep as SleepData | null);
-    setSleepLogged(!!todaySleep && (todaySleep.sleep_hours ?? 0) > 0);
+    setSleepLogged(!!todaySleep);
     setHasWeeklySummary((summaries ?? []).length > 0);
     setTotalCheckins(checkinCount ?? 0);
     setAppState(getAppState(s.checkin_time, !!todayCheckin));

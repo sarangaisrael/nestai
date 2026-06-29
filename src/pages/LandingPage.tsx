@@ -163,99 +163,140 @@ const CSS = `
 
 /* ── Phone Mockup ─────────────────────────────────────────────────────────── */
 const PhoneMockup = () => (
-  <div style={{
-    border: '6px solid #111',
-    borderRadius: 32,
-    background: '#f8fafc',
-    padding: 20,
-    maxWidth: 300,
-    width: '100%',
-    fontFamily: F,
-    boxSizing: 'border-box',
-  }}>
-    {/* Notch pill */}
-    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-      <div style={{ width: 48, height: 4, borderRadius: 2, background: '#d1d5db' }} />
-    </div>
-
-    {/* App header */}
+  <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%' }}>
+    {/* Geometric blob */}
     <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      marginBottom: 12,
-    }}>
-      <div style={{ display: 'flex', gap: 6 }}>
-        {['#e5e7eb', '#e5e7eb'].map((bg, i) => (
-          <div key={i} style={{ width: 24, height: 24, borderRadius: 7, background: bg }} />
-        ))}
-      </div>
-      <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 14, color: '#111' }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
-    </div>
-
-    {/* Write card */}
+      position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)',
+      width: 340, height: 340, borderRadius: '50%',
+      background: 'radial-gradient(circle, rgba(99,102,241,0.13) 0%, transparent 68%)',
+      zIndex: 0, pointerEvents: 'none',
+    }} />
+    {/* Dots grid — top right of phone */}
+    <svg style={{ position: 'absolute', top: 8, right: 'calc(50% - 172px)', opacity: 0.28, zIndex: 0, pointerEvents: 'none' }} width="68" height="68" viewBox="0 0 68 68">
+      {Array.from({ length: 4 }).flatMap((_, row) =>
+        Array.from({ length: 4 }).map((_, col) => (
+          <circle key={`${row}-${col}`} cx={col * 17 + 5} cy={row * 17 + 5} r="2.5" fill="#6366f1" />
+        ))
+      )}
+    </svg>
+    {/* Accent circle — bottom left */}
     <div style={{
-      background: '#3730a3', borderRadius: 14, padding: '14px 14px 12px',
-      marginBottom: 10,
+      position: 'absolute', bottom: '12%', left: 'calc(50% - 178px)',
+      width: 56, height: 56, borderRadius: '50%',
+      background: 'rgba(129,140,248,0.18)', zIndex: 0, pointerEvents: 'none',
+    }} />
+
+    {/* Phone */}
+    <div style={{
+      position: 'relative', zIndex: 1,
+      border: '6px solid #111',
+      borderRadius: 44,
+      background: '#f8fafc',
+      padding: '14px 13px',
+      width: 248,
+      height: 548,
+      fontFamily: F,
+      boxSizing: 'border-box',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
-      {/* Tag */}
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        background: 'rgba(255,255,255,0.15)', borderRadius: 50,
-        padding: '2px 8px', marginBottom: 8,
-      }}>
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#a5b4fc', flexShrink: 0 }} />
-        <span style={{ fontSize: 8, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          רגע של הקשבה
-        </span>
+      {/* Notch pill */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, flexShrink: 0 }}>
+        <div style={{ width: 48, height: 4, borderRadius: 2, background: '#d1d5db' }} />
       </div>
-      {/* Question */}
-      <p style={{ fontSize: 11, fontWeight: 800, color: '#fff', margin: '0 0 8px', lineHeight: 1.4 }}>
-        מה עברת מאז הפגישה האחרונה?
-      </p>
-      {/* Input row */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        background: 'rgba(255,255,255,0.12)', borderRadius: 8,
-        padding: '7px 8px',
-      }}>
-        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', flex: 1 }}>כתוב כאן...</span>
-        <div style={{
-          width: 22, height: 22, borderRadius: 6, background: '#1e1b4b',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>
-          <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-            <path d="M4.5 8V1M4.5 1L2 3.5M4.5 1L7 3.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+
+      {/* App header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {['#e5e7eb', '#e5e7eb'].map((bg, i) => (
+            <div key={i} style={{ width: 22, height: 22, borderRadius: 7, background: bg }} />
+          ))}
+        </div>
+        <span style={{ fontFamily: "'Righteous', sans-serif", fontSize: 13, color: '#111' }}>Nest<span style={{ color: '#6366f1' }}>AI</span></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <span style={{ fontSize: 11 }}>🔥</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#0f172a' }}>7</span>
         </div>
       </div>
-    </div>
 
-    {/* 2 mini cards */}
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-      {/* Summary card */}
-      <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, padding: '10px 10px 8px' }}>
-        <span style={{ fontSize: 14, lineHeight: 1 }}>📋</span>
-        <p style={{ fontSize: 9, fontWeight: 800, color: '#92400e', margin: '6px 0 2px' }}>סיכום</p>
-        <p style={{ fontSize: 8, color: '#b45309', margin: 0 }}>שבועי</p>
+      {/* Mood row */}
+      <div style={{ background: '#fff', borderRadius: 11, padding: '9px 10px', marginBottom: 9, flexShrink: 0, border: '0.5px solid #e2e8f0' }}>
+        <p style={{ fontSize: 8, fontWeight: 700, color: '#64748b', margin: '0 0 6px' }}>איך אתה מרגיש היום?</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {['😔', '😕', '😐', '🙂', '😊'].map((em, i) => (
+            <div key={i} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              background: i === 3 ? '#ede9fe' : 'transparent',
+              borderRadius: 7, padding: '3px 5px',
+              border: i === 3 ? '1.5px solid #6366f1' : '1.5px solid transparent',
+            }}>
+              <span style={{ fontSize: 15 }}>{em}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      {/* Trends card */}
-      <div style={{ background: '#ecfdf5', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '10px 10px 8px' }}>
-        <span style={{ fontSize: 14, lineHeight: 1 }}>📈</span>
-        <p style={{ fontSize: 9, fontWeight: 800, color: '#065f46', margin: '6px 0 2px' }}>מגמות</p>
-        <p style={{ fontSize: 8, color: '#059669', margin: 0 }}>חודשי</p>
-      </div>
-    </div>
 
-    {/* Streak bar */}
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10,
-      padding: '8px 10px',
-    }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: '#c2410c' }}>ימים ברצף 🔥</span>
-      <span style={{
-        fontSize: 12, fontWeight: 900, color: '#d97706',
-        background: '#fef3c7', borderRadius: 6, padding: '1px 7px',
-      }}>7</span>
+      {/* Write card */}
+      <div style={{ background: '#3730a3', borderRadius: 13, padding: '11px 11px 9px', marginBottom: 9, flexShrink: 0 }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          background: 'rgba(255,255,255,0.15)', borderRadius: 50,
+          padding: '2px 7px', marginBottom: 7,
+        }}>
+          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#a5b4fc', flexShrink: 0 }} />
+          <span style={{ fontSize: 7, fontWeight: 700, color: 'rgba(255,255,255,0.85)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+            רגע של הקשבה
+          </span>
+        </div>
+        <p style={{ fontSize: 10, fontWeight: 800, color: '#fff', margin: '0 0 7px', lineHeight: 1.4 }}>
+          מה עברת מאז הפגישה האחרונה?
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '6px 7px' }}>
+          <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', flex: 1 }}>כתוב כאן...</span>
+          <div style={{ width: 19, height: 19, borderRadius: 5, background: '#1e1b4b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="8" height="8" viewBox="0 0 9 9" fill="none">
+              <path d="M4.5 8V1M4.5 1L2 3.5M4.5 1L7 3.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* 2 mini cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 9, flexShrink: 0 }}>
+        <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, padding: '8px 9px 7px' }}>
+          <span style={{ fontSize: 13, lineHeight: 1 }}>📋</span>
+          <p style={{ fontSize: 8, fontWeight: 800, color: '#92400e', margin: '5px 0 2px' }}>סיכום</p>
+          <p style={{ fontSize: 7, color: '#b45309', margin: 0 }}>שבועי</p>
+        </div>
+        <div style={{ background: '#ecfdf5', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '8px 9px 7px' }}>
+          <span style={{ fontSize: 13, lineHeight: 1 }}>📈</span>
+          <p style={{ fontSize: 8, fontWeight: 800, color: '#065f46', margin: '5px 0 2px' }}>מגמות</p>
+          <p style={{ fontSize: 7, color: '#059669', margin: 0 }}>חודשי</p>
+        </div>
+      </div>
+
+      {/* Mini weekly mood bars */}
+      <div style={{ background: '#fff', borderRadius: 10, padding: '9px 9px 7px', marginBottom: 9, flexShrink: 0, border: '0.5px solid #e2e8f0' }}>
+        <p style={{ fontSize: 7, fontWeight: 700, color: '#94a3b8', margin: '0 0 7px' }}>מצב רוח — 7 ימים אחרונים</p>
+        <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 26 }}>
+          {[3, 4, 2, 5, 4, 3, 4].map((mood, i) => (
+            <div key={i} style={{
+              flex: 1,
+              height: Math.round((mood / 5) * 22) + 4,
+              borderRadius: '3px 3px 2px 2px',
+              background: i === 6 ? '#6366f1' : '#c7d2fe',
+              opacity: i === 6 ? 1 : 0.75,
+            }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Streak bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '7px 9px', flexShrink: 0 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: '#c2410c' }}>ימים ברצף 🔥</span>
+        <span style={{ fontSize: 11, fontWeight: 900, color: '#d97706', background: '#fef3c7', borderRadius: 6, padding: '1px 6px' }}>7</span>
+      </div>
     </div>
   </div>
 );
@@ -387,6 +428,7 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [content, setContent] = useState<LandingContent>(DEFAULT_CONTENT);
+  const [scrolled, setScrolled] = useState(false);
 
   /* ── Auth redirect + CMS (unchanged logic) ── */
   useEffect(() => {
@@ -421,6 +463,12 @@ const LandingPage = () => {
     };
     init();
   }, [navigate]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Fetch CMS content non-blocking — defaults render immediately, DB text swaps in.
   // Column mapping: semantic name → actual landing_content DB column
@@ -540,10 +588,17 @@ const LandingPage = () => {
 
       {/* ── Navbar ── */}
       <nav className="lp-nav" style={{
-        background: '#ffffff', borderBottom: '0.5px solid #f1f5f9',
+        background: '#ffffff',
+        borderBottom: scrolled ? 'none' : '0.5px solid #f1f5f9',
         padding: '18px 52px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0, zIndex: 50,
+        position: 'sticky',
+        top: scrolled ? 8 : 0,
+        zIndex: 50,
+        borderRadius: scrolled ? 18 : 0,
+        boxShadow: scrolled ? '0 4px 32px rgba(0,0,0,0.09)' : 'none',
+        margin: scrolled ? '0 24px' : '0',
+        transition: 'top 0.35s ease, border-radius 0.35s ease, box-shadow 0.35s ease, margin 0.35s ease, border-bottom 0.35s ease',
       }}>
         {/* Right: logo (first in DOM = right side in RTL flex) */}
         <button
@@ -573,14 +628,6 @@ const LandingPage = () => {
       <section className="lp-hero">
         {/* Text column (right in RTL grid) */}
         <div className="lp-hero-text" style={{ maxWidth: 480 }}>
-          {/* Eyebrow */}
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', margin: '0 0 4px', letterSpacing: '0.02em' }}>
-            {content.hero_eyebrow}
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#94a3b8', margin: '0 0 18px' }}>
-            {content.hero_eyebrow2}
-          </p>
-
           {/* H1 */}
           <h1 style={{
             fontSize: 50, fontWeight: 900, color: '#111',
@@ -1145,7 +1192,7 @@ const LandingPage = () => {
                 פשוט. שקוף. משתלם.
               </h2>
               <p style={{ fontSize: 14, color: '#64748b', margin: 0, fontFamily: F }}>
-                התחל בחינם, שדרג כשתרצה — כל הפיצ׳רים בכל התוכניות.
+                גישה מלאה לכל הפיצ׳רים — בחר את הקצב שמתאים לך.
               </p>
             </div>
 
@@ -1172,16 +1219,6 @@ const LandingPage = () => {
                   ))}
                 </div>
                 <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    background: '#f0fdf4', border: '1.5px solid #86efac',
-                    borderRadius: 50, padding: '5px 12px',
-                  }}>
-                    <span style={{ fontSize: 12 }}>🎁</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#15803d', fontFamily: F }}>
-                      14 יום חינם
-                    </span>
-                  </div>
                   <a
                     href="/month"
                     style={waBtn}
