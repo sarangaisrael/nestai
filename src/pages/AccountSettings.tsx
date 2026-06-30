@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Shield, Trash2 } from "lucide-react";
+import { Save, Shield, Trash2, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,7 @@ import AddToHomeBanner from "@/components/AddToHomeBanner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AppHeader from "@/components/AppHeader";
 import BackButton from "@/components/BackButton";
+import { decryptText } from "@/utils/encryption";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -204,6 +205,88 @@ const AccountSettings = () => {
   };
 
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportData = async () => {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const userId = user.id;
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+
+      const [
+        { data: preferences },
+        { data: messages },
+        { data: journalEntries },
+        { data: checkins },
+        { data: sleepLogs },
+        { data: weeklySummaries },
+        { data: appSettings },
+        { data: gratitudeEntries },
+      ] = await Promise.all([
+        supabase.from("user_preferences").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("messages").select("id, role, text, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("journal_entries").select("id, content, mood, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("daily_checkins").select("id, date, mood, activities, note, created_at").eq("user_id", userId).order("date"),
+        supabase.from("sleep_logs").select("id, date, sleep_hours, sleep_quality, sleep_time, wake_time, created_at").eq("user_id", userId).order("date"),
+        supabase.from("weekly_summaries").select("id, week_start, week_end, summary_text, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("user_settings").select("checkin_time, sleep_reminder_time, sleep_reminder_enabled, custom_activities, mood_labels").eq("user_id", userId).maybeSingle(),
+        supabase.from("gratitude_entries").select("id, content, created_at").eq("user_id", userId).order("created_at"),
+      ]);
+
+      // Decrypt all encrypted fields client-side
+      const decryptedMessages = await Promise.all(
+        (messages ?? []).map(async m => ({ ...m, text: await decryptText(m.text, userId) }))
+      );
+      const decryptedJournal = await Promise.all(
+        (journalEntries ?? []).map(async e => ({ ...e, content: await decryptText(e.content, userId) }))
+      );
+      const decryptedCheckins = await Promise.all(
+        (checkins ?? []).map(async c => ({ ...c, note: c.note ? await decryptText(c.note, userId) : null }))
+      );
+      const decryptedSummaries = await Promise.all(
+        (weeklySummaries ?? []).map(async s => ({ ...s, summary_text: await decryptText(s.summary_text, userId) }))
+      );
+
+      const exportPayload = {
+        export_date: new Date().toISOString(),
+        export_format_version: "1.0",
+        account: {
+          email: authUser?.email ?? null,
+          registered_at: authUser?.created_at ?? null,
+          terms_accepted_at: preferences?.terms_accepted_at ?? null,
+        },
+        preferences: preferences ? {
+          therapy_type: preferences.therapy_type ?? null,
+          summary_focus: preferences.summary_focus ?? [],
+          terms_accepted_at: preferences.terms_accepted_at ?? null,
+        } : null,
+        app_settings: appSettings ?? null,
+        chat_messages: decryptedMessages,
+        journal_entries: decryptedJournal,
+        daily_checkins: decryptedCheckins,
+        sleep_logs: sleepLogs ?? [],
+        weekly_summaries: decryptedSummaries,
+        gratitude_entries: gratitudeEntries ?? [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nestai-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({ title: isRTL ? "הנתונים יוצאו בהצלחה" : "Data exported successfully" });
+    } catch (err: any) {
+      toast({ title: isRTL ? "שגיאה בייצוא" : "Export failed", description: err.message, variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
@@ -408,6 +491,33 @@ const AccountSettings = () => {
           >
             <Save className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
             {saving ? t.common.loading : t.common.save}
+          </Button>
+        </div>
+
+        {/* Export Data */}
+        <div className="bg-card rounded-[20px] p-6 border border-border space-y-4 animate-slide-up">
+          <div className="space-y-2">
+            <h2 className="text-[20px] font-semibold text-foreground">
+              {isRTL ? "ייצוא הנתונים שלי" : "Export My Data"}
+            </h2>
+            <p className="text-[14px] text-muted-foreground">
+              {isRTL
+                ? "הורד עותק מלא של כל הנתונים שלך בפורמט JSON קריא-מכונה — כולל הודעות, יומן, מצב רוח ושינה. הקובץ מפוענח ומוכן לקריאה."
+                : "Download a complete copy of all your data in machine-readable JSON format — including messages, journal, mood and sleep data. The file is decrypted and ready to read."
+              }
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleExportData}
+            disabled={exporting}
+            className="w-full h-12 text-[16px] rounded-[14px]"
+          >
+            <Download className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            {exporting
+              ? (isRTL ? "מייצא נתונים..." : "Exporting...")
+              : (isRTL ? "הורד את הנתונים שלי" : "Download My Data")
+            }
           </Button>
         </div>
 
