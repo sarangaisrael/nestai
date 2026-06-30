@@ -580,24 +580,6 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRESS ── */}
-      <section className="lp-press-wrap">
-        <div className="lp-press-inner lp-reveal">
-          <p className="lp-section-tag">כתבו עלינו</p>
-          <div className="lp-section-title" style={{ marginBottom: 0 }}>בתקשורת.</div>
-          <a
-            href="https://www.mako.co.il/nexter-news/Article-a19b0da777b6c91027.htm"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="lp-press-card"
-          >
-            <span className="lp-press-logo">mako</span>
-            <h3 className="lp-press-hl">חזר ממילואים – ומצא פתרון לבעיה שמטרידה רבים</h3>
-            <p className="lp-press-ex">ישראל סרנגה חזר ממילואים, והרגיש שהטיפול השבועי לא מצליח להכיל את כל מה שעבר עליו. כך נולדה NestAI.</p>
-            <span className="lp-press-lnk">לכתבה המלאה ←</span>
-          </a>
-        </div>
-      </section>
-
       {/* ── PRICING ── */}
       <section className="lp-pricing-wrap lp-reveal" id="trial">
         <div className="lp-section-title">פשוט ושקוף.</div>
