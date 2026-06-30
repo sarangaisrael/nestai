@@ -14,7 +14,6 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { useAccessibility } from "@/hooks/useAccessibility";
-import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +55,6 @@ const AppHeader = () => {
   const { t, isRTL } = useLanguage();
   const { isDark, toggle: toggleDark } = useDarkMode();
   const { settings: a11y, update: updateA11y, cycleFontSize } = useAccessibility();
-  const { isAdmin } = useAdminStatus();
   const { isInstalled, promptInstall, canShowAndroidPrompt } = usePWAInstall();
   const { toast } = useToast();
   const { hasFlag } = useAppDirectives();
@@ -182,19 +180,6 @@ const AppHeader = () => {
                 <MessageSquareHeart className="h-4 w-4" />
                 {isRTL ? "שלח משוב" : "Give Feedback"}
               </DropdownMenuItem>
-              {isAdmin && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/app/admin")} className="cursor-pointer gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    {isRTL ? "לוח בקרה" : "Admin Dashboard"}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/app/admin/notifications")} className="cursor-pointer gap-2">
-                    <Bell className="h-4 w-4" />
-                    {t.nav.adminNotifications}
-                  </DropdownMenuItem>
-                </>
-              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer gap-2 text-destructive">
                 <LogOut className="h-4 w-4" />

@@ -26,7 +26,6 @@ const Meditation         = lazy(() => import("./pages/Meditation"));
 const NotFound           = lazy(() => import("./pages/NotFound"));
 const Privacy            = lazy(() => import("./pages/Privacy"));
 const InstallScreen      = lazy(() => import("./pages/InstallScreen"));
-const MailMessages       = lazy(() => import("./pages/MailMessages"));
 const PressDemo          = lazy(() => import("./pages/PressDemo"));
 const JournalPage        = lazy(() => import("./pages/JournalPage"));
 const PatternsInsights   = lazy(() => import("./pages/PatternsInsights"));
@@ -90,7 +89,6 @@ const App = () => (
               <Route path="/app/join"     element={<JoinReferral />} />
               <Route path="/app/install"  element={<InstallScreen />} />
               <Route path="/app/press-demo" element={<PressDemo />} />
-              <Route path="/app/mail"     element={<MailMessages />} />
               {/* ── New redesigned app (bottom nav) ── */}
               <Route path="/app/dashboard"        element={<NewAppLayout><Home /></NewAppLayout>} />
               <Route path="/app/journal"          element={<NewAppLayout><NewJournal /></NewAppLayout>} />
