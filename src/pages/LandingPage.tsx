@@ -3,448 +3,653 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Capacitor } from "@capacitor/core";
 
-const F = "'Heebo', sans-serif";
-const R = "'Righteous', sans-serif";
-
+// ─── CSS ────────────────────────────────────────────────────────────────────
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Righteous&display=swap');
-  *{box-sizing:border-box}
-  body{overflow-x:hidden}
-  .lp-btn-main:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,0.3)!important}
-  .lp-btn-sec:hover{border-color:#0f172a!important}
-  .lp-nav-link:hover{color:#0f172a!important}
-  .lp-foot-link:hover{color:#94a3b8!important}
-  .lp-steps{position:relative}
-  .lp-steps::before{content:'';position:absolute;top:28px;right:16%;left:16%;height:1px;background:linear-gradient(to left,transparent,#e2e8f0 20%,#e2e8f0 80%,transparent);z-index:0}
-  @media(max-width:900px){
-    .lp-hero{grid-template-columns:1fr!important;padding:56px 24px 48px!important;gap:40px!important}
-    .lp-phone-wrap{display:none!important}
-    .lp-proof{padding:24px!important}
-    .lp-proof-inner{gap:20px!important;flex-wrap:wrap!important}
-    .lp-proof-div{display:none!important}
-    .lp-how{padding:64px 24px!important}
-    .lp-steps{grid-template-columns:1fr!important}
-    .lp-steps::before{display:none}
-    .lp-screens{padding:64px 24px!important}
-    .lp-screens-grid{grid-template-columns:1fr!important}
-    .lp-compare{padding:64px 24px!important}
-    .lp-pricing{padding:64px 24px!important}
-    .lp-pricing-grid{grid-template-columns:1fr!important}
-    .lp-footer{padding:32px 24px!important;flex-direction:column!important;align-items:flex-start!important}
-    .lp-nav-inner{padding:12px 20px!important}
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+
+  .lp-root {
+    --paper: #FBF6EC;
+    --paper-card: #FFFFFF;
+    --ink: #1A1625;
+    --ink-soft: #5C5668;
+    --purple: #5A4BFF;
+    --purple-deep: #382CB8;
+    --coral: #FF6B4A;
+    --line: #E6DFD0;
+    --radius: 18px;
+    --serif: 'Rubik', sans-serif;
+    --sans: 'Heebo', sans-serif;
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .lp-root *, .lp-root *::before, .lp-root *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ── Scroll reveal ── */
+  .lp-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s cubic-bezier(.16,1,.3,1), transform 0.8s cubic-bezier(.16,1,.3,1);
+  }
+  .lp-reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* ── NAV ── */
+  .lp-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 48px;
+    position: relative;
+    z-index: 50;
+  }
+
+  .lp-logo {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+
+  .lp-nav-cta {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 50px;
+    padding: 11px 26px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .lp-nav-cta:hover { transform: translateY(-2px); background: var(--purple); }
+
+  /* ── HERO ── */
+  .lp-hero {
+    position: relative;
+    padding: 70px 24px 60px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .lp-hero-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .lp-hero-visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 480px;
+  }
+
+  .lp-scatter-zone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .lp-thought {
+    position: absolute;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--ink-soft);
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    padding: 12px 16px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(26,22,37,0.07);
+    max-width: 168px;
+    line-height: 1.4;
+    animation: lp-settle 1s cubic-bezier(.16,1,.3,1) backwards;
+  }
+
+  .lp-thought::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: 18px;
+    width: 18px;
+    height: 10px;
+    background: rgba(255,107,74,0.35);
+    border-radius: 3px;
+    transform: rotate(-3deg);
+  }
+
+  @keyframes lp-settle {
+    from { opacity: 0; transform: translateY(-24px) rotate(var(--rot,0deg)) scale(0.9); }
+    to   { opacity: 1; transform: translateY(0)     rotate(var(--rot,0deg)) scale(1);   }
+  }
+
+  .lp-t1 { top: 0;   right: -10px; --rot: -5deg; transform: rotate(-5deg); animation-delay: 0.1s; }
+  .lp-t2 { top: 60px; left: -30px; --rot: 4deg;  transform: rotate(4deg);  animation-delay: 0.35s; font-size: 14px; max-width: 140px; }
+  .lp-t3 { bottom: 90px; right: -34px; --rot: 3deg; transform: rotate(3deg); animation-delay: 0.55s; }
+  .lp-t4 { bottom: 20px; left: -16px; --rot: -3deg; transform: rotate(-3deg); animation-delay: 0.7s; font-size: 14px; max-width: 150px; }
+
+  /* ── PHONE ── */
+  .lp-phone {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(165deg, #2A2745, #1A1625);
+    border-radius: 48px;
+    padding: 13px;
+    box-shadow: 0 50px 100px -20px rgba(90,75,255,0.3), 0 16px 40px -10px rgba(26,22,37,0.25);
+    max-width: 270px;
+    width: 100%;
+    transform: rotate(-2deg);
+  }
+
+  .lp-phone::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 24px;
+    background: #1A1625;
+    border-radius: 0 0 16px 16px;
+    z-index: 2;
+  }
+
+  .lp-phone-screen {
+    background: linear-gradient(180deg, #1C1934 0%, #14122A 100%);
+    border-radius: 36px;
+    padding: 40px 20px 26px;
+    text-align: right;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lp-status { display: flex; justify-content: space-between; font-size: 12px; color: var(--paper); font-weight: 600; margin-bottom: 24px; }
+  .lp-cin-lbl { font-size: 12px; color: #A09EC0; margin-bottom: 6px; }
+  .lp-cin-q { font-family: var(--sans); font-size: 18px; font-weight: 700; color: var(--paper); line-height: 1.4; margin-bottom: 22px; }
+
+  .lp-mood-row { display: flex; gap: 7px; justify-content: center; margin-bottom: 18px; flex-direction: row-reverse; }
+  .lp-mood-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #2A2645; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: pointer; transition: transform 0.15s;
+    border: 2px solid transparent;
+  }
+  .lp-mood-btn.lp-on { background: rgba(90,75,255,0.35); border-color: var(--purple); transform: scale(1.15); }
+
+  .lp-ai-bubble { background: linear-gradient(135deg, var(--purple), #8B7FFF); border-radius: 14px 14px 4px 14px; padding: 11px 13px; }
+  .lp-ai-bubble p { font-size: 12px; color: var(--paper); line-height: 1.5; }
+  .lp-ai-lbl { font-size: 10px; color: #C5C0FF; font-weight: 600; margin-bottom: 5px; display: block; }
+
+  /* ── HERO COPY ── */
+  .lp-hero-copy { position: relative; z-index: 2; text-align: right; }
+
+  .lp-eyebrow {
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--coral); margin-bottom: 18px;
+  }
+
+  .lp-hero-copy h1 {
+    font-family: var(--serif); font-size: clamp(38px, 5vw, 58px);
+    font-weight: 800; line-height: 1.1; letter-spacing: -1px;
+    color: var(--ink); margin-bottom: 22px;
+  }
+  .lp-accent { color: var(--purple); }
+
+  .lp-hero-copy > p {
+    font-size: 18px; color: var(--ink-soft); line-height: 1.6;
+    margin-bottom: 32px; max-width: 420px;
+  }
+
+  .lp-hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  .lp-btn-primary {
+    background: var(--purple); color: var(--paper); border: none;
+    border-radius: 50px; padding: 17px 38px; font-family: var(--sans);
+    font-size: 16px; font-weight: 800; cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 24px rgba(90,75,255,0.3);
+  }
+  .lp-btn-primary:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 32px rgba(90,75,255,0.4); }
+
+  .lp-stores { display: flex; gap: 10px; flex-wrap: wrap; }
+  .lp-store-link {
+    font-size: 13px; font-weight: 700; color: var(--ink-soft);
+    text-decoration: none; border: 1px solid var(--line);
+    background: var(--paper-card); padding: 8px 16px; border-radius: 50px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .lp-store-link:hover { border-color: var(--purple); color: var(--purple); }
+
+  /* ── SECTIONS ── */
+  .lp-section { max-width: 1040px; margin: 0 auto; padding: 100px 24px; }
+  .lp-section-tag { font-family: var(--serif); font-size: 16px; color: var(--coral); margin-bottom: 10px; }
+  .lp-section-title {
+    font-family: var(--serif); font-size: clamp(28px, 4.2vw, 44px);
+    font-weight: 700; letter-spacing: -0.5px; color: var(--ink);
+    line-height: 1.2; margin-bottom: 54px;
+  }
+
+  /* ── STEPS ── */
+  .lp-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 28px; }
+
+  .lp-step {
+    background: var(--paper-card); border-radius: var(--radius);
+    padding: 34px 28px; border: 1px solid var(--line);
+    transition: transform 0.3s cubic-bezier(.16,1,.3,1), box-shadow 0.3s;
+  }
+  .lp-step:nth-child(1) { transform: rotate(-1deg); }
+  .lp-step:nth-child(2) { transform: rotate(0.8deg) translateY(-10px); }
+  .lp-step:nth-child(3) { transform: rotate(-0.6deg); }
+  .lp-step:hover { transform: rotate(0deg) translateY(-14px) !important; box-shadow: 0 20px 44px rgba(90,75,255,0.12); }
+
+  .lp-step-mark { font-family: var(--serif); font-size: 38px; color: var(--purple); opacity: 0.25; line-height: 1; margin-bottom: 14px; }
+  .lp-step h3 { font-family: var(--sans); font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 9px; }
+  .lp-step p { font-size: 15px; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ── DARK SECTIONS ── */
+  .lp-dark { background: var(--ink); padding: 100px 24px; }
+  .lp-dark-inner { max-width: 1040px; margin: 0 auto; }
+  .lp-dark-inner .lp-section-tag { color: var(--coral); }
+  .lp-dark-inner .lp-section-title { color: var(--paper); }
+
+  /* ── COMPARE ── */
+  .lp-cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .lp-cmp-card { border-radius: var(--radius); padding: 30px 26px; }
+  .lp-cmp-them { background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.18); }
+  .lp-cmp-us   { background: var(--purple); border: 1px solid var(--purple-deep); }
+  .lp-cmp-card h4 { font-family: var(--serif); font-size: 18px; font-weight: 500; margin-bottom: 20px; }
+  .lp-cmp-them h4 { color: #8A87A3; }
+  .lp-cmp-us h4   { color: rgba(255,255,255,0.85); }
+  .lp-cmp-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
+  .lp-cmp-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 8px; flex-shrink: 0; }
+  .lp-cmp-them .lp-cmp-dot { background: #5A5670; }
+  .lp-cmp-us   .lp-cmp-dot { background: rgba(255,255,255,0.7); }
+  .lp-cmp-item span { font-size: 15px; line-height: 1.5; }
+  .lp-cmp-them span { color: #8A87A3; }
+  .lp-cmp-us   span { color: var(--paper); font-weight: 500; }
+
+  /* ── INSIGHTS ── */
+  .lp-insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+  .lp-insights-lead { font-family: var(--serif); font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.4; margin-bottom: 18px; }
+  .lp-insights-body { font-size: 16px; color: var(--ink-soft); line-height: 1.7; }
+  .lp-insights-card { background: var(--paper-card); border-radius: var(--radius); padding: 32px 28px; border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(26,22,37,0.07); }
+  .lp-insights-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .lp-insights-lbl { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+  .lp-insights-pill { background: #EEF0FF; color: var(--purple); font-size: 13px; font-weight: 700; padding: 5px 14px; border-radius: 50px; }
+  .lp-bars { display: flex; align-items: flex-end; gap: 8px; height: 90px; margin-bottom: 22px; }
+  .lp-bar { flex: 1; background: linear-gradient(180deg, var(--purple), #8B7FFF); border-radius: 6px 6px 0 0; }
+  .lp-insight-note { font-size: 14px; color: var(--ink-soft); line-height: 1.6; background: #FBF6EC; border-radius: 10px; padding: 14px 16px; }
+
+  /* ── PRIVACY ── */
+  .lp-priv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px; }
+  .lp-priv-item { text-align: right; }
+  .lp-priv-icon { font-size: 28px; margin-bottom: 16px; }
+  .lp-priv-item h4 { font-family: var(--sans); font-size: 17px; font-weight: 800; color: var(--paper); margin-bottom: 8px; }
+  .lp-priv-item p { font-size: 14px; color: #8A87A3; line-height: 1.6; }
+
+  /* ── PRESS ── */
+  .lp-press-wrap { background: var(--paper); padding: 100px 24px; }
+  .lp-press-inner { max-width: 1040px; margin: 0 auto; }
+  .lp-press-card {
+    display: block; max-width: 640px; margin: 50px auto 0;
+    background: var(--paper-card); border-radius: var(--radius);
+    padding: 36px 40px; border: 1px solid var(--line);
+    box-shadow: 0 12px 32px rgba(26,22,37,0.06);
+    text-decoration: none; text-align: right;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .lp-press-card:hover { transform: translateY(-6px); box-shadow: 0 24px 48px rgba(90,75,255,0.12); }
+  .lp-press-logo { font-family: var(--serif); font-weight: 900; font-size: 15px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); padding: 4px 14px; border-radius: 6px; display: inline-block; margin-bottom: 18px; }
+  .lp-press-hl { font-family: var(--serif); font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1.4; margin-bottom: 12px; }
+  .lp-press-ex { font-size: 15px; color: var(--ink-soft); line-height: 1.65; margin-bottom: 20px; }
+  .lp-press-lnk { font-size: 14px; font-weight: 700; color: var(--purple); }
+
+  /* ── PRICING ── */
+  .lp-pricing-wrap { max-width: 1040px; margin: 0 auto; padding: 100px 24px; text-align: center; }
+  .lp-pricing-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 20px; max-width: 720px; margin: 48px auto 0; align-items: stretch;
+  }
+  .lp-p-card {
+    background: var(--paper-card); border-radius: 24px;
+    padding: 40px 30px; border: 2px solid var(--line);
+    box-shadow: 0 12px 32px rgba(26,22,37,0.05);
+    position: relative; text-align: right;
+    display: flex; flex-direction: column;
+  }
+  .lp-p-card.lp-featured {
+    border-color: var(--purple);
+    box-shadow: 0 24px 60px rgba(90,75,255,0.18);
+    transform: translateY(-12px);
+  }
+  .lp-p-badge {
+    font-family: var(--sans); background: var(--coral); color: var(--paper);
+    font-size: 12px; font-weight: 700; padding: 5px 14px;
+    border-radius: 50px; display: inline-block; margin-bottom: 18px; align-self: flex-end;
+  }
+  .lp-p-card:not(.lp-featured) .lp-p-badge { background: var(--paper); color: var(--ink-soft); border: 1px solid var(--line); }
+  .lp-plan-name { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .lp-price { font-family: var(--serif); font-size: 46px; font-weight: 900; color: var(--ink); letter-spacing: -1px; line-height: 1; margin-top: 10px; }
+  .lp-price sup { font-size: 20px; vertical-align: super; font-weight: 700; }
+  .lp-price-period { font-size: 14px; color: var(--ink-soft); margin-top: 6px; margin-bottom: 28px; }
+  .lp-p-features { list-style: none; margin-bottom: 28px; flex-grow: 1; padding: 0; }
+  .lp-p-features li { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .lp-p-features li:last-child { border-bottom: none; }
+  .lp-check { color: var(--purple); font-size: 15px; font-weight: 900; }
+  .lp-trial-note { font-size: 12px; color: var(--ink-soft); margin-top: 14px; }
+
+  /* ── FINAL CTA ── */
+  .lp-fcta { background: var(--purple); padding: 110px 24px; text-align: center; overflow: hidden; }
+  .lp-fcta-inner { position: relative; z-index: 1; }
+  .lp-fcta h2 { font-family: var(--serif); font-size: clamp(30px,4.5vw,50px); font-weight: 700; color: var(--paper); line-height: 1.25; margin-bottom: 18px; }
+  .lp-fcta p { font-size: 17px; color: rgba(255,255,255,0.8); margin-bottom: 38px; }
+  .lp-btn-white {
+    background: var(--paper); color: var(--purple-deep); border: none;
+    border-radius: 50px; padding: 17px 42px; font-family: var(--sans);
+    font-size: 17px; font-weight: 800; cursor: pointer;
+    transition: transform 0.2s; box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+  }
+  .lp-btn-white:hover { transform: translateY(-3px) rotate(1deg); }
+
+  /* ── FOOTER ── */
+  .lp-footer {
+    background: var(--ink); padding: 32px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .lp-footer .lp-logo { color: var(--paper); }
+  .lp-footer p { font-size: 13px; color: #5C5668; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .lp-nav { padding: 16px 20px; }
+    .lp-hero { padding: 40px 20px 24px; }
+    .lp-hero-grid { grid-template-columns: 1fr; }
+    .lp-hero-visual { display: none; }
+    .lp-insights-grid { grid-template-columns: 1fr; }
+    .lp-cmp-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .lp-section { padding: 64px 20px; }
+    .lp-dark { padding: 64px 20px; }
+    .lp-press-wrap { padding: 64px 20px; }
+    .lp-pricing-wrap { padding: 64px 20px; }
+    .lp-fcta { padding: 72px 20px; }
+    .lp-footer { padding: 24px 20px; flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 600px) {
+    .lp-pricing-grid { grid-template-columns: 1fr; max-width: 380px; }
+    .lp-p-card.lp-featured { transform: none; }
+    .lp-step:nth-child(1), .lp-step:nth-child(2), .lp-step:nth-child(3) { transform: none; }
+    .lp-press-card { padding: 24px 20px; }
   }
 `;
 
-const Logo = ({ size = 22, color = "#0f172a", accentColor = "#6366f1" }: { size?: number; color?: string; accentColor?: string }) => (
-  <span style={{ fontFamily: R, fontSize: size, color }}> Nest<span style={{ color: accentColor }}>AI</span></span>
-);
-
-const Check = () => <span style={{ color: "#10b981", fontWeight: 700, flexShrink: 0 }}>✓</span>;
-
+// ─── Component ───────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [activeMood, setActiveMood] = useState(2);
 
+  // Redirect native app users who are already logged in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && Capacitor.isNativePlatform()) navigate("/app/dashboard");
-      setAuthChecked(true);
     });
   }, [navigate]);
 
+  // Scroll-reveal via IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const els = document.querySelectorAll(".lp-reveal");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }),
+      { threshold: 0.15 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 
-  if (!authChecked) return null;
+  const goAuth = () => navigate("/register");
+
+  const moods = ["😔", "😐", "🙂", "😄", "🤩"];
 
   return (
-    <div dir="rtl" style={{ fontFamily: F, background: "#fff", color: "#0f172a", overflowX: "hidden" }}>
+    <div className="lp-root" dir="rtl">
       <style>{CSS}</style>
 
       {/* ── NAV ── */}
-      {/* Outer: sticky anchor — transparent so page shows in the gap when pill is active */}
-      <div style={{ position: "sticky", top: 0, zIndex: 100 }}>
-        {/* Inner: the visual nav element that morphs into a pill */}
-        <div
-          className="lp-nav-inner"
-          style={{
-            margin: scrolled ? "8px 24px 0" : "0",
-            borderRadius: scrolled ? 18 : 0,
-            background: "rgba(255,255,255,0.97)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.08),0 1px 6px rgba(0,0,0,0.04)" : "none",
-            borderBottom: scrolled ? "none" : "1px solid #f1f5f9",
-            border: scrolled ? "1px solid #e2e8f0" : undefined,
-            padding: "18px 64px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            transition: "margin 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease",
-          }}
-        >
-          <Logo />
-          <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-            <a href="#how" className="lp-nav-link" style={{ fontSize: 14, color: "#64748b", fontWeight: 500, textDecoration: "none", transition: "color 0.2s" }}>איך זה עובד</a>
-            <a href="#pricing" className="lp-nav-link" style={{ fontSize: 14, color: "#64748b", fontWeight: 500, textDecoration: "none", transition: "color 0.2s" }}>תמחור</a>
-            <button onClick={() => navigate("/register")} style={{ background: "#0f172a", color: "#fff", border: "none", borderRadius: 10, padding: "10px 22px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: F }}>
-              מתחילים
-            </button>
-          </div>
-        </div>
-      </div>
+      <nav className="lp-nav">
+        <span className="lp-logo">NestAI</span>
+        <button className="lp-nav-cta" onClick={goAuth}>התחל בחינם</button>
+      </nav>
 
       {/* ── HERO ── */}
-      <section style={{ background: "#fff" }}>
-        <div className="lp-hero" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 80, padding: "100px 64px 80px", alignItems: "center", maxWidth: 1140, margin: "0 auto" }}>
+      <section className="lp-hero">
+        <div className="lp-hero-grid">
 
-          {/* Left copy */}
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "6px 14px", fontSize: 12, color: "#64748b", fontWeight: 600, marginBottom: 24 }}>
-              <div style={{ width: 6, height: 6, background: "#10b981", borderRadius: "50%" }} />
-              כלי להתפתחות אישית בעברית
+          {/* Phone + scattered thoughts */}
+          <div className="lp-hero-visual">
+            <div className="lp-scatter-zone">
+              <div className="lp-thought lp-t1">"לא חשבתי על זה קודם..."</div>
+              <div className="lp-thought lp-t2">למה אני ככה?</div>
+              <div className="lp-thought lp-t3">צריך לעבד את זה</div>
+              <div className="lp-thought lp-t4">שוב אותו דפוס</div>
             </div>
-            <h1 style={{ fontSize: 52, fontWeight: 900, color: "#0f172a", letterSpacing: "-2.5px", lineHeight: 1.05, margin: "0 0 22px" }}>
-              הכלי שעוזר לך להיות<br />
-              <em style={{ fontStyle: "normal", color: "#6366f1" }}>הגרסה הטובה</em><br />
-              ביותר שלך
-            </h1>
-            <p style={{ fontSize: 18, color: "#64748b", lineHeight: 1.8, margin: "0 0 36px", maxWidth: 440, fontWeight: 400 }}>
-              מעקב יומי פשוט של מצב הרוח והפעילות שלך. אחרי שבוע, תתחיל לראות דפוסים שלא הכרת.
-            </p>
-            <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 28 }}>
-              <button
-                onClick={() => navigate("/register")}
-                className="lp-btn-main"
-                style={{ background: "#6366f1", color: "#fff", border: "none", borderRadius: 12, padding: "16px 32px", fontSize: 15, fontWeight: 800, cursor: "pointer", fontFamily: F, transition: "transform 0.15s,box-shadow 0.15s" }}
-              >
-                מתחילים 14 יום בחינם
-              </button>
-              <button
-                className="lp-btn-sec"
-                onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}
-                style={{ background: "transparent", color: "#0f172a", border: "1.5px solid #e2e8f0", borderRadius: 12, padding: "14px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: F, transition: "border-color 0.2s" }}
-              >
-                איך זה עובד?
-              </button>
-            </div>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              {["ללא כרטיס אשראי", "מוצפן ופרטי", "בעברית"].map(t => (
-                <div key={t} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>
-                  <span style={{ color: "#10b981", fontSize: 14 }}>✓</span> {t}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Phone mockup */}
-          <div className="lp-phone-wrap" style={{ display: "flex", justifyContent: "center", position: "relative" }}>
-            <div style={{ background: "#0f172a", borderRadius: 48, padding: 14, boxShadow: "0 48px 120px rgba(15,23,42,0.22),0 12px 40px rgba(15,23,42,0.12)", width: 310, position: "relative" }}>
-              <div style={{ width: 80, height: 6, background: "#1e293b", borderRadius: 3, margin: "0 auto 10px" }} />
-              <div style={{ background: "#f9fafb", borderRadius: 36, overflow: "hidden" }}>
-                {/* Status bar */}
-                <div style={{ background: "#fff", borderBottom: "1px solid #f1f5f9", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: "#c2410c", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 20, padding: "2px 7px" }}>🔥 5 ימים</div>
-                  <Logo size={13} />
-                  <div style={{ width: 18 }} />
-                </div>
-                {/* Body */}
-                <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>ערב טוב 🌙</div>
-                  {/* Mood card */}
-                  <div style={{ background: "linear-gradient(135deg,#4f46e5,#6366f1)", borderRadius: 14, padding: 16, textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: "#fff", marginBottom: 4 }}>איך היה היום?</div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", marginBottom: 12 }}>בחר את מצב הרוח שלך</div>
-                    <div style={{ display: "flex", justifyContent: "space-around" }}>
-                      {[["😔","קשה"],["😕","לא טוב"],["😐","בסדר"],["🙂","טוב"],["😊","מעולה"]].map(([em, lbl]) => (
-                        <div key={lbl} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                          <span style={{ fontSize: 18 }}>{em}</span>
-                          <span style={{ fontSize: 7, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{lbl}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#0f172a" }}>מה עשית היום?</div>
-                  {/* Activities */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 5 }}>
-                    {[["💼","עבודה",true],["🏋️","ספורט",false],["🚶","הליכה",true],["👫","דייט",true]].map(([em, lbl, sel]) => (
-                      <div key={String(lbl)} style={{ background: sel ? "#ede9fe" : "#fff", borderRadius: 8, border: `1px solid ${sel ? "#6366f1" : "#e2e8f0"}`, padding: "5px 3px", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                        <span style={{ fontSize: 13 }}>{em}</span>
-                        <span style={{ fontSize: 6, fontWeight: 600, color: sel ? "#6366f1" : "#64748b", textAlign: "center" }}>{String(lbl)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Float badge */}
-            <div style={{ position: "absolute", bottom: -20, right: -30, background: "#fff", borderRadius: 16, padding: "14px 18px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", display: "flex", alignItems: "center", gap: 10, border: "1px solid #f1f5f9" }}>
-              <span style={{ fontSize: 22 }}>📈</span>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#0f172a" }}>שבוע 3 של עלייה</div>
-                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 1 }}>מצב הרוח שלך טוב יותר</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SOCIAL PROOF ── */}
-      <div className="lp-proof" style={{ background: "#f8fafc", borderTop: "1px solid #f1f5f9", borderBottom: "1px solid #f1f5f9", padding: "28px 64px" }}>
-        <div className="lp-proof-inner" style={{ maxWidth: 1140, margin: "0 auto", display: "flex", alignItems: "center", gap: 48, flexWrap: "wrap" }}>
-          {[["30 שניות","בכל יום"],["7 ימים","לתובנות ראשונות"],["100%","בעברית"]].map(([num, lbl]) => (
-            <div key={num} style={{ display: "contents" }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: -1 }}>{num}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{lbl}</div>
-              </div>
-              <div className="lp-proof-div" style={{ width: 1, height: 40, background: "#e2e8f0", flexShrink: 0 }} />
-            </div>
-          ))}
-          <div style={{ flex: 1, fontSize: 14, color: "#64748b", lineHeight: 1.7, fontStyle: "italic", minWidth: 200 }}>
-            "אחרי שבוע הבנתי שהימים שהלכתי לספורט היו הימים הכי טובים שלי. לא חשבתי שזה קשור."
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 6, fontStyle: "normal" }}>משתמש NestAI</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── HOW IT WORKS ── */}
-      <section id="how" className="lp-how" style={{ padding: "100px 64px", maxWidth: 1140, margin: "0 auto" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>איך זה עובד</div>
-        <div style={{ fontSize: 40, fontWeight: 900, color: "#0f172a", letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 16 }}>פשוט. עקבי. חכם.</div>
-        <div style={{ fontSize: 16, color: "#64748b", lineHeight: 1.75, marginBottom: 56, maxWidth: 520 }}>לא צריך לכתוב הרבה. לא צריך זמן. רק 30 שניות ביום — והמערכת עושה את השאר.</div>
-        <div className="lp-steps" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 40 }}>
-          {[
-            { bg: "#ede9fe", em: "😊", title: "מעדכן פעם ביום",      text: "בשעה שבחרת, תקבל תזכורת. תבחר אמוג'י למצב הרוח ותסמן מה עשית היום. 30 שניות." },
-            { bg: "#ecfdf5", em: "📊", title: "המערכת לומדת",        text: "אחרי שבוע, NestAI מנתח את הנתונים ומגלה דפוסים. אילו פעילויות משפיעות עליך ואיך." },
-            { bg: "#fff7ed", em: "🌱", title: "רואה שינוי מוחשי",    text: "סיכומים שבועיים וחודשיים מראים לך בדיוק איפה אתה עומד ולאן אתה הולך." },
-          ].map(s => (
-            <div key={s.title}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 20, position: "relative", zIndex: 1 }}>{s.em}</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 10, letterSpacing: "-0.3px" }}>{s.title}</div>
-              <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.7 }}>{s.text}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SCREENS ── */}
-      <section className="lp-screens" style={{ background: "#f8fafc", padding: "100px 64px" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>מה רואים</div>
-          <div style={{ fontSize: 40, fontWeight: 900, color: "#0f172a", letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 16 }}>הכל במקום אחד</div>
-          <div style={{ fontSize: 16, color: "#64748b", lineHeight: 1.75, marginBottom: 56, maxWidth: 520 }}>דשבורד פשוט, יומן שקט, ותובנות שמתעדכנות בלי שתעשה כלום.</div>
-
-          <div className="lp-screens-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
-
-            {/* Screen 01 — Check-in */}
-            <ScreenCol badge="01" title="Check-in יומי" desc="30 שניות ביום. מצב רוח ופעילויות. ללא כתיבה, ללא מחויבות.">
-              <div style={{ background: "linear-gradient(135deg,#4f46e5,#6366f1)", borderRadius: 12, padding: 14, textAlign: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#fff", marginBottom: 10 }}>איך היה היום?</div>
-                <div style={{ display: "flex", justifyContent: "space-around" }}>
-                  {[["😔","קשה"],["😕","לא טוב"],["😐","בסדר"],["🙂","טוב"],["😊","מעולה"]].map(([em, lbl]) => (
-                    <div key={lbl} style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 20 }}>{em}</div>
-                      <div style={{ fontSize: 7, color: "rgba(255,255,255,0.7)" }}>{lbl}</div>
+            <div className="lp-phone">
+              <div className="lp-phone-screen">
+                <div className="lp-status"><span>21:14</span><span>🔋</span></div>
+                <div className="lp-cin-lbl">יום שלישי, 21 ביוני</div>
+                <div className="lp-cin-q">איך אתה מרגיש עכשיו?</div>
+                <div className="lp-mood-row">
+                  {moods.map((em, i) => (
+                    <div key={em} className={`lp-mood-btn${activeMood === i ? " lp-on" : ""}`} onClick={() => setActiveMood(i)}>
+                      {em}
                     </div>
                   ))}
                 </div>
+                <div className="lp-ai-bubble">
+                  <span className="lp-ai-lbl">✦ NestAI</span>
+                  <p>ראיתי שהשבוע הרגשת טוב יותר בימים שיצאת לטבע. רוצה לדבר על מה שמשפיע על המצב רוח שלך?</p>
+                </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 5 }}>
-                {[["💼",true],["🏋️",false],["🚶",true],["👫",true]].map(([em, sel], i) => (
-                  <div key={i} style={{ background: sel ? "#ede9fe" : "#f1f5f9", borderRadius: 8, padding: 6, textAlign: "center", fontSize: 14 }}>{em}</div>
-                ))}
-              </div>
-            </ScreenCol>
-
-            {/* Screen 02 — Trends */}
-            <ScreenCol badge="02" title="מגמות ותובנות" desc="אחרי שבוע תראה אילו פעילויות משפיעות על מצב הרוח שלך.">
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>מצב רוח השבוע</div>
-              {[["😕",30,"#ddd6fe","א׳"],["🙂",70,"#6366f1","ב׳"],["😊",90,"#4f46e5","ג׳"],["😐",50,"#a5b4fc","ד׳"]].map(([em, w, c, d]) => (
-                <div key={String(d)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
-                  <span style={{ fontSize: 14, width: 20 }}>{em}</span>
-                  <div style={{ flex: 1, height: 7, background: "#f1f5f9", borderRadius: 4, overflow: "hidden" }}>
-                    <div style={{ width: `${w}%`, height: "100%", background: String(c), borderRadius: 4 }} />
-                  </div>
-                  <span style={{ fontSize: 9, color: "#94a3b8", width: 20 }}>{d}</span>
-                </div>
-              ))}
-              <div style={{ marginTop: 10, fontSize: 11, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>מה משפיע עליך</div>
-              {[["👫",88,"#10b981","↑88%"],["🚶",72,"#6366f1","↑72%"],["💼",35,"#f59e0b","↓35%"]].map(([em, w, c, val]) => (
-                <div key={String(em)} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
-                  <span style={{ fontSize: 14, width: 20 }}>{em}</span>
-                  <div style={{ flex: 1, height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ width: `${w}%`, height: "100%", background: String(c), borderRadius: 3 }} />
-                  </div>
-                  <span style={{ fontSize: 9, fontWeight: 700, width: 28, color: String(c) }}>{val}</span>
-                </div>
-              ))}
-            </ScreenCol>
-
-            {/* Screen 03 — Journal */}
-            <ScreenCol badge="03" title="יומן שקט" desc="מקום לכתוב בחופשיות. בלי תגובות, בלי שיפוטים. רק אתה.">
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>יומן</div>
-              {[
-                { when: "היום · 20:15",  mood: "🙂", text: "היום היה יום טוב. הדייט עם שרה היה נפלא, הלכנו לים..." },
-                { when: "אתמול · 21:30", mood: "😐", text: "יום עמוס בעבודה. הרגשתי קצת מותש אבל..." },
-              ].map(e => (
-                <div key={e.when} style={{ background: "#f8fafc", borderRadius: 10, border: "1px solid #e2e8f0", padding: 10, marginBottom: 7 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: "#6366f1" }}>{e.when}</span>
-                    <span style={{ fontSize: 12 }}>{e.mood}</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: "#374151", lineHeight: 1.6 }}>{e.text}</div>
-                </div>
-              ))}
-            </ScreenCol>
-
+            </div>
           </div>
+
+          {/* Copy */}
+          <div className="lp-hero-copy">
+            <p className="lp-eyebrow">המרחב האישי שלך בין הטיפולים</p>
+            <h1>לא רק לתעד.<br />לעבד<span className="lp-accent">.</span></h1>
+            <p>עדכון יומי של 30 שניות. ואז NestAI עוזר לך להבין מה באמת קורה אצלך.</p>
+            <div className="lp-hero-actions">
+              <button className="lp-btn-primary" onClick={goAuth}>7 ימים חינם – בלי כרטיס אשראי</button>
+            </div>
+            <div className="lp-stores">
+              <a href="https://apps.apple.com/il/app/nestai-care/id6760186559" target="_blank" rel="noopener noreferrer" className="lp-store-link"> App Store</a>
+              <a href="/app/install" className="lp-store-link"> אנדרואיד (PWA)</a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── STEPS ── */}
+      <section className="lp-section lp-reveal">
+        <div className="lp-section-title">שלושה צעדים. פחות מדקה ביום.</div>
+        <div className="lp-steps">
+          {[
+            { mark: "א.", title: "מה מצב הרוח שלך היום?", text: "פעם ביום, מספר שניות בודדות." },
+            { mark: "ב.", title: "כתיבה חופשית",           text: "יומן שקט לעיבוד מחשבות, או צ'אט AI לשיחה." },
+            { mark: "ג.", title: "זמן להכיר את עצמך",     text: "NestAI מזהה דפוסים ועוזר לך להכיר את עצמך טוב יותר, לא רק לתעד את זה." },
+          ].map((s) => (
+            <div key={s.mark} className="lp-step">
+              <div className="lp-step-mark">{s.mark}</div>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ── COMPARISON ── */}
-      <section className="lp-compare" style={{ padding: "100px 64px", maxWidth: 1140, margin: "0 auto" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>למה לא ChatGPT?</div>
-        <div style={{ fontSize: 40, fontWeight: 900, color: "#0f172a", letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 16 }}>לא כל AI מתאים לצמיחה אישית</div>
-        <div style={{ fontSize: 16, color: "#64748b", lineHeight: 1.75, marginBottom: 56, maxWidth: 520 }}>ההבדל בין כלי כללי לכלי שנבנה בשביל זה.</div>
-
-        <div style={{ borderRadius: 24, overflow: "hidden", border: "1px solid #e2e8f0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", background: "#f8fafc" }}>
-            <div style={{ padding: "18px 24px", fontSize: 12, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.05em" }}>תכונה</div>
-            <div style={{ padding: "18px 24px", fontSize: 12, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.05em" }}>ChatGPT</div>
-            <div style={{ padding: "18px 24px", background: "#0f172a", display: "flex", alignItems: "center" }}>
-              <Logo size={14} color="#fff" accentColor="#818cf8" />
+      <section className="lp-dark">
+        <div className="lp-dark-inner lp-reveal">
+          <div className="lp-section-title">לא עוד צ'אט עם בוט.</div>
+          <div className="lp-cmp-grid">
+            <div className="lp-cmp-card lp-cmp-them">
+              <h4>ChatGPT / כל כלי AI אחר</h4>
+              {[
+                "צ'אט כללי שחוזר לנקודת ההתחלה בכל שיחה",
+                "לא מנטר שינה ולא זוכר את מצב הרוח שלך אתמול",
+                "לא בנוי לעיבוד רגשי",
+              ].map((t) => (
+                <div key={t} className="lp-cmp-item"><div className="lp-cmp-dot" /><span>{t}</span></div>
+              ))}
+            </div>
+            <div className="lp-cmp-card lp-cmp-us">
+              <h4>NestAI</h4>
+              {[
+                "זוכר את ההיסטוריה הרגשית שלך",
+                "מזהה דפוסים ומגמות",
+                "נבנה לתמוך ולהעצים את התהליך האישי",
+              ].map((t) => (
+                <div key={t} className="lp-cmp-item"><div className="lp-cmp-dot" /><span>{t}</span></div>
+              ))}
             </div>
           </div>
-          {[
-            ["זיכרון לאורך זמן",   "מתחיל מאפס בכל שיחה",     "עוקב לאורך כל התהליך"],
-            ["מעקב פעילויות",      "לא קיים",                   "יומי, אוטומטי, ויזואלי"],
-            ["סיכום שבועי",        "לא קיים",                   "אוטומטי אחרי 7 ימים"],
-            ["בעברית",             "אנגלית בעיקר",               "בנוי בעברית מהיסוד"],
-            ["פרטיות והצפנה",      "נתונים לאימון מודלים",      "מוצפן, לא נשמר לאימון"],
-          ].map(([feat, gpt, nest], i) => (
-            <div key={feat} style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", borderTop: "1px solid #f1f5f9", background: i % 2 === 1 ? "#fafafa" : "#fff" }}>
-              <div style={{ padding: "16px 24px", fontSize: 13, fontWeight: 700, color: "#0f172a", display: "flex", alignItems: "center" }}>{feat}</div>
-              <div style={{ padding: "16px 24px", fontSize: 13, color: "#94a3b8", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ color: "#ef4444", fontWeight: 700 }}>✗</span> {gpt}
-              </div>
-              <div style={{ padding: "16px 24px", fontSize: 13, color: "#0f172a", fontWeight: 500, display: "flex", alignItems: "center", gap: 8, background: "#fafbff" }}>
-                <span style={{ color: "#10b981", fontWeight: 700 }}>✓</span> {nest}
-              </div>
+        </div>
+      </section>
+
+      {/* ── INSIGHTS ── */}
+      <section className="lp-section lp-reveal">
+        <div className="lp-section-title">תובנות ומגמות</div>
+        <div className="lp-insights-grid">
+          <div>
+            <p className="lp-insights-lead">רואים את התמונה השלמה.</p>
+            <p className="lp-insights-body">
+              NestAI אוסף את הנקודות לאורך זמן ומראה לך את מה שקשה לראות מבפנים: ימים שחוזרים על עצמם,
+              טריגרים שמופיעים שוב ושוב, ושינוי התנהגותי שלא תמיד שמים לב אליו.
+            </p>
+          </div>
+          <div className="lp-insights-card">
+            <div className="lp-insights-row">
+              <span className="lp-insights-lbl">מגמה שבועית</span>
+              <span className="lp-insights-pill">משתפר ↑</span>
             </div>
-          ))}
+            <div className="lp-bars">
+              {[30, 45, 35, 60, 55, 75, 80].map((h, i) => (
+                <div key={i} className="lp-bar" style={{ height: `${h}%` }} />
+              ))}
+            </div>
+            <p className="lp-insight-note">✦ שמתי לב שימים שבהם ישנת יותר משבע שעות, המצב רוח שלך עלה משמעותית למחרת.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRIVACY ── */}
+      <section className="lp-dark">
+        <div className="lp-dark-inner lp-reveal">
+          <p className="lp-section-tag">פרטיות ואבטחה</p>
+          <div className="lp-section-title">המחשבות שלך נשארות שלך.</div>
+          <div className="lp-priv-grid">
+            {[
+              { icon: "🔒", title: "הצפנה מקצה לקצה",         text: "כל מה שאתה כותב מוצפן ולא נגיש לאף אחד מלבדך." },
+              { icon: "🚫", title: "בלי שיתוף עם צד שלישי",  text: "הנתונים שלך לא נמכרים, לא משותפים, לא מנותחים לפרסום." },
+              { icon: "🗑️", title: "מחיקה מלאה בכל רגע",     text: "רוצה למחוק הכל? לחיצה אחת ואין זכר." },
+            ].map((item) => (
+              <div key={item.title} className="lp-priv-item">
+                <div className="lp-priv-icon">{item.icon}</div>
+                <h4>{item.title}</h4>
+                <p>{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRESS ── */}
+      <section className="lp-press-wrap">
+        <div className="lp-press-inner lp-reveal">
+          <p className="lp-section-tag">כתבו עלינו</p>
+          <div className="lp-section-title" style={{ marginBottom: 0 }}>בתקשורת.</div>
+          <a
+            href="https://www.mako.co.il/nexter-news/Article-a19b0da777b6c91027.htm"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="lp-press-card"
+          >
+            <span className="lp-press-logo">mako</span>
+            <h3 className="lp-press-hl">חזר ממילואים – ומצא פתרון לבעיה שמטרידה רבים</h3>
+            <p className="lp-press-ex">ישראל סרנגה חזר ממילואים, והרגיש שהטיפול השבועי לא מצליח להכיל את כל מה שעבר עליו. כך נולדה NestAI.</p>
+            <span className="lp-press-lnk">לכתבה המלאה ←</span>
+          </a>
         </div>
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" className="lp-pricing" style={{ background: "#f8fafc", padding: "100px 64px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>תמחור</div>
-            <div style={{ fontSize: 40, fontWeight: 900, color: "#0f172a", letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 16 }}>פשוט. שקוף. משתלם.</div>
-            <div style={{ fontSize: 16, color: "#64748b", lineHeight: 1.75, margin: "0 auto 56px" }}>ההבדל היחיד בין התוכניות הוא משך הגישה.</div>
+      <section className="lp-pricing-wrap lp-reveal" id="trial">
+        <div className="lp-section-title">פשוט ושקוף.</div>
+        <div className="lp-pricing-grid">
+
+          {/* Monthly */}
+          <div className="lp-p-card">
+            <span className="lp-p-badge">חודשי</span>
+            <div className="lp-plan-name">גמיש</div>
+            <div className="lp-price">29<sup>₪</sup></div>
+            <div className="lp-price-period">לחודש · ביטול בכל עת</div>
+            <ul className="lp-p-features">
+              {["עדכון יומי ומעקב מצב רוח", "יומן שקט לעיבוד מחשבות", "שיחה עם AI – ללא הגבלה", "תובנות ומגמות שבועיות", "מעקב שינה"].map((f) => (
+                <li key={f}><span className="lp-check">✓</span>{f}</li>
+              ))}
+            </ul>
+            <button className="lp-btn-primary" onClick={goAuth} style={{ width: "100%", textAlign: "center" }}>התחל 7 ימים חינם</button>
           </div>
 
-          <div className="lp-pricing-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-
-            {/* Monthly */}
-            <PricingCard
-              name="חודשי"
-              price="29"
-              period="לחודש"
-              saving="פחות מ-5% ממפגש טיפולי"
-              features={["גישה מלאה","Check-in יומי","מגמות ותובנות","יומן שקט","צ'אט AI רגשי"]}
-              href="/month"
-              note="נחזור תוך 24 שעות"
-            />
-
-            {/* Yearly - featured */}
-            <PricingCard
-              name="שנתי"
-              price="249"
-              period="לשנה"
-              saving="₪20.75 לחודש — חיסכון של 3 חודשים"
-              features={["גישה מלאה לשנה שלמה","Check-in יומי","מגמות ותובנות","יומן שקט","צ'אט AI רגשי"]}
-              href="https://wa.me/9720537000277?text=היי, אני מעוניין במנוי השנתי של NestAI"
-              note="נחזור תוך 24 שעות"
-              featured
-              badge="הכי משתלם"
-            />
-
+          {/* Yearly — featured */}
+          <div className="lp-p-card lp-featured">
+            <span className="lp-p-badge">שנתי · חוסכים 30%</span>
+            <div className="lp-plan-name">פרמיום</div>
+            <div className="lp-price">249<sup>₪</sup></div>
+            <div className="lp-price-period">לשנה · כ-20.75 ₪ לחודש</div>
+            <ul className="lp-p-features">
+              {["כל מה שבחבילה החודשית", "חיסכון של כ-100 ₪ בשנה", "תובנות ומגמות מתקדמות", "מעקב שינה מלא", "פרטיות מלאה ואבטחת מידע"].map((f) => (
+                <li key={f}><span className="lp-check">✓</span>{f}</li>
+              ))}
+            </ul>
+            <button className="lp-btn-primary" onClick={goAuth} style={{ width: "100%", textAlign: "center" }}>התחל 7 ימים חינם</button>
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#94a3b8", lineHeight: 1.7 }}>
-            המחירים ייכנסו לתוקף בקרוב. משתמשים קיימים יקבלו הודעה מראש.
-          </div>
+        </div>
+        <p className="lp-trial-note">7 ימי ניסיון חינם בשתי החבילות · ביטול בקליק בכל עת</p>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="lp-fcta">
+        <div className="lp-fcta-inner lp-reveal">
+          <h2>המחשבות שלך מחכות<br />לנחיתה רכה</h2>
+          <p>התחל ב-7 ימים חינם. בלי מחויבות.</p>
+          <button className="lp-btn-white" onClick={goAuth}>התחל עכשיו</button>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="lp-footer" style={{ background: "#0f172a", padding: "48px 64px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
-        <Logo size={20} color="#fff" accentColor="#818cf8" />
-        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-          {[["מדיניות פרטיות","/privacy"],["תנאי שימוש","/terms"],["צור קשר","mailto:info@nestai.care"]].map(([lbl, href]) => (
-            <a key={href} href={href} className="lp-foot-link" style={{ fontSize: 13, color: "#475569", textDecoration: "none", transition: "color 0.2s" }}>{lbl}</a>
-          ))}
-        </div>
-        <div style={{ fontSize: 12, color: "#334155" }}>© 2025 NestAI.care</div>
+      <footer className="lp-footer">
+        <span className="lp-logo" style={{ color: "var(--paper)" }}>NestAI</span>
+        <p>© 2026 NestAI · כל הזכויות שמורות</p>
+        <p>nestai.care</p>
       </footer>
-    </div>
-  );
-}
-
-/* ── Sub-components ── */
-
-function ScreenCol({ badge, title, desc, children }: { badge: string; title: string; desc: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "inline-block", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "4px 12px", fontSize: 11, fontWeight: 700, color: "#64748b" }}>{badge}</div>
-      <div style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.3px" }}>{title}</div>
-      <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7 }}>{desc}</div>
-      <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
-        <div style={{ background: "#0f172a", padding: "10px 14px" }}>
-          <span style={{ fontFamily: R, fontSize: 12, color: "#fff" }}>Nest<span style={{ color: "#818cf8" }}>AI</span></span>
-        </div>
-        <div style={{ padding: 12 }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function PricingCard({ name, price, period, saving, features, href, note, featured = false, badge }: {
-  name: string; price: string; period: string; saving: string;
-  features: string[]; href: string; note: string;
-  featured?: boolean; badge?: string;
-}) {
-  const F = "'Heebo', sans-serif";
-  return (
-    <div style={{ background: "#fff", borderRadius: 20, border: featured ? "2px solid #6366f1" : "1.5px solid #e2e8f0", padding: 30, position: "relative", overflow: "hidden" }}>
-      {badge && (
-        <div style={{ position: "absolute", top: 18, left: 18, background: "#6366f1", color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 20 }}>{badge}</div>
-      )}
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.05em", marginBottom: 10, marginTop: badge ? 8 : 0 }}>{name}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-        <span style={{ fontSize: 18, fontWeight: 700, verticalAlign: "top", marginTop: 8, display: "inline-block" }}>₪</span>
-        <span style={{ fontSize: 40, fontWeight: 900, color: "#0f172a", letterSpacing: -2, lineHeight: 1 }}>{price}</span>
-      </div>
-      <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4, marginBottom: 4 }}>{period}</div>
-      <div style={{ fontSize: 11, color: "#6366f1", fontWeight: 600, marginBottom: 18 }}>{saving}</div>
-      <div style={{ height: 1, background: "#f1f5f9", margin: "16px 0" }} />
-      <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 22 }}>
-        {features.map(f => (
-          <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#374151", fontWeight: 500 }}>
-            <Check /> {f}
-          </div>
-        ))}
-      </div>
-      <a href={href} style={{ display: "flex", width: "100%", background: "#6366f1", color: "#fff", border: "none", borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: F, textDecoration: "none", alignItems: "center", justifyContent: "center", gap: 6, boxSizing: "border-box" }}>
-        מתחילים עכשיו
-      </a>
-      <div style={{ fontSize: 10, color: "#94a3b8", textAlign: "center", marginTop: 8 }}>{note}</div>
     </div>
   );
 }
