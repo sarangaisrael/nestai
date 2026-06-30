@@ -66,7 +66,7 @@ const NewSettings = () => {
 
   const logout = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    navigate("/app/auth", { replace: true });
   };
 
   if (loading) return (
