@@ -69,6 +69,7 @@ const Register = () => {
   const [loginError,       setLoginError]       = useState<string | null>(null);
   const [therapyType,      setTherapyType]      = useState<string>("");
   const [summaryFocus]                          = useState<string[]>(["emotions", "thoughts", "behaviors", "changes"]);
+  const [termsAccepted,    setTermsAccepted]    = useState(false);
 
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -105,6 +106,7 @@ const Register = () => {
           user_id: data.user.id,
           therapy_type: therapyType || null,
           summary_focus: summaryFocus,
+          terms_accepted_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
 
         if (paymentSuccess) {
@@ -119,6 +121,7 @@ const Register = () => {
   };
 
   const handleGoogleAuth = async () => {
+    if (!termsAccepted) { setLoginError("יש לאשר את תנאי השימוש ומדיניות הפרטיות לפני ההרשמה."); return; }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/welcome` },
@@ -331,7 +334,29 @@ const Register = () => {
 
             <ErrorBlock />
 
-            <button type="submit" disabled={loading} style={primaryBtn(loading)}>
+            {/* Terms checkbox */}
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={e => setTermsAccepted(e.target.checked)}
+                style={{ marginTop: 2, width: 16, height: 16, accentColor: C.purple, flexShrink: 0, cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
+                קראתי ואני מסכים/ה ל
+                <button type="button" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}
+                  style={{ color: C.purple, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, padding: '0 2px', fontWeight: 600 }}>
+                  תנאי שימוש
+                </button>
+                ו
+                <button type="button" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}
+                  style={{ color: C.purple, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, padding: '0 2px', fontWeight: 600 }}>
+                  מדיניות פרטיות
+                </button>
+              </span>
+            </label>
+
+            <button type="submit" disabled={loading || !termsAccepted} style={primaryBtn(loading || !termsAccepted)}>
               {loading ? 'טוען...' : 'יצירת חשבון בחינם'}
             </button>
           </form>
@@ -347,12 +372,14 @@ const Register = () => {
           <button
             type="button"
             onClick={handleGoogleAuth}
+            disabled={!termsAccepted}
             style={{
               width: '100%', background: 'white', border: `1px solid ${C.border}`,
               borderRadius: 10, padding: '11px 0', fontSize: 13,
-              color: '#374151', fontWeight: 600, cursor: 'pointer',
+              color: termsAccepted ? '#374151' : '#94a3b8',
+              fontWeight: 600, cursor: termsAccepted ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              fontFamily: F,
+              fontFamily: F, opacity: termsAccepted ? 1 : 0.5,
             }}
           >
             <GoogleIcon />
@@ -364,20 +391,6 @@ const Register = () => {
             <LockIcon />
             מאובטח ופרטי — המסע שלכם שמור כאן
           </div>
-
-          {/* Terms / privacy note */}
-          <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', lineHeight: 1.8, margin: '10px 0 0' }}>
-            על ידי המשך, את/ה מסכים/ה ל
-            <button type="button" onClick={() => window.open('/privacy', '_blank')}
-              style={{ color: C.muted, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, padding: '0 2px' }}>
-              תנאי שימוש
-            </button>
-            ו
-            <button type="button" onClick={() => window.open('/privacy', '_blank')}
-              style={{ color: C.muted, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, padding: '0 2px' }}>
-              מדיניות פרטיות
-            </button>
-          </p>
 
         </div>
       </div>
