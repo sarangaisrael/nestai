@@ -224,6 +224,14 @@ const CSS = `
     box-shadow: 0 8px 24px rgba(90,75,255,0.3);
   }
   .lp-btn-primary:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 12px 32px rgba(90,75,255,0.4); }
+  .lp-btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 14px 28px; border-radius: 14px; font-size: 15px; font-weight: 700;
+    font-family: var(--sans); cursor: pointer; transition: all 0.2s ease;
+    background: transparent; color: var(--purple);
+    border: 2px solid var(--purple);
+  }
+  .lp-btn-secondary:hover { background: rgba(90,75,255,0.07); transform: translateY(-2px); }
 
   .lp-stores { display: flex; gap: 10px; flex-wrap: wrap; }
   .lp-store-link {
@@ -423,6 +431,7 @@ export default function LandingPage() {
   }, []);
 
   const goAuth = () => navigate("/register");
+  const goLogin = () => navigate("/app/auth");
 
   const moods = ["😔", "😐", "🙂", "😄", "🤩"];
 
@@ -475,6 +484,7 @@ export default function LandingPage() {
             <p>עדכון יומי של 30 שניות. ואז NestAI עוזר לך להבין מה באמת קורה אצלך.</p>
             <div className="lp-hero-actions">
               <button className="lp-btn-primary" onClick={goAuth}>7 ימים חינם – בלי כרטיס אשראי</button>
+              <button className="lp-btn-secondary" onClick={goLogin}>התחברות</button>
             </div>
             <div className="lp-stores">
               <a href="https://apps.apple.com/il/app/nestai-care/id6760186559" target="_blank" rel="noopener noreferrer" className="lp-store-link"> App Store</a>
