@@ -13,7 +13,7 @@ export const useSubscription = (): SubscriptionState => {
   const [state, setState] = useState<SubscriptionState>({
     isActive: true,
     plan: "trial",
-    daysLeft: 14,
+    daysLeft: 7,
     isExpired: false,
     loading: true,
   });
@@ -52,7 +52,7 @@ export const useSubscription = (): SubscriptionState => {
           setState({
             isActive: true,
             plan: "trial",
-            daysLeft: 14,
+            daysLeft: 7,
             isExpired: false,
             loading: false,
           });
@@ -78,7 +78,7 @@ export const useSubscription = (): SubscriptionState => {
           setState({
             isActive: true,
             plan: "trial",
-            daysLeft: 14,
+            daysLeft: 7,
             isExpired: false,
             loading: false,
           });
