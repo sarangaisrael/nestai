@@ -120,8 +120,8 @@ export const scheduleDailyReminder = async (time: string = "21:00"): Promise<voi
   await LocalNotifications.schedule({
     notifications: DAILY_QUESTIONS.map((question, i) => ({
       id: DAILY_QUESTION_IDS[i],
-      title: "תזכורת יומית",
-      body: "איך היה היום? עדכן את מצב הרוח שלך",
+      title: "הגיע הזמן שלך 🌙",
+      body: "רגע של דקה לעצמך. איך עבר היום?",
       schedule: {
         on: { weekday: i + 1, hour: hours, minute: minutes },
         repeats: true,
@@ -271,8 +271,8 @@ export const scheduleSleepReminder = async (time: string = "07:30"): Promise<voi
   await LocalNotifications.schedule({
     notifications: [{
       id: SLEEP_REMINDER_ID,
-      title: "תזכורת לעדכון שעות השינה",
-      body: "איך ישנת הלילה? עדכן בשניות",
+      title: "בוקר טוב ☀️",
+      body: "איך ישנת?",
       schedule: { at: trigger, repeats: true, every: "day" },
       sound: "default",
       actionTypeId: "SLEEP_REMINDER",
