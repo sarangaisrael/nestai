@@ -30,6 +30,7 @@ DECLARE
   v_messages_deleted   bigint := 0;
   v_journal_deleted    bigint := 0;
   v_gratitude_deleted  bigint := 0;
+  v_notes_cleared      bigint := 0;
   v_cutoff             timestamptz := now() - interval '30 days';
   v_hard_cutoff        timestamptz := now() - interval '37 days';
 BEGIN
@@ -85,14 +86,25 @@ BEGIN
   )
   SELECT count(*) INTO v_gratitude_deleted FROM deleted;
 
-  -- ── OPTIONAL: null-out daily_checkins.note after 30 days ────────────────────
-  -- Uncomment if you decide free-text notes should also be cleared.
-  -- The numeric mood/activities row is preserved; only the note is set to NULL.
-  --
-  -- UPDATE public.daily_checkins
-  -- SET note = NULL
-  -- WHERE note IS NOT NULL
-  --   AND created_at < v_cutoff;
+  -- ── daily_checkins.note — null-out free text after 30 days ─────────────────
+  -- Mood score and activities array are preserved; only the note is cleared.
+  -- Same 30/37-day guard as messages and journal_entries.
+  WITH cleared AS (
+    UPDATE public.daily_checkins
+    SET note = NULL
+    WHERE note IS NOT NULL
+      AND created_at < v_cutoff
+      AND (
+        EXISTS (
+          SELECT 1 FROM public.weekly_summaries ws
+          WHERE ws.user_id = daily_checkins.user_id
+            AND ws.created_at > daily_checkins.created_at + interval '6 days'
+        )
+        OR created_at < v_hard_cutoff
+      )
+    RETURNING 1
+  )
+  SELECT count(*) INTO v_notes_cleared FROM cleared;
 
   RETURN jsonb_build_object(
     'run_at',              now(),
@@ -100,7 +112,8 @@ BEGIN
     'hard_cutoff_37d',     v_hard_cutoff,
     'messages_deleted',    v_messages_deleted,
     'journal_deleted',     v_journal_deleted,
-    'gratitude_deleted',   v_gratitude_deleted
+    'gratitude_deleted',   v_gratitude_deleted,
+    'checkin_notes_cleared', v_notes_cleared
   );
 END;
 $$;
