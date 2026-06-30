@@ -344,7 +344,7 @@ const Register = () => {
               />
               <span style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>
                 קראתי ואני מסכים/ה ל
-                <button type="button" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}
+                <button type="button" onClick={e => { e.preventDefault(); window.open('/terms', '_blank'); }}
                   style={{ color: C.purple, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, padding: '0 2px', fontWeight: 600 }}>
                   תנאי שימוש
                 </button>

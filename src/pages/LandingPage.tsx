@@ -630,7 +630,10 @@ export default function LandingPage() {
       <footer className="lp-footer">
         <span className="lp-logo" style={{ color: "var(--paper)" }}>NestAI</span>
         <p>© 2026 NestAI · כל הזכויות שמורות</p>
-        <p>nestai.care</p>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
+          <a href="/privacy" style={{ fontSize: 13, color: "#5C5668", textDecoration: "underline" }}>מדיניות פרטיות</a>
+          <a href="/terms" style={{ fontSize: 13, color: "#5C5668", textDecoration: "underline" }}>תנאי שימוש</a>
+        </div>
       </footer>
     </div>
   );

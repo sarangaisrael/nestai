@@ -37,6 +37,7 @@ const BlogPost           = lazy(() => import("./pages/BlogPost"));
 const Welcome            = lazy(() => import("./pages/Welcome"));
 const Register           = lazy(() => import("./pages/Register"));
 const ResetPassword           = lazy(() => import("./pages/ResetPassword"));
+const TermsOfService          = lazy(() => import("./pages/TermsOfService"));
 const NotificationOnboarding = lazy(() => import("./pages/NotificationOnboarding"));
 const MonthlySubscription    = lazy(() => import("./pages/MonthlySubscription"));
 const SleepMonitorPage       = lazy(() => import("./pages/SleepMonitorPage"));
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/month"           element={<Suspense fallback={<LoadingSpinner />}><MonthlySubscription /></Suspense>} />
               <Route path="/reset-password"  element={<ResetPassword />} />
               <Route path="/privacy"      element={<Privacy />} />
+              <Route path="/terms"        element={<TermsOfService />} />
               <Route path="/app"             element={<Navigate to="/app/dashboard" replace />} />
               <Route path="/app/onboarding" element={<Suspense fallback={<LoadingSpinner />}><NotificationOnboarding /></Suspense>} />
               <Route path="/app/auth"     element={<Auth />} />
