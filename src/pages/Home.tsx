@@ -203,7 +203,7 @@ const Home = () => {
     if (!userId || !sleepQuality) return;
     setSavingSleep(true);
     const hours = calcSleepHours(sleepTime, wakeTime);
-    await supabase.from("sleep_logs").upsert({
+    const { error } = await supabase.from("sleep_logs").upsert({
       user_id: userId,
       date: todayISO(),
       sleep_time: sleepTime + ":00",
@@ -211,8 +211,11 @@ const Home = () => {
       sleep_hours: hours,
       sleep_quality: sleepQuality,
     }, { onConflict: "user_id,date" });
-    setSleepLogged(true);
     setSavingSleep(false);
+    if (!error) {
+      setSleepLogged(true);
+      setSleepData({ sleep_hours: hours, sleep_quality: sleepQuality, sleep_time: sleepTime, wake_time: wakeTime });
+    }
   };
 
   // ── Save check-in ───────────────────────────────────────────────────────────
