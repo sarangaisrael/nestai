@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { scheduleSleepReminder, cancelSleepReminder, scheduleAllNotifications } from "@/lib/pushNotifications";
+import { decryptText } from "@/utils/encryption";
 
 interface Settings {
   checkin_time: string;
@@ -19,9 +20,10 @@ const NewSettings = () => {
   const [settings, setSettings] = useState<Settings>({
     checkin_time: "20:00", sleep_reminder_time: "08:00", sleep_reminder_enabled: true,
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -62,6 +64,82 @@ const NewSettings = () => {
     setSaved(true);
     setSaving(false);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleExportData = async () => {
+    if (!userId) return;
+    setExporting(true);
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const [
+        { data: preferences },
+        { data: messages },
+        { data: journalEntries },
+        { data: checkins },
+        { data: sleepLogs },
+        { data: weeklySummaries },
+        { data: appSettings },
+        { data: gratitudeEntries },
+      ] = await Promise.all([
+        supabase.from("user_preferences").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("messages").select("id, role, text, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("journal_entries").select("id, content, mood, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("daily_checkins").select("id, date, mood, activities, note, created_at").eq("user_id", userId).order("date"),
+        supabase.from("sleep_logs").select("id, date, sleep_hours, sleep_quality, sleep_time, wake_time, created_at").eq("user_id", userId).order("date"),
+        supabase.from("weekly_summaries").select("id, week_start, week_end, summary_text, created_at").eq("user_id", userId).order("created_at"),
+        supabase.from("user_settings").select("checkin_time, sleep_reminder_time, sleep_reminder_enabled, custom_activities, mood_labels").eq("user_id", userId).maybeSingle(),
+        supabase.from("gratitude_entries").select("id, content, created_at").eq("user_id", userId).order("created_at"),
+      ]);
+
+      const decryptedMessages = await Promise.all(
+        (messages ?? []).map(async m => ({ ...m, text: await decryptText(m.text, userId) }))
+      );
+      const decryptedJournal = await Promise.all(
+        (journalEntries ?? []).map(async e => ({ ...e, content: await decryptText(e.content, userId) }))
+      );
+      const decryptedCheckins = await Promise.all(
+        (checkins ?? []).map(async c => ({ ...c, note: c.note ? await decryptText(c.note, userId) : null }))
+      );
+      const decryptedSummaries = await Promise.all(
+        (weeklySummaries ?? []).map(async s => ({ ...s, summary_text: await decryptText(s.summary_text, userId) }))
+      );
+
+      const exportPayload = {
+        export_date: new Date().toISOString(),
+        export_format_version: "1.0",
+        account: {
+          email: authUser?.email ?? null,
+          registered_at: authUser?.created_at ?? null,
+          terms_accepted_at: preferences?.terms_accepted_at ?? null,
+        },
+        preferences: preferences ? {
+          therapy_type: preferences.therapy_type ?? null,
+          summary_focus: preferences.summary_focus ?? [],
+          terms_accepted_at: preferences.terms_accepted_at ?? null,
+        } : null,
+        app_settings: appSettings ?? null,
+        chat_messages: decryptedMessages,
+        journal_entries: decryptedJournal,
+        daily_checkins: decryptedCheckins,
+        sleep_logs: sleepLogs ?? [],
+        weekly_summaries: decryptedSummaries,
+        gratitude_entries: gratitudeEntries ?? [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nestai-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error("Export failed", err);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const logout = async () => {
@@ -178,6 +256,17 @@ const NewSettings = () => {
           marginBottom: 14, transition: "background 0.3s",
         }}>
           {saving ? "שומר..." : saved ? "✓ נשמר" : "שמור הגדרות"}
+        </button>
+
+        {/* Export data */}
+        <button onClick={handleExportData} disabled={exporting} style={{
+          width: "100%", padding: "13px", borderRadius: 14,
+          border: "1px solid #e2e8f0", background: "#fff",
+          color: "#475569", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+          marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          opacity: exporting ? 0.6 : 1,
+        }}>
+          {exporting ? "מייצא..." : "⬇ ייצוא הנתונים שלי"}
         </button>
 
         {/* Logout */}
