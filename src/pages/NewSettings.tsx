@@ -10,6 +10,11 @@ interface Settings {
   sleep_reminder_enabled: boolean;
 }
 
+interface SummaryPrefs {
+  weekly_time: string;
+  monthly_time: string;
+}
+
 const CHECKIN_PRESETS = ["07:00", "12:00", "18:00", "20:00", "22:00"];
 
 const NewSettings = () => {
@@ -20,6 +25,7 @@ const NewSettings = () => {
   const [settings, setSettings] = useState<Settings>({
     checkin_time: "20:00", sleep_reminder_time: "08:00", sleep_reminder_enabled: true,
   });
+  const [summaryPrefs, setSummaryPrefs] = useState<SummaryPrefs>({ weekly_time: "20:00", monthly_time: "20:00" });
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
   const [saved, setSaved]       = useState(false);
@@ -32,12 +38,14 @@ const NewSettings = () => {
       setUserId(session.user.id);
       setEmail(session.user.email ?? "");
 
-      const [{ data: s }, { data: sub }] = await Promise.all([
+      const [{ data: s }, { data: sub }, { data: prefs }] = await Promise.all([
         supabase.from("user_settings").select("*").eq("user_id", session.user.id).maybeSingle(),
         supabase.from("subscriptions").select("plan, is_active").eq("user_id", session.user.id).maybeSingle(),
+        supabase.from("user_preferences").select("summary_time, monthly_summary_time").eq("user_id", session.user.id).maybeSingle(),
       ]);
       if (s) setSettings({ checkin_time: s.checkin_time, sleep_reminder_time: s.sleep_reminder_time, sleep_reminder_enabled: s.sleep_reminder_enabled });
       if (sub) setPlan(sub.is_active ? sub.plan : null);
+      if (prefs) setSummaryPrefs({ weekly_time: prefs.summary_time ?? "20:00", monthly_time: prefs.monthly_summary_time ?? "20:00" });
       setLoading(false);
     })();
   }, [navigate]);
@@ -60,6 +68,12 @@ const NewSettings = () => {
       settings.sleep_reminder_enabled,
       settings.sleep_reminder_time
     );
+
+    await supabase.from("user_preferences").upsert({
+      user_id: userId,
+      summary_time: summaryPrefs.weekly_time,
+      monthly_summary_time: summaryPrefs.monthly_time,
+    }, { onConflict: "user_id" });
 
     setSaved(true);
     setSaving(false);
@@ -245,6 +259,33 @@ const NewSettings = () => {
               <input type="time" value={settings.sleep_reminder_time} onChange={e => setSettings(s => ({ ...s, sleep_reminder_time: e.target.value }))}
                 style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 16, fontFamily: "'Heebo', sans-serif", background: "#f8fafc" }} />
             )}
+          </div>
+        </div>
+
+        {/* Summaries card */}
+        <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid #e2e8f0", padding: "16px 18px", marginBottom: 14 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.5 }}>סיכומים</p>
+
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>📋 שעת שליחת סיכום שבועי</p>
+            <input
+              type="time"
+              value={summaryPrefs.weekly_time}
+              onChange={e => setSummaryPrefs(p => ({ ...p, weekly_time: e.target.value }))}
+              style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 16, fontFamily: "'Heebo', sans-serif", background: "#f8fafc" }}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#94a3b8" }}>נשלח בכל שבת בשעה הנבחרת</p>
+          </div>
+
+          <div>
+            <p style={{ margin: "0 0 8px", fontSize: 14, fontWeight: 700, color: "#0f172a" }}>📅 שעת שליחת סיכום חודשי</p>
+            <input
+              type="time"
+              value={summaryPrefs.monthly_time}
+              onChange={e => setSummaryPrefs(p => ({ ...p, monthly_time: e.target.value }))}
+              style={{ padding: "8px 12px", borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 16, fontFamily: "'Heebo', sans-serif", background: "#f8fafc" }}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#94a3b8" }}>נשלח ב-1 לחודש בשעה הנבחרת</p>
           </div>
         </div>
 

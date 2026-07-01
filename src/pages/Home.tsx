@@ -144,6 +144,11 @@ const Home = () => {
   const [note, setNote]             = useState("");
   const [savingCheckin, setSavingCheckin] = useState(false);
 
+  // Custom activities
+  const [customActivities, setCustomActivities] = useState<{ id: string; label: string; emoji: string }[]>([]);
+  const [showAddActivity, setShowAddActivity] = useState(false);
+  const [newActivityName, setNewActivityName] = useState("");
+
   const load = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate("/app/auth"); return; }
@@ -178,6 +183,7 @@ const Home = () => {
 
     const s = settingsRow ?? { checkin_time: "20:00", sleep_reminder_time: "08:00", sleep_reminder_enabled: true };
     setSettings(s);
+    if (Array.isArray(s.custom_activities)) setCustomActivities(s.custom_activities);
     const decryptCheckin = async (checkin: CheckinData | null) => {
       if (!checkin?.note) return checkin;
       return { ...checkin, note: await decryptText(checkin.note, uid) };
@@ -232,6 +238,21 @@ const Home = () => {
     setCheckin({ mood: selectedMood, activities: selectedActivities, note, created_at: new Date().toISOString() });
     setAppState("done");
     setSavingCheckin(false);
+  };
+
+  // ── Add custom activity ─────────────────────────────────────────────────────
+  const addCustomActivity = async () => {
+    const label = newActivityName.trim();
+    if (!label || !userId) return;
+    const newAct = { id: `custom_${Date.now()}`, label, emoji: "⭐" };
+    const updated = [...customActivities, newAct];
+    setCustomActivities(updated);
+    setNewActivityName("");
+    setShowAddActivity(false);
+    await supabase.from("user_settings").upsert(
+      { user_id: userId, custom_activities: updated, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
   };
 
   // ── Save quick journal entry ────────────────────────────────────────────────
@@ -441,7 +462,21 @@ const Home = () => {
                         </button>
                       );
                     })}
-                    <button onClick={() => {}} style={{
+                    {customActivities.map(act => {
+                      const on = selectedActivities.includes(act.id);
+                      return (
+                        <button key={act.id} onClick={() => setActivities(p => on ? p.filter(a => a !== act.id) : [...p, act.id])} style={{
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                          background: on ? "#ede9fe" : "#f8fafc",
+                          border: on ? "2px solid #6366f1" : "2px solid #e2e8f0",
+                          borderRadius: 12, padding: "10px 6px", cursor: "pointer", fontFamily: "'Heebo', sans-serif",
+                        }}>
+                          <span style={{ fontSize: 22 }}>{act.emoji}</span>
+                          <span style={{ fontSize: 10, color: on ? "#6366f1" : "#64748b", fontWeight: on ? 700 : 400 }}>{act.label}</span>
+                        </button>
+                      );
+                    })}
+                    <button onClick={() => setShowAddActivity(true)} style={{
                       display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
                       background: "#f8fafc", border: "2px dashed #e2e8f0",
                       borderRadius: 12, padding: "10px 6px", cursor: "pointer",
@@ -450,6 +485,21 @@ const Home = () => {
                       <span style={{ fontSize: 10, color: "#94a3b8" }}>הוסף</span>
                     </button>
                   </div>
+
+                  {showAddActivity && (
+                    <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+                      <input
+                        autoFocus
+                        value={newActivityName}
+                        onChange={e => setNewActivityName(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") addCustomActivity(); if (e.key === "Escape") { setShowAddActivity(false); setNewActivityName(""); }}}
+                        placeholder="שם הפעולה..."
+                        style={{ flex: 1, padding: "8px 12px", borderRadius: 10, border: "1px solid #6366f1", fontSize: 14, fontFamily: "'Heebo', sans-serif" }}
+                      />
+                      <button onClick={addCustomActivity} style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: "#6366f1", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>הוסף</button>
+                      <button onClick={() => { setShowAddActivity(false); setNewActivityName(""); }} style={{ padding: "8px 10px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 13, cursor: "pointer", fontFamily: "'Heebo', sans-serif" }}>ביטול</button>
+                    </div>
+                  )}
 
                   <textarea
                     placeholder="הוסף הערה (אופציונלי)..."

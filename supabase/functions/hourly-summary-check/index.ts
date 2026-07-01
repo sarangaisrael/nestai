@@ -138,14 +138,15 @@ async function generateAndSendSummary(
       return { success: true }; // Not an error, just no data
     }
 
-    // Fetch mood entries for the week
+    // Fetch daily check-ins for the week (redesign uses daily_checkins, not mood_entries)
+    const weekStartDate2 = weekStart.toISOString().slice(0, 10);
     const { data: moodEntries } = await supabase
-      .from("mood_entries")
-      .select("mood, created_at")
+      .from("daily_checkins")
+      .select("mood, activities, date")
       .eq("user_id", userId)
-      .gte("created_at", weekStart.toISOString())
-      .lte("created_at", now.toISOString())
-      .order("created_at", { ascending: true });
+      .gte("date", weekStartDate2)
+      .lte("date", nowDate)
+      .order("date", { ascending: true });
 
     // Fetch gratitude entries for the week
     const { data: gratitudeEntries } = await supabase
@@ -239,12 +240,14 @@ async function generateAndSendSummary(
         }).join('\n')}`
       : "";
 
-    // Format mood data for the prompt
+    // Format mood data for the prompt (daily_checkins.mood is 1–5 integer)
+    const moodLabels: Record<number, string> = { 1: '😔 קשה', 2: '😟 לא טוב', 3: '😐 בסדר', 4: '🙂 טוב', 5: '😊 מעולה' };
     const moodSummaryText = moodEntries && moodEntries.length > 0
       ? `\n\n=== מצבי רוח שדווחו השבוע (${moodEntries.length} דיווחים) ===\n${moodEntries.map((m: any) => {
-          const date = new Date(m.created_at).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'numeric' });
-          const moodMap: Record<string, string> = { happy: '😊 שמח/ה', anxious: '😰 חרד/ה', exhausted: '😩 מותש/ת', sad: '😢 עצוב/ה', calm: '😌 רגוע/ה' };
-          return `${date}: ${moodMap[m.mood] || m.mood}`;
+          const date = new Date(m.date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'numeric' });
+          const activitiesStr = Array.isArray(m.activities) && m.activities.length > 0
+            ? ` | פעולות: ${m.activities.join(', ')}` : '';
+          return `${date}: ${moodLabels[m.mood] || m.mood}${activitiesStr}`;
         }).join('\n')}`
       : "";
 
